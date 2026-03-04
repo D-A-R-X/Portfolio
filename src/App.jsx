@@ -23,6 +23,9 @@ const SKILL_BARS = [
   { name: "REST APIs", level: 64, cat: "Backend" },
   { name: "Vercel · Render", level: 76, cat: "Deployment" },
   { name: "Editing", level: 71, cat: "Media" },
+  { name: "Communication", level: 40, cat: "Skill" },
+  { name: "Management", level: 80, cat: "Skill" },
+  { name: "Creativity", level: 90, cat: "Skill" },
 ];
 
 const PROJECTS = [
