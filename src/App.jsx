@@ -323,7 +323,7 @@ function TechPiratesSection() {
   );
 }
 
-
+export default function Portfolio() {
   const [activeSection, setActiveSection] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
