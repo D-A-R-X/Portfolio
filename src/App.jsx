@@ -4,9 +4,9 @@ const NAV_LINKS = ["About", "Skills", "Projects", "Philosophy", "Contact"];
 
 const CONTACT_LINKS = [
   { label: "Email", value: "surya777dbs@gmail.com", href: "mailto:surya777dbs@gmail.com" },
-  { label: "WhatsApp", value: "WhatsApp", href: "https://wa.me/qr/U4KOUOEM4BFXA1" },
-  { label: "Instagram", value: "@itz._darx._", href: "https://www.instagram.com/itz._darx._?igsh=ajJweWQ5eDU2N2I3" },
+  { label: "GitHub", value: "github.com/D-A-R-X", href: "https://github.com/D-A-R-X" },
   { label: "LinkedIn", value: "Surya J", href: "https://www.linkedin.com/in/surya-j-194910306" },
+  { label: "WhatsApp", value: "Message me", href: "https://wa.me/qr/U4KOUOEM4BFXA1" },
 ];
 
 const SKILL_BARS = [
@@ -30,45 +30,60 @@ const SKILL_BARS = [
 
 const PROJECTS = [
   {
-    id: "01", name: "Mentorix", tag: "Behavioral Career Intelligence Engine",
-    problem: "Students receive generic career advice that ignores behavioral patterns and decision history.",
+    id: "01", name: "Mentorix", tag: "AI Career Intelligence System",
+    problem: "Students receive generic career advice ignoring behavioural patterns and decision history — static data fails to capture how a student actually evolves over time.",
     stack: ["Python", "FastAPI", "RandomForest", "SQLite", "HTML/CSS/JS"],
-    power: "A behavioral AI engine that analyzes academic and decision patterns to predict career instability.",
-    highlight: "Stability Index via momentum tracking, volatility detection, and track-flip analysis across sessions.",
+    power: "Built an AI-driven engine that analyses student behaviour patterns to predict career instability and recommend personalised career paths for multiple users.",
+    highlight: "Designed modular REST APIs for career prediction and behavioural analytics. RandomForest ML model with explainable AI layer generates reasoned recommendations — not just scores. Deployed on Render + Vercel.",
     repo: "https://github.com/D-A-R-X/mentorix-ai", repoLabel: "GitHub",
   },
   {
     id: "02", name: "Megatron", tag: "Modular Adaptive AI Control System",
-    problem: "Single-purpose AI systems lack modularity, making them brittle and hard to scale.",
+    problem: "Single-purpose AI systems are brittle — any new capability requires rewriting core logic, making them impossible to scale meaningfully.",
     stack: ["Python", "FastAPI", "HTML", "CSS", "JavaScript"],
-    power: "A modular AI controller that delegates tasks across specialized modules using centralized reasoning.",
-    highlight: "Central reasoning layer routes intent to isolated modules — structured output without core coupling.",
+    power: "Architected a modular AI controller with a central reasoning layer that analyses intent and delegates to specialised modules — new capabilities added without touching core logic.",
+    highlight: "Enables dynamic integration of AI modules for task automation and decision workflows. Each module returns structured output independently — extensible by design, not by accident.",
     repo: "https://github.com/D-A-R-X/Megatron", repoLabel: "GitHub",
   },
   {
-    id: "03", name: "Smart Campus", tag: "Academic Resource Management System",
-    problem: "Academic resources are fragmented across platforms, creating friction in access.",
+    id: "03", name: "Smart Campus", tag: "Academic Resource Management App",
+    problem: "Academic resources are fragmented across platforms — students waste time hunting for materials across WhatsApp groups, drives, and portals.",
     stack: ["Flutter", "Firebase Auth", "Firestore", "Firebase Storage"],
-    power: "A centralized mobile platform that securely delivers academic resources with offline accessibility.",
-    highlight: "Cloud-native architecture with local download — access continuity regardless of connectivity.",
+    power: "Built a cross-platform mobile app delivering centralised academic resources for multiple students and course materials — deployed to Google Play Store.",
+    highlight: "Integrated Firebase Auth, Firestore, and Cloud Storage for secure real-time content delivery. Supports scalable content distribution across semesters and departments with local offline download.",
     repo: "https://play.google.com/store/apps/details?id=com.schrodingerlab.curiosity", repoLabel: "Play Store",
   },
   {
     id: "04", name: "Fitcore", tag: "AI-Based Fitness Tracking System",
-    problem: "Most fitness apps rely on manual input, enabling data manipulation and inaccurate metrics.",
+    problem: "Most fitness apps rely on manual input — users manipulate their own data, generating inaccurate progress metrics and useless analytics.",
     stack: ["Flutter", "Firebase Auth", "Firestore"],
-    power: "A fitness tracking system with adaptive logic ensuring accurate, cheat-resistant progress tracking.",
-    highlight: "Dynamic experience-based leveling calculated from verified activity data, not self-reported figures.",
+    power: "Designing adaptive fitness progression logic using verified activity data and dynamic experience-based levelling — cheat-resistant by architecture.",
+    highlight: "Progress calculated from validated signals, not user-controlled inputs. Eliminates manual input manipulation at the data layer — levelling driven by verified activity metrics.",
     repo: null, repoLabel: "In Progress",
   },
   {
     id: "05", name: "Drive Track Mate", tag: "Intelligent Driving Monitoring System",
-    problem: "Passive dash cameras record without context, making critical event retrieval slow.",
+    problem: "Passive dash cameras record continuous footage without context — finding critical events means scrubbing hours of unstructured video.",
     stack: ["Android Interface", "Dash Camera Integration", "Event-Based Recording"],
-    power: "An intelligent driving monitor that captures and contextualizes critical events for safety.",
-    highlight: "Event-aware recording auto-tags sudden braking and abrupt maneuvers with contextual metadata.",
+    power: "Developed event-aware recording logic that auto-tags critical driving events with timestamps and contextual metadata — replacing unstructured footage with structured evidence.",
+    highlight: "Sudden braking and abrupt manoeuvres automatically identified and tagged. Reduces post-incident analysis from hours of footage to targeted event retrieval.",
     repo: "https://github.com/D-A-R-X/drive-track-mate", repoLabel: "GitHub",
   },
+];
+
+const CERTS = [
+  { issuer: "Oracle", name: "OCI 2023 Certified", full: "Foundations Associate", date: "Jun 2024", valid: "Valid until Jun 2026", id: "100672960OCIF2023CA", color: "#C74B00" },
+  { issuer: "NxtWave", name: "AI for Students", full: "Build Your Own Generative AI Model", date: "Sep 2024", valid: "", id: "", color: "#E31B1B" },
+  { issuer: "Google", name: "Digital Unlocked", full: "Fundamentals of Digital Marketing", date: "Jan 2021", valid: "", id: "6A5 5B9 RR5", color: "#4285F4" },
+];
+
+const ACHIEVEMENTS = [
+  { icon: "◈", title: "Published Research Paper", detail: "'AI in Retail Marketing' — Conference at PSG College of Arts & Science" },
+  { icon: "◈", title: "MSME Hackathon", detail: "Project presentation — Rathinam Institute of Technology" },
+  { icon: "◈", title: "3+ National Hackathons", detail: "Project presentations across national-level competitions" },
+  { icon: "◈", title: "MERN Stack Workshop", detail: "Explore MERN Stack: Hands-on Workshop — CIT Coimbatore, Feb 2025" },
+  { icon: "◈", title: "MERN Stack Internship", detail: "VEI Technologies — 30-day full-stack development internship" },
+  { icon: "◈", title: "Web Development Internship", detail: "NoviTech — 15-day intensive web development program" },
 ];
 
 function useInView(threshold = 0.15) {
@@ -368,20 +383,27 @@ export default function Portfolio() {
             Surya J<span style={{ color: "#E31B1B" }}>.</span>
           </h1>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.8rem" }}>
-            {["Vibe Coder", "AI Systems Builder", "Web App Developer", "Prompt Engineer"].map(tag => (
+            {["Software Developer", "AI Systems Builder", "Full-Stack Developer", "Prompt Engineer"].map(tag => (
               <span key={tag} style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#E31B1B", border: "1px solid #2a2a2a", padding: "0.28rem 0.65rem", letterSpacing: "0.08em", background: "rgba(227,27,27,0.04)" }}>{tag}</span>
             ))}
           </div>
           <div style={{ display: "flex", alignItems: mobile ? "flex-start" : "flex-end", justifyContent: "space-between", flexDirection: mobile ? "column" : "row", gap: "1.5rem" }}>
             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: mobile ? "1.05rem" : "clamp(1.1rem,2.5vw,1.4rem)", fontWeight: 300, color: "#888", maxWidth: "540px", lineHeight: 1.65, fontStyle: "italic" }}>
-              Building intelligent software systems and web applications — powered by AI tools, vibe coding, and a strong sense of what actually needs to be built.
+              Software developer specialising in AI-powered applications and full-stack systems — building production-ready software with clear architectural intent.
             </p>
-            {!mobile && (
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#444", lineHeight: 2, textAlign: "right" }}>
-                <div>Madurai, Tamil Nadu</div>
-                <div>India · D-A-R-X</div>
-              </div>
-            )}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: mobile ? "flex-start" : "flex-end", gap: "1rem" }}>
+              <a href="/Surya_J_Resume.pdf" download
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "#E31B1B", color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", letterSpacing: "0.12em", textTransform: "uppercase", padding: "0.7rem 1.4rem", textDecoration: "none", transition: "background 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#c41515"}
+                onMouseLeave={e => e.currentTarget.style.background = "#E31B1B"}
+              >↓ Download CV</a>
+              {!mobile && (
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#444", lineHeight: 2, textAlign: "right" }}>
+                  <div>Madurai, Tamil Nadu</div>
+                  <div>India · D-A-R-X</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div style={{ position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -402,17 +424,17 @@ export default function Portfolio() {
                 Systems thinker.<br /><span style={{ color: "#E31B1B", fontStyle: "italic" }}>Intelligence architect.</span>
               </h2>
               <p style={{ fontSize: "1rem", color: "#888", lineHeight: 1.9, marginBottom: "1.2rem", fontWeight: 300 }}>
-                I'm a Computer Science Engineering student at Dhanalakshmi Srinivasan College of Engineering, Coimbatore, graduating in 2026. My work sits at the intersection of backend systems, applied machine learning, and behavioral data analysis.
+                I'm a Computer Science Engineering student at Dhanalakshmi Srinivasan College of Engineering, Coimbatore, graduating in 2026. I specialise in AI-powered applications and full-stack development — with hands-on experience across Python, FastAPI, Flutter, and Firebase.
               </p>
               <p style={{ fontSize: "1rem", color: "#888", lineHeight: 1.9, fontWeight: 300 }}>
-                I build web applications and AI systems using a vibe coding approach — leveraging AI tools and prompt engineering to ship faster and smarter. I focus on architecture and outcomes, using the best available tools to get there without unnecessary friction.
+                My projects span AI career intelligence engines, modular AI control systems, mobile resource platforms, and intelligent driving monitors — each built with a defined architectural goal and shipped to production. I leverage modern AI tools to move faster without sacrificing engineering clarity.
               </p>
             </FadeIn>
             <FadeIn delay={0.2}>
               <div style={{ border: "1px solid #1e1e1e", padding: "1.8rem", background: "#080808", marginBottom: "1.5rem" }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#E31B1B", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>How I build</div>
                 <p style={{ fontSize: "0.93rem", color: "#999", lineHeight: 1.8, fontWeight: 300 }}>
-                  I use AI tools — Cursor, Claude, ChatGPT, GitHub Copilot — as force multipliers. A clear problem definition + the right prompt + solid architectural thinking = production-grade software, faster. This is vibe coding done right.
+                  I use AI-assisted development tools — Cursor, Claude, GitHub Copilot — as engineering force multipliers. Clear problem definition, solid architecture, and the right tooling equals production-grade software, shipped faster.
                 </p>
                 <div style={{ marginTop: "1.2rem", display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                   {["Cursor", "Claude", "ChatGPT", "Copilot", "v0"].map(t => (
@@ -455,6 +477,34 @@ export default function Portfolio() {
         </div>
       </section>
 
+      {/* ── TECHNICAL INTERESTS ── */}
+      <section style={{ padding: mobile ? "3rem 1.5rem" : "4rem 4rem", borderTop: "1px solid #111" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "2.5rem" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase" }}>Technical Interests</div>
+              <div style={{ flex: 1, height: "1px", background: "#1a1a1a" }} />
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.8rem" }}>
+              {["AI Systems & Applications", "Backend Architecture", "Automation Systems", "AI Product Development", "Full-Stack Engineering", "Behavioural Data Analysis", "Intelligent Monitoring"].map((interest, i) => (
+                <span key={interest} style={{
+                  fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: i === 0 ? "#E31B1B" : "#666",
+                  border: `1px solid ${i === 0 ? "#E31B1B33" : "#1a1a1a"}`,
+                  padding: "0.5rem 1.1rem", letterSpacing: "0.06em",
+                  background: i === 0 ? "rgba(227,27,27,0.04)" : "transparent",
+                  transition: "color 0.2s, border-color 0.2s",
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.color = "#E31B1B"; e.currentTarget.style.borderColor = "#E31B1B33"; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = i === 0 ? "#E31B1B" : "#666"; e.currentTarget.style.borderColor = i === 0 ? "#E31B1B33" : "#1a1a1a"; }}
+                >{interest}</span>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
       {/* ── PROJECTS ── */}
       <section id="projects" style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", borderTop: "1px solid #111" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -490,8 +540,8 @@ export default function Portfolio() {
             {[
               ["Architecture before features", "A system without a clear structural rationale accumulates complexity rather than capability. I start with how components relate before writing a single line."],
               ["Modularity as a first principle", "Each subsystem should be independently legible, testable, and extensible. Coupling is a liability. I design for the maintainer, not just for the demo."],
-              ["Data as a design input", "Behavioral data, usage patterns, and decision histories are engineering inputs — not just analytics. My systems treat behavioral signals as first-class citizens."],
-              ["AI as a tool, not a crutch", "Vibe coding means using AI to move faster — not to avoid thinking. The architecture, the problem definition, and the judgment still come from the engineer."],
+              ["Data as a design input", "Behavioural data, usage patterns, and decision histories are engineering inputs — not just analytics. My systems treat behavioural signals as first-class citizens."],
+              ["Ship real products, not prototypes", "The gap between a working demo and production software is where most projects die. Every system I build is designed to be deployed, maintained, and extended — not just presented."],
             ].map(([title, body], i) => (
               <FadeIn key={title} delay={i * 0.1}>
                 <div style={{ padding: "1.8rem", border: "1px solid #111", transition: "border-color 0.3s, background 0.3s", height: "100%" }}
@@ -532,6 +582,65 @@ export default function Portfolio() {
               ))}
             </div>
           </FadeIn>
+        </div>
+      </section>
+
+      {/* ── CERTIFICATIONS ── */}
+      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", borderTop: "1px solid #111" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "4rem" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase" }}>Certifications</div>
+              <div style={{ flex: 1, height: "1px", background: "#1a1a1a" }} />
+            </div>
+          </FadeIn>
+          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3, 1fr)", gap: "1px", background: "#111" }}>
+            {CERTS.map((cert, i) => (
+              <FadeIn key={cert.name} delay={i * 0.1}>
+                <div style={{ background: "#0a0a0a", padding: mobile ? "2rem 1.5rem" : "2.5rem", transition: "background 0.3s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#0e0e0e"}
+                  onMouseLeave={e => e.currentTarget.style.background = "#0a0a0a"}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.2rem" }}>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: cert.color, letterSpacing: "0.15em", textTransform: "uppercase", border: `1px solid ${cert.color}22`, padding: "0.2rem 0.6rem" }}>{cert.issuer}</span>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#444" }}>{cert.date}</span>
+                  </div>
+                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", fontWeight: 700, color: "#fff", marginBottom: "0.4rem" }}>{cert.name}</h3>
+                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "0.95rem", color: "#888", fontStyle: "italic", marginBottom: "1rem", lineHeight: 1.5 }}>{cert.full}</p>
+                  {cert.valid && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#3a3a3a", marginBottom: "0.3rem" }}>{cert.valid}</div>}
+                  {cert.id && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#2e2e2e" }}>ID: {cert.id}</div>}
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ACHIEVEMENTS ── */}
+      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "#050505", borderTop: "1px solid #111" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "4rem" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase" }}>Achievements & Experience</div>
+              <div style={{ flex: 1, height: "1px", background: "#1a1a1a" }} />
+            </div>
+          </FadeIn>
+          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: "1px", background: "#111" }}>
+            {ACHIEVEMENTS.map((a, i) => (
+              <FadeIn key={a.title} delay={i * 0.07}>
+                <div style={{ background: "#050505", padding: "1.8rem 2rem", display: "flex", gap: "1.2rem", alignItems: "flex-start", transition: "background 0.3s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#080808"}
+                  onMouseLeave={e => e.currentTarget.style.background = "#050505"}
+                >
+                  <span style={{ color: "#E31B1B", fontSize: "0.8rem", flexShrink: 0, marginTop: "2px", fontFamily: "'DM Mono', monospace" }}>{a.icon}</span>
+                  <div>
+                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem", fontWeight: 700, color: "#ddd", marginBottom: "0.4rem" }}>{a.title}</h3>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "0.92rem", color: "#666", lineHeight: 1.6, fontStyle: "italic" }}>{a.detail}</p>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
         </div>
       </section>
 
