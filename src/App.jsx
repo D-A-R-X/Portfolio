@@ -10,12 +10,12 @@ const CONTACT_LINKS = [
 ];
 
 const SKILL_BARS = [
-  { name: "Python", level: 85, cat: "Language" },
-  { name: "Frontend", level: 78, cat: "Language" },
-  { name: "JavaScript", level: 63, cat: "Language" },
-  { name: "FastAPI", level: 66, cat: "Framework" },
-  { name: "Flutter", level: 57, cat: "Framework" },
-  { name: "Firebase", level: 70, cat: "Framework" },
+  { name: "Python", level: 85, cat: "Languages" },
+  { name: "Frontend", level: 78, cat: "Languages" },
+  { name: "JavaScript", level: 63, cat: "Languages" },
+  { name: "FastAPI", level: 66, cat: "Frameworks" },
+  { name: "Flutter", level: 57, cat: "Frameworks" },
+  { name: "Firebase", level: 70, cat: "Frameworks" },
   { name: "Vibe Coding", level: 97, cat: "Approach" },
   { name: "Prompt Engineering", level: 98, cat: "AI / GenAI" },
   { name: "Generative AI", level: 88, cat: "AI / GenAI" },
@@ -444,7 +444,7 @@ export default function Portfolio() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem" }}>
                 {[
-                  ["BE · CSE", "Dhanalakshmi Srinivasan"],
+                  ["BE · CSE", "Dhanalakshmi Srinivasan College of Engineering"],
                   ["2022 – 2026", "Expected Graduation"],
                   ["Madurai, TN", "Native"],
                   ["D-A-R-X", "GitHub Handle"],
@@ -594,21 +594,33 @@ export default function Portfolio() {
               <div style={{ flex: 1, height: "1px", background: "#1a1a1a" }} />
             </div>
           </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3, 1fr)", gap: "1px", background: "#111" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {CERTS.map((cert, i) => (
               <FadeIn key={cert.name} delay={i * 0.1}>
-                <div style={{ background: "#0a0a0a", padding: mobile ? "2rem 1.5rem" : "2.5rem", transition: "background 0.3s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#0e0e0e"}
-                  onMouseLeave={e => e.currentTarget.style.background = "#0a0a0a"}
+                <div style={{
+                  display: "grid", gridTemplateColumns: mobile ? "1fr" : "140px 1fr auto",
+                  alignItems: "center", gap: mobile ? "0.8rem" : "2rem",
+                  border: "1px solid #1a1a1a", padding: mobile ? "1.5rem" : "1.8rem 2rem",
+                  transition: "border-color 0.3s, background 0.3s",
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = cert.color + "55"; e.currentTarget.style.background = "#0d0d0d"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#1a1a1a"; e.currentTarget.style.background = "transparent"; }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.2rem" }}>
-                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: cert.color, letterSpacing: "0.15em", textTransform: "uppercase", border: `1px solid ${cert.color}22`, padding: "0.2rem 0.6rem" }}>{cert.issuer}</span>
+                  {/* Issuer badge */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", color: cert.color, letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>{cert.issuer}</span>
                     <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#444" }}>{cert.date}</span>
                   </div>
-                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", fontWeight: 700, color: "#fff", marginBottom: "0.4rem" }}>{cert.name}</h3>
-                  <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "0.95rem", color: "#888", fontStyle: "italic", marginBottom: "1rem", lineHeight: 1.5 }}>{cert.full}</p>
-                  {cert.valid && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#3a3a3a", marginBottom: "0.3rem" }}>{cert.valid}</div>}
-                  {cert.id && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#2e2e2e" }}>ID: {cert.id}</div>}
+                  {/* Title + subtitle */}
+                  <div>
+                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: mobile ? "1rem" : "1.15rem", fontWeight: 700, color: "#fff", marginBottom: "0.3rem" }}>{cert.name}</h3>
+                    <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "0.92rem", color: "#777", fontStyle: "italic" }}>{cert.full}</p>
+                  </div>
+                  {/* Meta */}
+                  <div style={{ textAlign: mobile ? "left" : "right" }}>
+                    {cert.valid && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#3a3a3a", marginBottom: "0.3rem", whiteSpace: "nowrap" }}>{cert.valid}</div>}
+                    {cert.id && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#2e2e2e", whiteSpace: "nowrap" }}>ID: {cert.id}</div>}
+                  </div>
                 </div>
               </FadeIn>
             ))}
