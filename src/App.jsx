@@ -11,17 +11,18 @@ const CONTACT_LINKS = [
 
 const SKILL_BARS = [
   { name: "Python", level: 85, cat: "Language" },
-  { name: "JavaScript", level: 80, cat: "Language" },
-  { name: "Dart", level: 72, cat: "Language" },
-  { name: "FastAPI", level: 82, cat: "Framework" },
-  { name: "Flutter", level: 75, cat: "Framework" },
-  { name: "Firebase", level: 78, cat: "Framework" },
-  { name: "Vibe Coding", level: 95, cat: "Approach" },
-  { name: "Prompt Engineering", level: 90, cat: "AI / GenAI" },
+  { name: "Frontend", level: 78, cat: "Language" },
+  { name: "JavaScript", level: 63, cat: "Language" },
+  { name: "FastAPI", level: 66, cat: "Framework" },
+  { name: "Flutter", level: 57, cat: "Framework" },
+  { name: "Firebase", level: 70, cat: "Framework" },
+  { name: "Vibe Coding", level: 97, cat: "Approach" },
+  { name: "Prompt Engineering", level: 98, cat: "AI / GenAI" },
   { name: "Generative AI", level: 88, cat: "AI / GenAI" },
-  { name: "Machine Learning", level: 70, cat: "AI / GenAI" },
-  { name: "REST APIs", level: 84, cat: "Backend" },
+  { name: "Machine Learning", level: 60, cat: "AI / GenAI" },
+  { name: "REST APIs", level: 64, cat: "Backend" },
   { name: "Vercel · Render", level: 76, cat: "Deployment" },
+  { name: "Editing", level: 71, cat: "Media" },
 ];
 
 const PROJECTS = [
