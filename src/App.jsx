@@ -44,7 +44,7 @@ const PROJECTS = [
     stack: ["Python", "FastAPI", "RandomForest", "SQLite", "HTML/CSS/JS"],
     power: "Built an AI-driven engine that analyses student behaviour patterns to predict career instability and recommend personalised career paths for multiple users.",
     highlight: "Designed modular REST APIs for career prediction and behavioural analytics. RandomForest ML model with explainable AI layer generates reasoned recommendations — not just scores. Deployed on Render + Vercel.",
-    repo: "https://github.com/D-A-R-X/mentorix-ai", repoLabel: "GitHub",
+    repo: "https://mentorix-ai.vercel.app/landing.html", repoLabel: "Web Link",
   },
   {
     id: "02", name: "Megatron", tag: "Modular Adaptive AI Control System",
