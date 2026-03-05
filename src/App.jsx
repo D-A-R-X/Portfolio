@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -402,25 +402,7 @@ export default function Portfolio() {
       {/* ── HERO ── */}
       <section id="about" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: mobile ? "0 1.5rem 4rem" : "0 4rem 6rem", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, zIndex: 0, backgroundImage: "linear-gradient(rgba(227,27,27,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(227,27,27,0.04) 1px,transparent 1px)", backgroundSize: "80px 80px" }} />
-        {!mobile && (
-          <div style={{ position: "absolute", top: "50%", right: "7%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem", zIndex: 2 }}>
-            {/* Photo */}
-            <div style={{
-              width: "160px", height: "200px",
-              overflow: "hidden",
-              border: "1px solid #E31B1B",
-              boxShadow: "0 0 40px rgba(227,27,27,0.12), 4px 4px 0px #E31B1B",
-              position: "relative",
-            }}>
-              <img src={PHOTO_B64} alt="Surya J"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", filter: "contrast(1.08) brightness(1.05) grayscale(0.15)", display: "block" }}
-              />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(transparent 60%, rgba(10,10,10,0.6))" }} />
-            </div>
-            {/* Red line below */}
-            <div style={{ width: "1px", height: "80px", background: "linear-gradient(#E31B1B, transparent)" }} />
-          </div>
-        )}
+
         <div style={{ position: "relative", zIndex: 1 }}>
           {/* Profile photo — square, fades+shrinks out as user scrolls */}
           <div style={{
@@ -453,7 +435,39 @@ export default function Portfolio() {
             </div>
           </div>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", color: "#E31B1B", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "1.2rem" }}>
-            — CSE Student · 2022–2026
+{(() => {
+              const CYCLE_ITEMS = [
+                "— CSE Student · 2022–2026",
+                "— Gamer",
+                "— Vibe Coder",
+                "— Music & Driving",
+                "— Exploring AI Tools",
+              ];
+              const [cycleIdx, setCycleIdx] = React.useState(0);
+              const [visible, setVisible] = React.useState(true);
+              React.useEffect(() => {
+                const interval = setInterval(() => {
+                  setVisible(false);
+                  setTimeout(() => {
+                    setCycleIdx(i => (i + 1) % CYCLE_ITEMS.length);
+                    setVisible(true);
+                  }, 350);
+                }, 2200);
+                return () => clearInterval(interval);
+              }, []);
+              return (
+                <div style={{
+                  fontFamily: "'DM Mono', monospace", fontSize: "0.65rem",
+                  color: "#E31B1B", letterSpacing: "0.18em", textTransform: "uppercase",
+                  marginBottom: "1.2rem", height: "1rem",
+                  opacity: visible ? 1 : 0,
+                  transform: visible ? "translateY(0)" : "translateY(-6px)",
+                  transition: "opacity 0.35s ease, transform 0.35s ease",
+                }}>
+                  {CYCLE_ITEMS[cycleIdx]}
+                </div>
+              );
+            })()}
           </div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: mobile ? "clamp(3.5rem,18vw,5.5rem)" : "clamp(4rem,10vw,9rem)", fontWeight: 900, lineHeight: 0.9, letterSpacing: "-0.02em", marginBottom: "1.8rem" }}>
             Surya J<span style={{ color: "#E31B1B" }}>.</span>
@@ -796,6 +810,8 @@ export default function Portfolio() {
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#2a2a2a" }}>© 2025 Surya J</div>
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#2a2a2a" }}>DARX · CSE · 2026</div>
       </footer>
+    <Analytics />
+    <SpeedInsights />
     <Analytics />
     <SpeedInsights />
     </div>
