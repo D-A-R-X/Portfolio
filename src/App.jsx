@@ -16,7 +16,7 @@ const NAV_LINKS = ["About", "Skills", "Projects", "Cruza", "Contact"];
 const CONTACT_LINKS = [
   { label: "Email",    value: "surya777dbs@gmail.com", href: "mailto:surya777dbs@gmail.com" },
   { label: "GitHub",   value: "github.com/D-A-R-X",    href: "https://github.com/D-A-R-X" },
-  { label: "LinkedIn", value: "Surya J",                href: "https://www.linkedin.com/in/surya-j-194910306" },
+  { label: "LinkedIn", value: "Surya",                href: "https://www.linkedin.com/in/surya-j-194910306" },
   { label: "WhatsApp", value: "Message me",             href: "https://wa.me/qr/U4KOUOEM4BFXA1" },
 ];
 
@@ -269,7 +269,7 @@ function CruzaSection({ mobile }) {
   const dots = ".".repeat((tick % 3) + 1).padEnd(3, "\u00a0");
 
   const founders = [
-    { name: "Surya J",      role: "Systems & Product Engineer", me: true  },
+    { name: "Surya",      role: "Systems & Product Engineer", me: true  },
     { name: "Buvanashri",   role: "Product Strategy",           me: false },
     { name: "Shajith",      role: "Operations & Project Mgmt",  me: false },
   ];
@@ -357,7 +357,7 @@ function CruzaSection({ mobile }) {
                     <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.55rem", color: "#555", marginTop: "0.15rem", letterSpacing: "0.06em" }}>{f.role}</div>
                   </div>
                   {f.me && (
-                    <span style={{ fontFamily: "DM Mono, monospace", fontSize: "0.52rem", color: "#2dd4bf", border: "1px solid #1e2a28", padding: "0.18rem 0.5rem", letterSpacing: "0.08em", flexShrink: 0 }}>You</span>
+                    <span style={{ fontFamily: "DM Mono, monospace", fontSize: "0.52rem", color: "#2dd4bf", border: "1px solid #1e2a28", padding: "0.18rem 0.5rem", letterSpacing: "0.08em", flexShrink: 0 }}>ME</span>
                   )}
                 </div>
               ))}
@@ -447,7 +447,7 @@ export default function Portfolio() {
             opacity: scrollY > 300 ? 1 : 0,
             transition: "width 0.5s cubic-bezier(0.34,1.56,0.64,1), height 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s",
           }}>
-            <img src={PHOTO_B64} alt="Surya J" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }} />
+            <img src={PHOTO_B64} alt="Surya" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }} />
           </div>
         </div>
         {mobile ? (
@@ -496,7 +496,7 @@ export default function Portfolio() {
           }}>
             <div style={{ position: "absolute", top: 6, left: 6, width: mobile ? "96px" : "126px", height: mobile ? "96px" : "126px", background: "rgba(227,27,27,0.5)", zIndex: 0 }} />
             <div style={{ position: "relative", zIndex: 1, width: mobile ? "96px" : "126px", height: mobile ? "96px" : "126px", overflow: "hidden", border: "2px solid #E31B1B" }}>
-              <img src={PHOTO_B64} alt="Surya J" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }} />
+              <img src={PHOTO_B64} alt="Surya" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }} />
             </div>
           </div>
 
@@ -506,7 +506,7 @@ export default function Portfolio() {
           </div>
 
           <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "clamp(3.2rem,16vw,5rem)" : "clamp(4rem,10vw,9rem)", fontWeight: 900, lineHeight: 0.9, letterSpacing: "-0.02em", marginBottom: "1.6rem" }}>
-            Surya J<span style={{ color: "#E31B1B" }}>.</span>
+            Surya<span style={{ color: "#E31B1B" }}>.</span>
           </h1>
 
           {/* Tags */}
@@ -534,7 +534,7 @@ export default function Portfolio() {
 
           {/* Stats row */}
           <div style={{ display: "flex", gap: mobile ? "1.5rem" : "3rem", marginTop: mobile ? "2.5rem" : "4rem", paddingTop: "2rem", borderTop: "1px solid #1a1a1a", flexWrap: "wrap" }}>
-            {[[ "5+", "Projects Built" ], [ "2026", "Graduating" ]].map(([v, l]) => (
+            {[[ "5+", "Projects being Built" ], [ "2026", "Graduating" ]].map(([v, l]) => (
               <div key={l}>
                 <div style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "1.5rem" : "2rem", fontWeight: 900, color: "#fff" }}>{v}</div>
                 <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.55rem", color: "#555", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "0.15rem" }}>{l}</div>
@@ -556,7 +556,7 @@ export default function Portfolio() {
                 Building systems that<br /><span style={{ color: "#E31B1B", fontStyle: "italic" }}>actually work.</span>
               </h2>
               <p style={{ color: "#888", lineHeight: 1.85, fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-                I'm Surya J (DARX) — a CSE student at DSCE Coimbatore (2022–2026). I build AI-powered systems and full-stack applications using Python, FastAPI, Flutter, and modern deployment tools.
+                I'm Surya (DARX) — a CSE student at DSCE Coimbatore (2022–2026). I build AI-powered systems and full-stack applications using Python, FastAPI, Flutter, and modern deployment tools.
               </p>
               <p style={{ color: "#666", lineHeight: 1.85, fontSize: "0.88rem" }}>
                 My approach is deliberate: understand the problem deeply before writing any code. I'm also the co-founder of Cruza — an independent software startup building intelligent systems that solve real problems.
@@ -773,7 +773,7 @@ export default function Portfolio() {
 
       {/* ── FOOTER ── */}
       <footer style={{ padding: mobile ? "1.5rem" : "2rem 4rem", borderTop: "1px solid #111", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
-        <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.58rem", color: "#2a2a2a" }}>© 2025 Surya J</div>
+        <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.58rem", color: "#2a2a2a" }}>© 2026 Surya </div>
         <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.58rem", color: "#2a2a2a" }}>DARX · CSE · 2026</div>
       </footer>
 
