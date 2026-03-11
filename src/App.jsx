@@ -729,18 +729,24 @@ export default function Portfolio() {
       <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "#0a0a0a", borderTop: "1px solid #111" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <FadeIn>
-            <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "2.5rem" }}>Achievements & Experience</div>
+            <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem" }}>Achievements & Experience</div>
           </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3, 1fr)", gap: 0, border: "1px solid #1a1a1a" }}>
+          <FadeIn delay={0.05}>
+            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "clamp(2rem,10vw,3rem)" : "clamp(2.5rem,5vw,3.8rem)", fontWeight: 900, lineHeight: 1, marginBottom: "3rem" }}>
+              What I've<br /><span style={{ color: "#E31B1B", fontStyle: "italic" }}>done.</span>
+            </h2>
+          </FadeIn>
+          <div style={{ display: "flex", flexDirection: "column", borderTop: "1px solid #1a1a1a" }}>
             {ACHIEVEMENTS.map((a, i) => (
-              <FadeIn key={a.title} delay={i * 0.07}>
-                <div style={{ padding: mobile ? "1.5rem" : "2rem 1.8rem", borderRight: !mobile && i % 3 < 2 ? "1px solid #1a1a1a" : "none", borderBottom: mobile && i < ACHIEVEMENTS.length - 1 ? "1px solid #1a1a1a" : (!mobile && i < 3 ? "1px solid #1a1a1a" : "none"), transition: "background 0.3s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#0d0d0d"}
+              <FadeIn key={a.title} delay={i * 0.06}>
+                <div
+                  style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "48px 1fr 2fr", alignItems: "center", gap: mobile ? "0.4rem" : "2.5rem", padding: mobile ? "1.5rem 0" : "1.8rem 0", borderBottom: "1px solid #1a1a1a", transition: "background 0.25s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(227,27,27,0.02)"}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                 >
-                  <div style={{ color: "#E31B1B", fontSize: "0.8rem", marginBottom: "0.7rem" }}>{a.icon}</div>
-                  <div style={{ fontFamily: "Playfair Display, serif", fontSize: "0.92rem", fontWeight: 700, marginBottom: "0.5rem", color: "#ddd" }}>{a.title}</div>
-                  <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#555", lineHeight: 1.65 }}>{a.detail}</div>
+                  <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.54rem", color: "#333", letterSpacing: "0.12em" }}>0{i + 1}</div>
+                  <div style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "0.95rem" : "1.05rem", fontWeight: 700, color: "#ddd" }}>{a.title}</div>
+                  <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.62rem", color: "#555", lineHeight: 1.65 }}>{a.detail}</div>
                 </div>
               </FadeIn>
             ))}
