@@ -479,21 +479,10 @@ export default function Portfolio() {
       )}
 
       {/* ── HERO ── */}
-      <section id="about" style={{ minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: mobile ? "0 1.5rem 4.5rem" : "0 4rem 6rem", position: "relative", overflow: "hidden" }}>
+      <section id="about" style={{ minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: mobile ? "5rem 1.5rem 4.5rem" : "6rem 4rem 6rem", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, zIndex: 0, backgroundImage: "linear-gradient(rgba(227,27,27,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(227,27,27,0.03) 1px,transparent 1px)", backgroundSize: "80px 80px" }} />
         {/* Parallax ambient orb */}
         <div style={{ position: "absolute", top: "20%", right: "20%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(227,27,27,0.06) 0%, transparent 65%)", transform: `translateY(${scrollY * 0.15}px)`, pointerEvents: "none", zIndex: 0 }} />
-
-        {/* Right-side photo — desktop only */}
-        {!mobile && (
-          <div style={{ position: "absolute", top: "50%", right: "7%", transform: "translateY(-50%)", zIndex: 2 }}>
-            <div style={{ width: "155px", height: "195px", overflow: "hidden", border: "1px solid #E31B1B", boxShadow: "4px 4px 0px #E31B1B, 0 0 40px rgba(227,27,27,0.12)", position: "relative" }}>
-              <img src={PHOTO_B64} alt="Surya J" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", filter: "contrast(1.08) brightness(1.05)", display: "block" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(transparent 60%, rgba(10,10,10,0.6))" }} />
-            </div>
-            <div style={{ width: "1px", height: "80px", background: "linear-gradient(#E31B1B, transparent)", margin: "0 auto" }} />
-          </div>
-        )}
 
         <div style={{ position: "relative", zIndex: 1 }}>
           {/* Square photo — scroll fade */}
@@ -591,7 +580,7 @@ export default function Portfolio() {
               </div>
             </FadeIn>
           </div>
-        </div>
+        </div> 
       </section>
 
       {/* ── SKILLS ── */}
