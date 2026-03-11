@@ -545,7 +545,7 @@ export default function Portfolio() {
 
           {/* Stats row */}
           <div style={{ display: "flex", gap: mobile ? "1.5rem" : "3rem", marginTop: mobile ? "2.5rem" : "4rem", paddingTop: "2rem", borderTop: "1px solid #1a1a1a", flexWrap: "wrap" }}>
-            {[["7.43", "CGPA / 10"], ["7th", "Semester"], ["5+", "Projects Built"], ["2026", "Graduating"]].map(([v, l]) => (
+            {[[ "5+", "Projects Built" ], [ "2026", "Graduating" ]].map(([v, l]) => (
               <div key={l}>
                 <div style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "1.5rem" : "2rem", fontWeight: 900, color: "#fff" }}>{v}</div>
                 <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.55rem", color: "#555", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "0.15rem" }}>{l}</div>
@@ -567,7 +567,7 @@ export default function Portfolio() {
                 Building systems that<br /><span style={{ color: "#E31B1B", fontStyle: "italic" }}>actually work.</span>
               </h2>
               <p style={{ color: "#888", lineHeight: 1.85, fontSize: "0.9rem", marginBottom: "1.5rem" }}>
-                I'm Surya J (DARX) — a CSE student at DSCE Coimbatore (2022–2026), CGPA 7.43/10. I build AI-powered systems and full-stack applications using Python, FastAPI, Flutter, and modern deployment tools.
+                I'm Surya J (DARX) — a CSE student at DSCE Coimbatore (2022–2026). I build AI-powered systems and full-stack applications using Python, FastAPI, Flutter, and modern deployment tools.
               </p>
               <p style={{ color: "#666", lineHeight: 1.85, fontSize: "0.88rem" }}>
                 My approach is deliberate: understand the problem deeply before writing any code. I'm also the co-founder of Cruza — an independent software startup building intelligent systems that solve real problems.
@@ -578,14 +578,12 @@ export default function Portfolio() {
                 {[
                   ["College", "DSCE, Coimbatore"],
                   ["Degree", "B.E. CSE"],
-                  ["CGPA", "7.43 / 10"],
-                  ["Semester", "7th (2025–26)"],
                   ["Batch", "2022 – 2026"],
                   ["DOB", "31 Aug 2004"],
                   ["Location", "Coimbatore, TN"],
                   ["Startup", "Cruza"],
                 ].map(([k, v], i) => (
-                  <div key={k} style={{ padding: "1rem 1.2rem", borderRight: i % 2 === 0 ? "1px solid #1a1a1a" : "none", borderBottom: i < 6 ? "1px solid #1a1a1a" : "none" }}>
+                  <div key={k} style={{ padding: "1rem 1.2rem", borderRight: i % 2 === 0 ? "1px solid #1a1a1a" : "none", borderBottom: i < 4 ? "1px solid #1a1a1a" : "none" }}>
                     <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.52rem", color: "#444", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.3rem" }}>{k}</div>
                     <div style={{ fontSize: "0.82rem", color: "#ccc" }}>{v}</div>
                   </div>
