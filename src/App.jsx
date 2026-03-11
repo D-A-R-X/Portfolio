@@ -378,66 +378,12 @@ function CruzaSection({ mobile }) {
   );
 }
 
-/* ─── CRONIX SECTION ─────────────────────── */
-function CRONIXSection({ mobile }) {
-  const [ref, inView] = useInView(0.2);
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 600);
-    return () => clearInterval(id);
-  }, []);
-  const dots = ".".repeat((tick % 3) + 1).padEnd(3, "\u00a0");
-
-  return (
-    <section id="cronix" style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "#060606", borderTop: "1px solid #111", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 70% 50%, rgba(227,27,27,0.04) 0%, transparent 60%)", pointerEvents: "none" }} />
-      <div ref={ref} style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-        <div style={{ opacity: inView ? 1 : 0, transform: inView ? "none" : "translateY(18px)", transition: "opacity 0.7s, transform 0.7s", display: "flex", alignItems: "center", gap: "1rem", marginBottom: "3.5rem" }}>
-          <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.62rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase" }}>Software Venture</div>
-          <div style={{ flex: 1, height: "1px", background: "#1a1a1a" }} />
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? "3rem" : "6rem", alignItems: "center" }}>
-          <div style={{ opacity: inView ? 1 : 0, transform: inView ? "none" : "translateY(30px)", transition: "opacity 0.8s ease 0.1s, transform 0.8s ease 0.1s" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", border: "1px solid #2a2a2a", padding: "0.4rem 1rem", marginBottom: "2rem", background: "#0d0d0d" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#E31B1B", boxShadow: "0 0 6px #E31B1B", animation: "blink 1.2s ease-in-out infinite" }} />
-              <style>{`@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}`}</style>
-              <span style={{ fontFamily: "DM Mono, monospace", fontSize: "0.62rem", color: "#888", letterSpacing: "0.12em", textTransform: "uppercase" }}>Stealth Mode · Building{dots}</span>
-            </div>
-            <h2 style={{ fontFamily: "Bebas Neue, sans-serif", fontSize: mobile ? "3.5rem" : "clamp(3rem,7vw,6rem)", lineHeight: 0.9, letterSpacing: "0.04em", marginBottom: "1.5rem" }}>
-              CRON<span style={{ color: "#E31B1B" }}>IX</span>
-            </h2>
-            <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.1rem", color: "#666", fontStyle: "italic", fontWeight: 300, lineHeight: 1.6 }}>
-              A software product startup — currently in formation.
-            </p>
-          </div>
-          <div style={{ opacity: inView ? 1 : 0, transform: inView ? "none" : "translateY(30px)", transition: "opacity 0.8s ease 0.25s, transform 0.8s ease 0.25s" }}>
-            <div style={{ border: "1px solid #1a1a1a", padding: mobile ? "1.8rem" : "2.5rem", background: "#080808" }}>
-              {[["Studio Type", "Software Product Startup"], ["Status", null], ["Focus", null], ["Est.", "TBD"]].map(({ 0: label, 1: value }) => (
-                <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.9rem 0", borderBottom: "1px solid #111" }}>
-                  <span style={{ fontFamily: "DM Mono, monospace", fontSize: "0.58rem", color: "#444", letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</span>
-                  {value ? <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "0.9rem", color: "#888" }}>{value}</span>
-                    : <span style={{ display: "inline-block", width: "90px", height: "9px", background: "repeating-linear-gradient(90deg,#1e1e1e 0,#1e1e1e 8px,#111 8px,#111 10px)", borderRadius: "2px" }} />}
-                </div>
-              ))}
-              <div style={{ marginTop: "1.2rem", display: "flex", gap: "0.8rem" }}>
-                <span style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", flexShrink: 0 }}>!</span>
-                <p style={{ fontFamily: "DM Mono, monospace", fontSize: "0.58rem", color: "#444", lineHeight: 1.8 }}>Details withheld until launch.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ─── MAIN PORTFOLIO ─────────────────────── */
 export default function Portfolio() {
   const [scrolled, setScrolled]     = useState(false);
   const [scrollY, setScrollY]       = useState(0);
   const [navOpen, setNavOpen]       = useState(false);
-  const [cursorPos, setCursorPos]   = useState({ x: -100, y: -100 });
-  const [cursorHover, setCursorHover] = useState(false);
   const [cycleIdx, setCycleIdx]     = useState(0);
   const mobile = useIsMobile();
 
@@ -454,21 +400,6 @@ export default function Portfolio() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  useEffect(() => {
-    if (mobile) return;
-    const move = e => setCursorPos({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
-  }, [mobile]);
-
-  useEffect(() => {
-    if (mobile) return;
-    const els = document.querySelectorAll("a, button");
-    const on = () => setCursorHover(true), off = () => setCursorHover(false);
-    els.forEach(l => { l.addEventListener("mouseenter", on); l.addEventListener("mouseleave", off); });
-    return () => els.forEach(l => { l.removeEventListener("mouseenter", on); l.removeEventListener("mouseleave", off); });
-  }, [mobile]);
-
   const scrollTo = id => { document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: "smooth" }); setNavOpen(false); };
   const pad = mobile ? "1.5rem" : "4rem";
 
@@ -482,28 +413,20 @@ export default function Portfolio() {
         ::-webkit-scrollbar{width:2px;}
         ::-webkit-scrollbar-track{background:#0a0a0a;}
         ::-webkit-scrollbar-thumb{background:#E31B1B;}
-        @media(min-width:769px){body{cursor:none;}}
         @keyframes fadeSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
         @keyframes cycleIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
         @keyframes navBounce{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+        @keyframes floatGlow{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.6;transform:scale(1.08)}}
+        @keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes revealUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
         img{max-width:100%;}
         a{touch-action:manipulation;}
         button{touch-action:manipulation;}
+        .section-reveal{opacity:0;transform:translateY(24px);transition:opacity 0.75s cubic-bezier(0.22,1,0.36,1),transform 0.75s cubic-bezier(0.22,1,0.36,1);}
+        .section-reveal.visible{opacity:1;transform:translateY(0);}
+        .parallax-slow{will-change:transform;}
       `}</style>
 
-      {/* Custom cursor — desktop only */}
-      {!mobile && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, zIndex: 9999, pointerEvents: "none",
-          transform: `translate(${cursorPos.x - (cursorHover ? 20 : 6)}px, ${cursorPos.y - (cursorHover ? 20 : 6)}px)`,
-          width: cursorHover ? "40px" : "12px", height: cursorHover ? "40px" : "12px",
-          border: cursorHover ? "1.5px solid #E31B1B" : "none",
-          background: cursorHover ? "transparent" : "#E31B1B",
-          borderRadius: "50%",
-          transition: "width 0.25s, height 0.25s",
-          mixBlendMode: "screen",
-        }} />
-      )}
 
       {/* ── NAV ── */}
       <nav style={{
@@ -557,7 +480,9 @@ export default function Portfolio() {
 
       {/* ── HERO ── */}
       <section id="about" style={{ minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: mobile ? "0 1.5rem 4.5rem" : "0 4rem 6rem", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, zIndex: 0, backgroundImage: "linear-gradient(rgba(227,27,27,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(227,27,27,0.04) 1px,transparent 1px)", backgroundSize: "80px 80px" }} />
+        <div style={{ position: "absolute", inset: 0, zIndex: 0, backgroundImage: "linear-gradient(rgba(227,27,27,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(227,27,27,0.03) 1px,transparent 1px)", backgroundSize: "80px 80px" }} />
+        {/* Parallax ambient orb */}
+        <div style={{ position: "absolute", top: "20%", right: "20%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(227,27,27,0.06) 0%, transparent 65%)", transform: `translateY(${scrollY * 0.15}px)`, pointerEvents: "none", zIndex: 0 }} />
 
         {/* Right-side photo — desktop only */}
         {!mobile && (
@@ -631,7 +556,7 @@ export default function Portfolio() {
       </section>
 
       {/* ── ABOUT ── */}
-      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", borderTop: "1px solid #111", background: "#080808" }}>
+      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", borderTop: "1px solid #111", background: "linear-gradient(135deg, #080808 0%, #060609 100%)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <FadeIn>
             <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "3rem" }}>About</div>
@@ -645,7 +570,7 @@ export default function Portfolio() {
                 I'm Surya J (DARX) — a CSE student at DSCE Coimbatore (2022–2026), CGPA 7.43/10. I build AI-powered systems and full-stack applications using Python, FastAPI, Flutter, and modern deployment tools.
               </p>
               <p style={{ color: "#666", lineHeight: 1.85, fontSize: "0.88rem" }}>
-                My approach is deliberate: understand the problem deeply before writing any code. I'm also the co-founder of Cruza, an independent software startup focused on intelligent systems — and CRONIX, a product startup currently in stealth.
+                My approach is deliberate: understand the problem deeply before writing any code. I'm also the co-founder of Cruza — an independent software startup building intelligent systems that solve real problems.
               </p>
             </FadeIn>
             <FadeIn delay={0.15}>
@@ -658,7 +583,7 @@ export default function Portfolio() {
                   ["Batch", "2022 – 2026"],
                   ["DOB", "31 Aug 2004"],
                   ["Location", "Coimbatore, TN"],
-                  ["Startup", "Cruza · CRONIX"],
+                  ["Startup", "Cruza"],
                 ].map(([k, v], i) => (
                   <div key={k} style={{ padding: "1rem 1.2rem", borderRight: i % 2 === 0 ? "1px solid #1a1a1a" : "none", borderBottom: i < 6 ? "1px solid #1a1a1a" : "none" }}>
                     <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.52rem", color: "#444", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.3rem" }}>{k}</div>
@@ -672,7 +597,7 @@ export default function Portfolio() {
       </section>
 
       {/* ── SKILLS ── */}
-      <section id="skills" style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "#0a0a0a", borderTop: "1px solid #111" }}>
+      <section id="skills" style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "linear-gradient(180deg,#0a0a0a 0%,#080808 100%)", borderTop: "1px solid #111" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <FadeIn>
             <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "3rem" }}>Skills</div>
@@ -714,26 +639,33 @@ export default function Portfolio() {
       </section>
 
       {/* ── PHILOSOPHY ── */}
-      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "#080808", borderTop: "1px solid #111" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "linear-gradient(180deg, #070707 0%, #0a0508 100%)", borderTop: "1px solid #111", position: "relative", overflow: "hidden" }}>
+        {/* ambient glow */}
+        <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: "600px", height: "400px", background: "radial-gradient(ellipse, rgba(227,27,27,0.04) 0%, transparent 70%)", pointerEvents: "none", animation: "floatGlow 6s ease-in-out infinite" }} />
+        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <FadeIn>
-            <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "3rem" }}>Philosophy</div>
+            <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem" }}>Philosophy</div>
           </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2, 1fr)", gap: 0, border: "1px solid #1a1a1a" }}>
+          <FadeIn delay={0.05}>
+            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "clamp(2rem,10vw,3rem)" : "clamp(2.5rem,5vw,4rem)", fontWeight: 900, lineHeight: 1, marginBottom: "4rem" }}>
+              How I think about<br /><span style={{ color: "#E31B1B", fontStyle: "italic" }}>building.</span>
+            </h2>
+          </FadeIn>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {[
-              { t: "Problem First",       b: "Understand the domain deeply before touching any code. Real clarity precedes architecture." },
-              { t: "Clean Architecture",  b: "Build systems that are readable, maintainable, and extensible — designed to last." },
-              { t: "Efficient Building",  b: "Every component earns its place. Unnecessary complexity is a liability, not a feature." },
-              { t: "Responsible AI",      b: "Intelligent systems carry accountability. Design with care for the people they affect." },
+              { t: "Problem First",       b: "Understand the domain deeply before touching any code. Real clarity precedes architecture.", n: "01" },
+              { t: "Clean Architecture",  b: "Build systems that are readable, maintainable, and extensible — designed to last.", n: "02" },
+              { t: "Efficient Building",  b: "Every component earns its place. Unnecessary complexity is a liability, not a feature.", n: "03" },
+              { t: "Responsible AI",      b: "Intelligent systems carry accountability. Design with care for the people they affect.", n: "04" },
             ].map((p, i) => (
-              <FadeIn key={p.t} delay={i * 0.1}>
-                <div style={{ padding: mobile ? "2rem 1.5rem" : "3rem 2.5rem", borderRight: !mobile && i % 2 === 0 ? "1px solid #1a1a1a" : "none", borderBottom: mobile ? "1px solid #1a1a1a" : (i < 2 ? "1px solid #1a1a1a" : "none") }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#0d0d0d"}
+              <FadeIn key={p.t} delay={i * 0.08}>
+                <div
+                  style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "80px 1fr 1fr", alignItems: "center", gap: mobile ? "0.6rem" : "3rem", padding: mobile ? "2rem 0" : "2.5rem 0", borderBottom: "1px solid #1a1a1a", transition: "background 0.3s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(227,27,27,0.02)"}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                  style={{ padding: mobile ? "2rem 1.5rem" : "3rem 2.5rem", borderRight: !mobile && i % 2 === 0 ? "1px solid #1a1a1a" : "none", borderBottom: mobile && i < 3 ? "1px solid #1a1a1a" : (!mobile && i < 2 ? "1px solid #1a1a1a" : "none"), transition: "background 0.3s" }}
                 >
-                  <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.55rem", color: "#E31B1B", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "0.8rem" }}>0{i + 1}</div>
-                  <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "1.1rem" : "1.3rem", fontWeight: 700, marginBottom: "0.8rem" }}>{p.t}</h3>
+                  <div style={{ fontFamily: "Bebas Neue, sans-serif", fontSize: mobile ? "2.5rem" : "3.5rem", color: "rgba(227,27,27,0.2)", lineHeight: 1 }}>{p.n}</div>
+                  <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "1.1rem" : "1.35rem", fontWeight: 700 }}>{p.t}</h3>
                   <p style={{ color: "#666", fontSize: "0.85rem", lineHeight: 1.75 }}>{p.b}</p>
                 </div>
               </FadeIn>
@@ -743,22 +675,32 @@ export default function Portfolio() {
       </section>
 
       {/* ── FUTURE GOALS ── */}
-      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "#0a0a0a", borderTop: "1px solid #111" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "linear-gradient(180deg,#0a0a0a 0%,#080808 100%)", borderTop: "1px solid #111", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", bottom: 0, left: "10%", width: "500px", height: "300px", background: "radial-gradient(ellipse, rgba(227,27,27,0.04) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <FadeIn>
-            <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "2.5rem" }}>Future Goals</div>
+            <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem" }}>Future Goals</div>
           </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3, 1fr)", gap: 0, border: "1px solid #1a1a1a" }}>
+          <FadeIn delay={0.05}>
+            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "clamp(2rem,10vw,3rem)" : "clamp(2.5rem,5vw,3.8rem)", fontWeight: 900, lineHeight: 1, marginBottom: "3.5rem" }}>
+              Where I'm<br /><span style={{ color: "#E31B1B", fontStyle: "italic" }}>headed.</span>
+            </h2>
+          </FadeIn>
+          <div style={{ display: "flex", flexDirection: "column" }}>
             {[
-              { t: "AI Systems", b: "Build production-grade intelligent systems that solve domain-specific problems with measurable impact." },
-              { t: "Scale Cruza", b: "Grow Cruza into a recognised independent software studio known for clean, purpose-built systems." },
-              { t: "Product Engineer", b: "Become a complete product engineer — designing, building, and shipping end-to-end systems independently." },
+              { t: "Build AI Systems", b: "Production-grade intelligent systems that solve domain-specific problems with measurable impact.", n: "01" },
+              { t: "Scale Cruza", b: "Grow Cruza into a recognised independent software studio known for clean, purpose-built systems.", n: "02" },
+              { t: "Become a Product Engineer", b: "Design, build, and ship end-to-end systems independently — owning the full stack.", n: "03" },
             ].map((g, i) => (
               <FadeIn key={g.t} delay={i * 0.1}>
-                <div style={{ padding: mobile ? "2rem 1.5rem" : "3rem 2rem", borderRight: !mobile && i < 2 ? "1px solid #1a1a1a" : "none", borderBottom: mobile && i < 2 ? "1px solid #1a1a1a" : "none" }}>
-                  <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.56rem", color: "#E31B1B", letterSpacing: "0.15em", marginBottom: "0.8rem" }}>0{i + 1}</div>
-                  <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.6rem" }}>{g.t}</h3>
-                  <p style={{ color: "#666", fontSize: "0.83rem", lineHeight: 1.75 }}>{g.b}</p>
+                <div
+                  style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "80px 1fr 2fr", alignItems: "center", gap: mobile ? "0.5rem" : "3rem", padding: mobile ? "2rem 0" : "2.2rem 0", borderBottom: "1px solid #1a1a1a", transition: "background 0.3s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(227,27,27,0.02)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <div style={{ fontFamily: "Bebas Neue, sans-serif", fontSize: mobile ? "2rem" : "3rem", color: "rgba(227,27,27,0.15)", lineHeight: 1 }}>{g.n}</div>
+                  <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: mobile ? "1rem" : "1.2rem", fontWeight: 700 }}>{g.t}</h3>
+                  <p style={{ color: "#666", fontSize: "0.85rem", lineHeight: 1.75 }}>{g.b}</p>
                 </div>
               </FadeIn>
             ))}
@@ -767,8 +709,9 @@ export default function Portfolio() {
       </section>
 
       {/* ── CERTIFICATIONS ── */}
-      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "#070707", borderTop: "1px solid #111" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <section style={{ padding: mobile ? "5rem 1.5rem" : "8rem 4rem", background: "linear-gradient(180deg,#070707 0%,#060606 100%)", borderTop: "1px solid #111", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, right: "30%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(227,27,27,0.04) 0%, transparent 70%)", pointerEvents: "none", animation: "floatGlow 8s ease-in-out infinite" }} />
+        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <FadeIn>
             <div style={{ fontFamily: "DM Mono, monospace", fontSize: "0.6rem", color: "#E31B1B", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "2.5rem" }}>Certifications</div>
           </FadeIn>
@@ -807,9 +750,6 @@ export default function Portfolio() {
 
       {/* ── CRUZA ── */}
       <CruzaSection mobile={mobile} />
-
-      {/* ── CRONIX ── */}
-      <CRONIXSection mobile={mobile} />
 
       {/* ── CONTACT ── */}
       <section id="contact" style={{ padding: mobile ? "5rem 1.5rem 4rem" : "8rem 4rem 6rem", background: "#050505", borderTop: "1px solid #111" }}>
