@@ -261,8 +261,8 @@ def draw_divider(c, top):
 def build_left(col):
     col.section("Profile", gap=0)
     col.para(
-        "App and web developer building production Android and full-stack systems. Currently at "
-        "Kosal Tech Solutions, working alongside Manju Global and AIVIDA \u2014 delivering Kotlin/Compose "
+        "App and web developer building production Android and full-stack systems. Software developer at "
+        "Kosal Tech Solutions, with a contract engagement at Manju Global \u2014 delivering Kotlin/Compose "
         "mobile apps, Next.js platforms, and the Go and Python services behind them. Computer Science "
         "Engineering student (2022\u20132026) focused on AI-powered applications and clean, maintainable "
         "architecture.",
@@ -282,7 +282,7 @@ def build_left(col):
             ],
         },
         {
-            "role": "App & Web Developer", "org": "Manju Global", "when": "CURRENT",
+            "role": "App & Web Developer \u00b7 Contract", "org": "Manju Global", "when": "CONTRACT",
             "points": [
                 "Mconnect \u2014 Android client for the Manju Groups project-management system: OTP authentication, HR, "
                 "attendance, leave and chat. Kotlin + MVVM + Retrofit, AES256-GCM encrypted session storage, and a "
@@ -294,13 +294,6 @@ def build_left(col):
                 "Travel Desk \u2014 Next.js trip allocation and fleet billing: token-scoped driver pages delivered over "
                 "WhatsApp with no driver login, OCR on uploaded odometer evidence, and explicit extra-km, "
                 "cancellation and offline-completion states.",
-            ],
-        },
-        {
-            "role": "App & Web Developer", "org": "AIVIDA", "when": "CURRENT",
-            "points": [
-                "Deliver mobile and web builds end to end \u2014 interface, API layer and deployment \u2014 with a focus "
-                "on shipping working product rather than prototypes.",
             ],
         },
         {

@@ -22,18 +22,11 @@ export const EXPERIENCE = [
   {
     company: "Manju Global",
     role: "App & Web Developer",
-    period: "Present",
+    period: "Contract",
     current: true,
-    summary: "Working across the Manju Groups product surface — the Mconnect Android app, the Next.js project-management platform, and the Go geo-tracking service behind live staff tracking.",
+    contract: true,
+    summary: "Contract engagement across the Manju Groups product surface — the Mconnect Android app, the Next.js project-management platform, and the Go geo-tracking service behind live staff tracking.",
     stack: ["Kotlin", "Next.js", "Convex", "Go", "PostGIS"],
-  },
-  {
-    company: "AIVIDA",
-    role: "App & Web Developer",
-    period: "Present",
-    current: true,
-    summary: "Delivering mobile and web builds end to end — interface, API layer, and deployment — with a focus on shipping working product rather than prototypes.",
-    stack: ["React", "Next.js", "Mobile", "REST APIs"],
   },
   {
     company: "VEI Technologies",

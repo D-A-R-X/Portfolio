@@ -1,137 +1,17 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { T, FONT, TYPE, blueA } from "./theme.js";
+import { useRef } from "react";
+import { T, GLASS, EASE, TYPE, blueA, whiteA } from "./theme.js";
+import { Reveal, DrawRule, Scramble, useInView } from "./motion.jsx";
 
-/* ─── ENVIRONMENT ─────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   SCENE FURNITURE
 
-export function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const set = () => setReduced(mq.matches);
-    set();
-    mq.addEventListener("change", set);
-    return () => mq.removeEventListener("change", set);
-  }, []);
-  return reduced;
-}
+   Everything here positions itself off the motion engine's CSS
+   variables (--sy, --sv, --mx, --my), so none of it re-renders
+   while you scroll.
+   ───────────────────────────────────────────────────────── */
 
-export function useIsMobile(breakpoint = 860) {
-  const [mobile, setMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setMobile(window.innerWidth < breakpoint);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, [breakpoint]);
-  return mobile;
-}
-
-export function useScrollY() {
-  const [y, setY] = useState(0);
-  useEffect(() => {
-    let frame = 0;
-    const onScroll = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => { setY(window.scrollY); frame = 0; });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, []);
-  return y;
-}
-
-/** Normalised pointer, -1..1, eased. Drives every parallax offset on the page. */
-export function usePointer(enabled = true) {
-  const [p, setP] = useState({ x: 0, y: 0 });
-  const target = useRef({ x: 0, y: 0 });
-  const current = useRef({ x: 0, y: 0 });
-
-  useEffect(() => {
-    if (!enabled) return;
-    let frame = 0;
-    const onMove = (e) => {
-      target.current = {
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: (e.clientY / window.innerHeight) * 2 - 1,
-      };
-    };
-    const tick = () => {
-      const c = current.current;
-      const t = target.current;
-      const nx = c.x + (t.x - c.x) * 0.06;
-      const ny = c.y + (t.y - c.y) * 0.06;
-      if (Math.abs(nx - c.x) > 0.0005 || Math.abs(ny - c.y) > 0.0005) {
-        current.current = { x: nx, y: ny };
-        setP({ x: nx, y: ny });
-      }
-      frame = requestAnimationFrame(tick);
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    frame = requestAnimationFrame(tick);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      cancelAnimationFrame(frame);
-    };
-  }, [enabled]);
-
-  return enabled ? p : { x: 0, y: 0 };
-}
-
-export function useInView(threshold = 0.14, once = true) {
-  const ref = useRef(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) setInView(true);
-        else if (!once) setInView(false);
-      },
-      { threshold }
-    );
-    obs.observe(node);
-    return () => obs.disconnect();
-  }, [threshold, once]);
-  return [ref, inView];
-}
-
-/** -1 (below fold) → 0 (centred) → 1 (above), for scroll-linked depth. */
-export function useSectionProgress() {
-  const ref = useRef(null);
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    let frame = 0;
-    const measure = () => {
-      const r = node.getBoundingClientRect();
-      const vh = window.innerHeight || 1;
-      const centre = r.top + r.height / 2;
-      setProgress(Math.max(-1.5, Math.min(1.5, (vh / 2 - centre) / (vh / 2 + r.height / 2))));
-      frame = 0;
-    };
-    const onScroll = () => { if (!frame) frame = requestAnimationFrame(measure); };
-    measure();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, []);
-  return [ref, progress];
-}
-
-/* ─── DEPTH PRIMITIVES ────────────────────────────────────── */
-
-/** A plane at a given depth. Higher depth = nearer = moves more. */
-export function Layer({ depth = 1, scrollY = 0, pointer = { x: 0, y: 0 }, style = {}, children }) {
+/** Depth plane. `d` is how near it sits — higher moves further. */
+export function Layer({ d = 1, style = {}, children }) {
   return (
     <div
       aria-hidden="true"
@@ -139,7 +19,7 @@ export function Layer({ depth = 1, scrollY = 0, pointer = { x: 0, y: 0 }, style 
         position: "absolute",
         pointerEvents: "none",
         willChange: "transform",
-        transform: `translate3d(${pointer.x * depth * -16}px, ${scrollY * depth * 0.05 + pointer.y * depth * -11}px, 0)`,
+        transform: `translate3d(calc(var(--mx) * ${-17 * d}px), calc(var(--sy) * ${0.055 * d}px + var(--my) * ${-12 * d}px), 0)`,
         ...style,
       }}
     >
@@ -149,17 +29,15 @@ export function Layer({ depth = 1, scrollY = 0, pointer = { x: 0, y: 0 }, style 
 }
 
 /**
- * Nested hairline frames rotating as one rigid body toward the pointer — the
- * page's main 3D object. Reads as construction drawing, not neon.
+ * Nested hairline frames rotating as one rigid body toward the pointer,
+ * with a frosted pane at the front. The page's main 3D object — it reads
+ * as a construction drawing that happens to be made of glass.
  */
-export function DepthFrames({ pointer = { x: 0, y: 0 }, size = 420, enabled = true, children }) {
-  const rx = enabled ? pointer.y * -7 : 0;
-  const ry = enabled ? pointer.x * 9 : 0;
-
+export function DepthFrames({ size = 260, children }) {
   const frames = [
-    { z: -170, inset: -38, colour: T.line, dash: "3 6" },
-    { z: -110, inset: -24, colour: T.line2, dash: null },
-    { z: -55,  inset: -11, colour: T.line2, dash: null },
+    { z: -230, inset: -46, colour: whiteA(0.05), dash: true },
+    { z: -160, inset: -30, colour: whiteA(0.07), dash: false },
+    { z: -90,  inset: -15, colour: whiteA(0.10), dash: false },
   ];
 
   return (
@@ -169,8 +47,7 @@ export function DepthFrames({ pointer = { x: 0, y: 0 }, size = 420, enabled = tr
           position: "absolute",
           inset: 0,
           transformStyle: "preserve-3d",
-          transform: `rotateX(${rx}deg) rotateY(${ry}deg)`,
-          transition: "transform 0.2s ease-out",
+          transform: "rotateX(calc(var(--my) * -8deg)) rotateY(calc(var(--mx) * 11deg))",
           willChange: "transform",
         }}
       >
@@ -186,125 +63,61 @@ export function DepthFrames({ pointer = { x: 0, y: 0 }, size = 420, enabled = tr
             }}
           />
         ))}
-        {/* corner ticks on the mid frame */}
-        {[["0", "0"], ["0", "auto"], ["auto", "0"], ["auto", "auto"]].map(([t, l], i) => (
+
+        {/* corner ticks, floating between the frames */}
+        {[["t", "l"], ["t", "r"], ["b", "l"], ["b", "r"]].map(([v, h]) => (
           <span
-            key={i}
+            key={`${v}${h}`}
             aria-hidden="true"
             style={{
               position: "absolute",
-              top: t === "0" ? -25 : "auto",
-              bottom: t === "auto" ? -25 : "auto",
-              left: l === "0" ? -25 : "auto",
-              right: l === "auto" ? -25 : "auto",
-              width: 9, height: 9,
-              borderTop: t === "0" ? `1px solid ${T.blue}` : "none",
-              borderBottom: t === "auto" ? `1px solid ${T.blue}` : "none",
-              borderLeft: l === "0" ? `1px solid ${T.blue}` : "none",
-              borderRight: l === "auto" ? `1px solid ${T.blue}` : "none",
-              transform: "translateZ(-110px)",
+              top: v === "t" ? -30 : "auto",
+              bottom: v === "b" ? -30 : "auto",
+              left: h === "l" ? -30 : "auto",
+              right: h === "r" ? -30 : "auto",
+              width: 10, height: 10,
+              borderTop: v === "t" ? `1px solid ${T.blue}` : "none",
+              borderBottom: v === "b" ? `1px solid ${T.blue}` : "none",
+              borderLeft: h === "l" ? `1px solid ${T.blue}` : "none",
+              borderRight: h === "r" ? `1px solid ${T.blue}` : "none",
+              transform: "translateZ(-160px)",
             }}
           />
         ))}
-        <div style={{ position: "absolute", inset: 0, transform: "translateZ(24px)" }}>{children}</div>
+
+        {/* a loose pane drifting off-axis, to break the symmetry */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", top: "-16%", right: "-28%", width: "46%", height: "38%",
+            ...GLASS.panel,
+            background: `linear-gradient(150deg, ${whiteA(0.06)}, ${whiteA(0.01)})`,
+            transform: "translateZ(90px) rotate(-8deg)",
+            animation: "shardFloat 9s ease-in-out infinite",
+          }}
+        />
+
+        <div style={{ position: "absolute", inset: 0, transform: "translateZ(40px)" }}>{children}</div>
       </div>
     </div>
   );
 }
 
 /**
- * Subtle 3D lift on hover. No sheen, no glow — the card rotates a couple of
- * degrees and its rule goes blue. That's it.
+ * Section shell. A ruled backplane drifts against the scroll, and the whole
+ * block takes a small velocity-driven skew — the cue that sells momentum.
  */
-export function Tilt({ children, max = 3, lift = 8, enabled = true, style = {} }) {
-  const ref = useRef(null);
-  const [t, setT] = useState({ rx: 0, ry: 0, on: false });
-
-  const onMove = useCallback(
-    (e) => {
-      if (!enabled || !ref.current) return;
-      const r = ref.current.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width;
-      const py = (e.clientY - r.top) / r.height;
-      setT({ rx: (0.5 - py) * max * 2, ry: (px - 0.5) * max * 2, on: true });
-    },
-    [enabled, max]
-  );
-
-  return (
-    <div style={{ perspective: "1200px", ...style }}>
-      <div
-        ref={ref}
-        onMouseMove={onMove}
-        onMouseLeave={() => setT({ rx: 0, ry: 0, on: false })}
-        style={{
-          transformStyle: "preserve-3d",
-          transform: enabled ? `rotateX(${t.rx}deg) rotateY(${t.ry}deg) translateZ(${t.on ? lift : 0}px)` : "none",
-          transition: t.on ? "transform 0.15s ease-out" : "transform 0.5s cubic-bezier(0.22,1,0.36,1)",
-          willChange: "transform",
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/** Scroll reveal — a short rise and a wipe. Deliberately understated. */
-export function Reveal({ children, delay = 0, distance = 18, style = {} }) {
-  const [ref, inView] = useInView(0.1);
-  return (
-    <div
-      ref={ref}
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "none" : `translate3d(0, ${distance}px, 0)`,
-        transition: `opacity 0.7s cubic-bezier(0.22,1,0.36,1) ${delay}s, transform 0.7s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
-        willChange: "transform, opacity",
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/** A hairline that draws itself left-to-right when it enters view. */
-export function DrawRule({ delay = 0, colour = T.line2 }) {
-  const [ref, inView] = useInView(0.2);
-  return (
-    <div ref={ref} style={{ height: "1px", background: T.line, overflow: "hidden" }}>
-      <div
-        style={{
-          height: "100%",
-          background: colour,
-          transformOrigin: "left",
-          transform: inView ? "scaleX(1)" : "scaleX(0)",
-          transition: `transform 0.9s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
-        }}
-      />
-    </div>
-  );
-}
-
-/* ─── SECTION FURNITURE ───────────────────────────────────── */
-
-/**
- * Section shell. A faint ruled backplane sits behind the content and drifts
- * against the scroll — the depth cue, kept structural rather than decorative.
- */
-export function Scene({ id, index, mobile, pointer, children, background = T.ink, rules = true, style = {} }) {
-  const [ref, progress] = useSectionProgress();
+export function Scene({ id, mobile, children, background = T.ink, rules = true, skew = true, style = {} }) {
   return (
     <section
       id={id}
-      ref={ref}
       style={{
         position: "relative",
-        padding: mobile ? "4.5rem 1.35rem" : "7rem 3rem",
+        padding: mobile ? "5rem 1.35rem" : "8rem 3rem",
         background,
         borderTop: `1px solid ${T.line}`,
         overflow: "hidden",
+        zIndex: 1,
         ...style,
       }}
     >
@@ -313,31 +126,48 @@ export function Scene({ id, index, mobile, pointer, children, background = T.ink
           aria-hidden="true"
           style={{
             position: "absolute",
-            inset: "-12% -6%",
+            inset: "-14% -8%",
             pointerEvents: "none",
-            backgroundImage: `linear-gradient(90deg, ${T.line} 1px, transparent 1px)`,
-            backgroundSize: mobile ? "60px 100%" : "104px 100%",
-            opacity: 0.55,
-            transform: `translate3d(${pointer.x * -9 + progress * 14}px, 0, 0)`,
+            backgroundImage:
+              `linear-gradient(90deg, ${T.line} 1px, transparent 1px),` +
+              `linear-gradient(${whiteA(0.016)} 1px, transparent 1px)`,
+            backgroundSize: mobile ? "60px 100%, 100% 60px" : "104px 100%, 100% 104px",
+            opacity: 0.6,
+            transform: `translate3d(calc(var(--mx) * -10px), calc(var(--sy) * -0.02px), 0)`,
             willChange: "transform",
-            maskImage: "linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent)",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent)",
+            maskImage: "linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent)",
           }}
         />
       )}
-      <div style={{ maxWidth: "1180px", margin: "0 auto", position: "relative", zIndex: 1 }}>{children}</div>
+      <div
+        style={{
+          maxWidth: "1180px",
+          margin: "0 auto",
+          position: "relative",
+          zIndex: 1,
+          transform: skew ? "skewY(calc(var(--sv) * 0.5deg))" : undefined,
+          willChange: skew ? "transform" : undefined,
+        }}
+      >
+        {children}
+      </div>
     </section>
   );
 }
 
-/** `04 / EXPERIENCE ──────────────── 3 current` */
-export function SectionHead({ index, title, note, mobile }) {
+/** `04 / SELECTED WORK ─────────────── 15 projects` */
+export function SectionHead({ index, title, note, mobile, motion = true }) {
   return (
     <Reveal>
-      <div style={{ marginBottom: mobile ? "2.2rem" : "3rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.85rem" }}>
-          <span style={{ ...TYPE.label, color: T.blue }}>{index}</span>
-          <span style={{ ...TYPE.label, color: T.white }}>{title}</span>
+      <div style={{ marginBottom: mobile ? "2.2rem" : "3.2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.9rem" }}>
+          <span style={{ ...TYPE.label, color: T.blue }}>
+            <Scramble text={index} enabled={motion} />
+          </span>
+          <span style={{ ...TYPE.label, color: T.white }}>
+            <Scramble text={title.toUpperCase()} enabled={motion} delay={0.08} />
+          </span>
           <span style={{ flex: 1 }} />
           {note && <span style={{ ...TYPE.meta, color: T.greyDim, whiteSpace: "nowrap" }}>{note}</span>}
         </div>
@@ -347,7 +177,7 @@ export function SectionHead({ index, title, note, mobile }) {
   );
 }
 
-/** Small squared-off marker used in place of glowing dots. */
+/** Small squared marker — used instead of glowing dots. */
 export function Marker({ active = false, size = 6 }) {
   return (
     <span
@@ -359,7 +189,51 @@ export function Marker({ active = false, size = 6 }) {
         flexShrink: 0,
         background: active ? T.blue : "transparent",
         border: active ? "none" : `1px solid ${T.line3}`,
+        boxShadow: active ? `0 0 0 3px ${blueA(0.15)}` : "none",
       }}
     />
   );
 }
+
+/**
+ * Scroll-velocity marquee. Sits between sections and slides further the
+ * faster you scroll, so the page has something that visibly reacts to input.
+ */
+export function Marquee({ items, mobile }) {
+  const row = [...items, ...items, ...items];
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "relative",
+        borderTop: `1px solid ${T.line}`,
+        borderBottom: `1px solid ${T.line}`,
+        padding: mobile ? "0.7rem 0" : "0.9rem 0",
+        overflow: "hidden",
+        background: T.paper,
+        zIndex: 1,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: mobile ? "1.6rem" : "2.6rem",
+          whiteSpace: "nowrap",
+          width: "max-content",
+          animation: `marquee ${mobile ? 34 : 46}s linear infinite`,
+          transform: "translate3d(calc(var(--sv) * 90px), 0, 0)",
+          willChange: "transform",
+        }}
+      >
+        {row.map((t, i) => (
+          <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: mobile ? "1.6rem" : "2.6rem" }}>
+            <span style={{ ...TYPE.label, fontSize: mobile ? "0.58rem" : "0.64rem", color: i % 3 === 0 ? T.blueLit : T.greyDim }}>{t}</span>
+            <span style={{ width: 4, height: 4, background: T.line3, flexShrink: 0 }} />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export { Reveal, DrawRule, useInView };

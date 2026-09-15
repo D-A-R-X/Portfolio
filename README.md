@@ -1,7 +1,7 @@
 # Surya J — Portfolio
 
 Personal site for Surya J (DARX) — app & web developer at Kosal Tech Solutions,
-building alongside Manju Global and AIVIDA.
+with a contract engagement at Manju Global.
 
 **Live:** deployed on Vercel.
 
