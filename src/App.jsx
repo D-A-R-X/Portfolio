@@ -12,6 +12,7 @@ import {
   useMotionEngine, useScrolled, useReducedMotion, useIsMobile, useInView,
   Cursor, SplitText, Scramble, Magnetic, Glass, Reveal, Grain, Aurora, Shards, Intro,
   ScrubIn, ScrubShift, useScrollDirection, BorderBeam, Counter, useHoverDecode,
+  ScrollHighlight, ScrubBar,
 } from "./motion.jsx";
 import { Wireframe } from "./canvas3d.jsx";
 import { Layer, DepthFrames, Scene, SectionHead, Marker, Marquee } from "./parallax.jsx";
@@ -423,38 +424,132 @@ function ProjectPreview({ project }) {
   );
 }
 
-/* ─── EXPERIENCE ENTRY ────────────────────────────────────── */
-function Role({ job, mobile, motion }) {
+/* ─── EXPERIENCE ENTRY ──────────────────────────────────────
+   Timeline node. The rail beside it fills with the scroll, the
+   node lights as the card arrives, and the highlights stagger in
+   line by line. */
+function Role({ job, mobile, motion, index, last }) {
+  const [ref, inView] = useInView(0.25);
+  const [open, setOpen] = useState(index === 0);
+
   return (
-    <Glass
-      enabled={motion}
-      tilt={motion ? 2.2 : 0}
-      beam
-      depth={20}
-      style={{ padding: mobile ? "1.2rem" : "1.6rem 1.8rem", marginBottom: "0.85rem" }}
+    <div
+      style={{
+        position: "relative",
+        display: "grid",
+        gridTemplateColumns: mobile ? "22px 1fr" : "28px 1fr",
+        gap: mobile ? "0.9rem" : "1.8rem",
+        paddingBottom: last ? 0 : mobile ? "1rem" : "1.4rem",
+      }}
     >
-      <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "minmax(0,12rem) 1fr", gap: mobile ? "0.85rem" : "2.6rem" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", marginBottom: "0.55rem" }}>
-            <Marker active={job.current && !job.contract} />
-            <span style={{ ...TYPE.meta, color: job.current ? T.blueLit : T.greyDim, fontSize: "0.63rem" }}>
-              {job.current ? (job.contract ? "CONTRACT" : "CURRENT") : job.period}
-            </span>
+      {/* rail + node */}
+      <div ref={ref} style={{ position: "relative", display: "flex", justifyContent: "center", color: T.line3 }}>
+        {!last && (
+          <ScrubBar
+            span={1.6}
+            width={1}
+            colour={`linear-gradient(${T.blue}, ${T.blueLit})`}
+            glow={`0 0 10px ${blueA(0.7)}`}
+            style={{ top: "2.6rem", left: "50%", marginLeft: "-0.5px" }}
+          />
+        )}
+        <span
+          aria-hidden="true"
+          style={{
+            position: "relative", marginTop: "1.55rem", zIndex: 1,
+            width: job.current ? 11 : 8,
+            height: job.current ? 11 : 8,
+            background: inView ? (job.contract ? "transparent" : T.blue) : "transparent",
+            border: `1px solid ${inView ? T.blue : T.line3}`,
+            boxShadow: inView ? `0 0 0 4px ${blueA(0.14)}, 0 0 16px ${blueA(0.6)}` : "none",
+            transform: inView ? "scale(1)" : "scale(0.55)",
+            transition: `transform 0.6s ${EASE.spring}, background 0.5s ease, border-color 0.5s ease, box-shadow 0.6s ease`,
+          }}
+        />
+      </div>
+
+      <Glass
+        enabled={motion}
+        tilt={motion ? 1.6 : 0}
+        beam
+        depth={18}
+        style={{ padding: mobile ? "1.2rem" : "1.5rem 1.7rem", marginBottom: "0.85rem" }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap", marginBottom: "0.9rem" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.45rem", flexWrap: "wrap" }}>
+              <span
+                style={{
+                  ...TYPE.label, fontSize: "0.48rem",
+                  color: job.current ? T.blueLit : T.greyDim,
+                  border: `1px solid ${job.current ? blueA(0.4) : T.line2}`,
+                  padding: "0.16rem 0.45rem",
+                }}
+              >
+                {job.current ? (job.contract ? "Contract" : "Current") : job.period}
+              </span>
+              <span style={{ ...TYPE.meta, fontSize: "0.58rem", color: T.faint }}>{job.sector}</span>
+            </div>
+            <h3 style={{ ...TYPE.h3(mobile), margin: 0 }}>{job.company}</h3>
+            <div style={{ ...TYPE.label, fontSize: "0.55rem", color: T.blueLit, marginTop: "0.45rem" }}>{job.role}</div>
           </div>
-          <h3 style={{ ...TYPE.h3(mobile), margin: 0 }}>{job.company}</h3>
+
+          <span style={{ fontFamily: FONT.sans, fontWeight: 700, fontSize: mobile ? "1.5rem" : "2rem", letterSpacing: "-0.04em", lineHeight: 1, color: "transparent", WebkitTextStroke: `1px ${T.line3}` }}>
+            {String(index + 1).padStart(2, "0")}
+          </span>
         </div>
 
-        <div>
-          <div style={{ ...TYPE.label, fontSize: "0.58rem", color: T.blueLit, marginBottom: "0.7rem" }}>{job.role}</div>
-          <p style={{ ...TYPE.body, margin: "0 0 1rem", maxWidth: "60ch" }}>{job.summary}</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem 0.45rem" }}>
-            {job.stack.map((s) => (
-              <span key={s} style={{ ...TYPE.meta, fontSize: "0.62rem", color: T.grey, ...GLASS.chip, padding: "0.16rem 0.48rem" }}>{s}</span>
-            ))}
+        {/* what the place actually is */}
+        <p style={{ ...TYPE.body, fontSize: "0.86rem", margin: "0 0 1rem", maxWidth: "64ch", color: T.grey }}>
+          {job.about}
+        </p>
+
+        {/* what I did there */}
+        <button
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          data-cursor={mobile ? undefined : "expand"}
+          style={{
+            background: "none", border: "none", cursor: "pointer", padding: 0,
+            display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: open ? "0.9rem" : "0.2rem",
+            ...TYPE.label, fontSize: "0.5rem", color: open ? T.blueLit : T.greyDim,
+            transition: "color 0.3s ease",
+          }}
+        >
+          <span>{open ? "Hide work" : `${job.highlights.length} things I built`}</span>
+          <span style={{ display: "inline-block", transform: open ? "rotate(135deg)" : "none", transition: `transform 0.5s ${EASE.spring}`, fontSize: "0.8rem", lineHeight: 1 }}>+</span>
+        </button>
+
+        <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", transition: `grid-template-rows 0.7s ${EASE.out}` }}>
+          <div style={{ overflow: "hidden" }}>
+            <ul style={{ listStyle: "none", margin: "0 0 1rem", padding: 0 }}>
+              {job.highlights.map((h, i) => (
+                <li
+                  key={i}
+                  style={{
+                    display: "grid", gridTemplateColumns: "14px 1fr", gap: "0.7rem",
+                    padding: "0.4rem 0",
+                    borderTop: i ? `1px solid ${whiteA(0.05)}` : "none",
+                    opacity: open ? 1 : 0,
+                    transform: open ? "translateX(0)" : "translateX(-10px)",
+                    transition: `opacity 0.5s ease ${0.1 + i * 0.07}s, transform 0.6s ${EASE.out} ${0.1 + i * 0.07}s`,
+                  }}
+                >
+                  <span aria-hidden="true" style={{ marginTop: "0.42rem", width: 5, height: 5, background: T.blue, flexShrink: 0 }} />
+                  <span style={{ ...TYPE.body, fontSize: "0.83rem", color: T.grey }}>{h}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-      </div>
-    </Glass>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem 0.45rem" }}>
+          {job.stack.map((sName) => (
+            <span key={sName} style={{ ...TYPE.meta, fontSize: "0.62rem", color: T.grey, ...GLASS.chip, padding: "0.16rem 0.48rem" }}>{sName}</span>
+          ))}
+        </div>
+      </Glass>
+    </div>
   );
 }
 
@@ -958,12 +1053,13 @@ export default function Portfolio() {
             >
               I build things that hold up outside the demo.
             </SplitText>
+            <ScrollHighlight
+              enabled={!reduced}
+              style={{ ...TYPE.body, color: T.white, marginBottom: "1.1rem", maxWidth: "58ch" }}
+            >
+              CSE student at DSCE Coimbatore, 2022–2026, and a working app and web developer. I'm at Kosal Tech Solutions, with a contract engagement at Manju Global — shipping Android clients, Next.js platforms, and the services behind them.
+            </ScrollHighlight>
             <Reveal delay={0.08}>
-              <p style={{ ...TYPE.body, marginBottom: "1.1rem", maxWidth: "58ch" }}>
-                CSE student at DSCE Coimbatore, 2022–2026, and a working app and web developer. I'm at Kosal Tech
-                Solutions, with a contract engagement at Manju Global — shipping Android clients, Next.js platforms,
-                and the services behind them.
-              </p>
               <p style={{ ...TYPE.body, color: T.greyDim, maxWidth: "58ch" }}>
                 The approach is deliberate: understand the domain before writing code, then keep the architecture small
                 enough that the next person can read it. I also co-founded Cruza, an independent studio building
@@ -995,9 +1091,15 @@ export default function Portfolio() {
       {/* ── 02 EXPERIENCE ── */}
       <Scene id="experience" mobile={mobile} background={T.ink}>
         <SectionHead index="02" title="Experience" note={`${EXPERIENCE.filter((e) => e.current).length} active`} mobile={mobile} motion={!reduced} />
-        {EXPERIENCE.map((job) => (
-          <ScrubIn key={job.company} enabled={!reduced} lift={54} rotate={10} span={0.8}>
-            <Role job={job} mobile={mobile} motion={motion} />
+        {EXPERIENCE.map((job, i) => (
+          <ScrubIn key={job.company} enabled={!reduced} lift={44} rotate={8} span={0.8}>
+            <Role
+              job={job}
+              index={i}
+              last={i === EXPERIENCE.length - 1}
+              mobile={mobile}
+              motion={motion}
+            />
           </ScrubIn>
         ))}
       </Scene>

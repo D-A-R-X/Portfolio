@@ -371,6 +371,71 @@ export function ScrubShift({ children, distance = -60, span = 1.4, enabled = tru
   return <div ref={ref} style={{ willChange: "transform", ...style }}>{children}</div>;
 }
 
+/* ─── SCROLL HIGHLIGHT ───────────────────────────
+   A paragraph that lights word by word as it travels up the
+   viewport. Each word gets its own slice of the block's scroll
+   progress, so the sentence reads itself. Styles are written
+   straight to the spans — no React render per frame.
+   ─────────────────────────────────────────────────── */
+export function ScrollHighlight({ children, dim = 0.2, span = 1.05, enabled = true, style = {} }) {
+  const words = String(children).split(" ");
+
+  const ref = useScrub((el, p) => {
+    const spans = el.children;
+    const n = spans.length;
+    if (!n) return;
+    for (let i = 0; i < n; i += 1) {
+      // words finish lighting by 78% of the travel, so the last word is lit
+      // well before the block leaves the viewport
+      const start = (i / n) * 0.78;
+      const local = Math.max(0, Math.min(1, (p - start) / 0.22));
+      spans[i].style.opacity = String(dim + local * (1 - dim));
+    }
+  }, { span });
+
+  if (!enabled) return <p style={style}>{children}</p>;
+
+  return (
+    <p ref={ref} style={style}>
+      {words.map((w, i) => (
+        <span key={`${w}-${i}`} style={{ opacity: dim, transition: "opacity 0.25s linear" }}>
+          {w}
+          {i < words.length - 1 ? " " : ""}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/* ─── SCRUB BAR ─────────────────────────────────
+   A rail that fills in step with the scroll — the spine of the
+   experience timeline. */
+export function ScrubBar({ span = 1.5, width = 1, colour, glow, style = {} }) {
+  const ref = useScrub((el, p) => {
+    el.style.transform = `scaleY(${p.toFixed(4)})`;
+  }, { span });
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{ position: "absolute", top: 0, bottom: 0, width, overflow: "hidden", ...style }}
+    >
+      <span style={{ position: "absolute", inset: 0, background: "currentColor", opacity: 0.16 }} />
+      <span
+        ref={ref}
+        style={{
+          position: "absolute", inset: 0,
+          background: colour,
+          boxShadow: glow,
+          transformOrigin: "top",
+          transform: "scaleY(0)",
+          willChange: "transform",
+        }}
+      />
+    </span>
+  );
+}
+
 /* ─── CUSTOM CURSOR ───────────────────────────────────────
    Two parts: a hard dot pinned to the pointer, and a glass ring
    that lags behind it and swells over anything interactive. The

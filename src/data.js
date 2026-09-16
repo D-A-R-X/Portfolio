@@ -16,8 +16,16 @@ export const EXPERIENCE = [
     role: "Software Developer",
     period: "Present",
     current: true,
-    summary: "Building internal tooling and client-facing web systems — including a page-structure scraper that turns live landing pages into reusable component blueprints.",
-    stack: ["Python", "Node.js", "CLI Tooling", "Web"],
+    sector: "Software Services",
+    about:
+      "Software services company. I work across internal tooling and client-facing web builds — taking work from brief through to something running in production.",
+    summary:
+      "Building internal tooling and client-facing web systems, from CLI tooling to full landing-page delivery.",
+    highlights: [
+      "Kosal-Link — a four-tool scraper suite in a CLI + backend monorepo: a static downloader, a browser-based scraper for JS-heavy pages, a structure extractor, and a CLI that renders a live page, detects section boundaries and exports selector-scoped components as a reusable blueprint.",
+      "Client landing pages and marketing sites, built and shipped end to end.",
+    ],
+    stack: ["Python", "Node.js", "Convex", "CLI Tooling", "Web"],
   },
   {
     company: "Manju Global",
@@ -25,15 +33,33 @@ export const EXPERIENCE = [
     period: "Contract",
     current: true,
     contract: true,
-    summary: "Contract engagement across the Manju Groups product surface — the Mconnect Android app, the Next.js project-management platform, and the Go geo-tracking service behind live staff tracking.",
-    stack: ["Kotlin", "Next.js", "Convex", "Go", "PostGIS"],
+    sector: "Real Estate Development",
+    about:
+      "Manju Groups develops and sells residential land and plots. Their internal platform coordinates project, marketing, telecaller, finance, HR and operations work across the whole business — so the engineering surface runs from Android in the field to geospatial services on the backend.",
+    summary:
+      "Contract engagement across the Manju Groups product surface — the Android client, the operations platform, and the services behind them.",
+    highlights: [
+      "Mconnect — the Android client: OTP authentication, HR, attendance, leave and chat. Kotlin + MVVM + Retrofit, AES256-GCM encrypted session storage, and a semantic colour-token design system driving light and dark from one source.",
+      "The operations platform — a Next.js + Convex ERP spanning land procurement, CRM and site visits, channel-partner management, marketing budgets with campaign spend approval, finance ledgers and outstanding reports, HR and attendance, fleet and complaints.",
+      "Airix Geo Tracking — a dedicated Go service for location ingestion, live tracking, trip sessions and tamper monitoring on PostgreSQL/PostGIS + TimescaleDB, with Redis for live state and idempotency.",
+      "Travel Desk — trip allocation and fleet billing, with token-scoped driver pages delivered over WhatsApp and OCR on uploaded odometer evidence.",
+    ],
+    stack: ["Kotlin", "Next.js", "React", "Convex", "Go", "PostGIS", "TypeScript"],
   },
   {
     company: "VEI Technologies",
     role: "MERN Stack Developer Intern",
     period: "Jan 2025 – Feb 2025",
     current: false,
-    summary: "Built full-stack modules on MongoDB, Express, React and Node, integrating REST APIs between frontend components and backend services across agile sprints.",
+    sector: "Internship",
+    about: "A 30-day full-stack development internship.",
+    summary:
+      "Built full-stack modules on MongoDB, Express, React and Node, integrating REST APIs between frontend components and backend services across agile sprints.",
+    highlights: [
+      "Developed full-stack modules using MongoDB, Express.js, React and Node.js.",
+      "Built and integrated REST APIs connecting frontend components with backend services.",
+      "Contributed to agile sprints, shipping scalable web features on schedule.",
+    ],
     stack: ["MongoDB", "Express", "React", "Node.js"],
   },
   {
@@ -41,7 +67,14 @@ export const EXPERIENCE = [
     role: "Web Development Intern",
     period: "Jan 2025",
     current: false,
-    summary: "Designed responsive web interfaces and wired them to backend services, optimising page performance across multiple modules.",
+    sector: "Internship",
+    about: "A 15-day intensive web development program.",
+    summary:
+      "Designed responsive web interfaces and wired them to backend services, optimising page performance across multiple modules.",
+    highlights: [
+      "Designed and implemented responsive interfaces in HTML, CSS and JavaScript.",
+      "Integrated backend services and optimised page performance across modules.",
+    ],
     stack: ["HTML", "CSS", "JavaScript"],
   },
 ];
