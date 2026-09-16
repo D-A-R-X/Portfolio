@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
-import { PHOTO_B64, CERT_IMAGES } from "./assets.js";
+import { CERT_IMAGES } from "./assets.js";
 import { T, FONT, TYPE, GLASS, EASE, blueA, whiteA } from "./theme.js";
 import {
   NAV_LINKS, CONTACT_LINKS, EXPERIENCE, SKILL_BARS, PROJECTS, PROJECT_FILTERS,
@@ -841,30 +841,78 @@ export default function Portfolio() {
                 }}
               >
                 <DepthFrames size={252}>
+                  {/* Identity plate. Sits where a portrait would, so the depth
+                      frames still enclose something with weight. */}
                   <div
                     data-cursor="expand" data-cursor-label="DARX"
-                    style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", ...GLASS.panelLit, padding: 0 }}
+                    style={{
+                      position: "relative", width: "100%", height: "100%", overflow: "hidden",
+                      ...GLASS.panelLit, padding: 0,
+                      display: "flex", flexDirection: "column", justifyContent: "space-between",
+                    }}
                   >
-                    <img
-                      src={PHOTO_B64} alt="Surya J"
-                      style={{
-                        width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block",
-                        filter: "grayscale(1) contrast(1.1)",
-                        transform: "scale(1.06) translate3d(calc(var(--mx) * 7px), calc(var(--my) * 7px), 0)",
-                        willChange: "transform",
-                      }}
-                    />
-                    <span aria-hidden="true" style={{ position: "absolute", inset: 0, background: blueA(0.16), mixBlendMode: "color" }} />
+                    {/* ruled ground, drifting with the pointer */}
                     <span
                       aria-hidden="true"
                       style={{
-                        position: "absolute", left: 0, right: 0, bottom: 0, padding: "0.6rem 0.75rem",
+                        position: "absolute", inset: "-20%",
+                        backgroundImage:
+                          `linear-gradient(90deg, ${whiteA(0.05)} 1px, transparent 1px),` +
+                          `linear-gradient(${whiteA(0.05)} 1px, transparent 1px)`,
+                        backgroundSize: "26px 26px",
+                        transform: "translate3d(calc(var(--mx) * 7px), calc(var(--my) * 7px), 0)",
+                        willChange: "transform",
+                      }}
+                    />
+
+                    <div style={{ position: "relative", padding: "0.75rem 0.85rem", display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ ...TYPE.label, fontSize: "0.48rem", color: T.faint }}>ID / 001</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+                        <span style={{ width: 4, height: 4, background: T.blue, animation: reduced ? "none" : "blink 2.6s ease-in-out infinite" }} />
+                        <span style={{ ...TYPE.label, fontSize: "0.48rem", color: T.blueLit }}>Active</span>
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        position: "relative", textAlign: "center", padding: "0 0.85rem",
+                        transform: "translate3d(calc(var(--mx) * -5px), calc(var(--my) * -5px), 0)",
+                        willChange: "transform",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: FONT.sans, fontWeight: 700, fontSize: "2.5rem",
+                          letterSpacing: "0.08em", lineHeight: 1, color: T.white,
+                          textShadow: `0 0 34px ${blueA(0.55)}`,
+                        }}
+                      >
+                        DARX
+                      </div>
+                      <div style={{ ...TYPE.label, fontSize: "0.47rem", color: T.greyDim, marginTop: "0.5rem" }}>
+                        App &amp; Web Developer
+                      </div>
+                    </div>
+
+                    <div style={{ position: "relative", padding: "0.75rem 0.85rem" }}>
+                      {[["Base", "Coimbatore, IN"], ["Since", "2022"]].map(([k, v]) => (
+                        <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "0.16rem 0" }}>
+                          <span style={{ ...TYPE.label, fontSize: "0.45rem", color: T.faint }}>{k}</span>
+                          <span style={{ ...TYPE.meta, fontSize: "0.56rem", color: T.grey }}>{v}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "relative", padding: "0.55rem 0.75rem",
                         background: "rgba(8,10,15,0.5)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
                         borderTop: `1px solid ${whiteA(0.1)}`, display: "flex", justifyContent: "space-between",
                       }}
                     >
                       <span style={{ ...TYPE.meta, fontSize: "0.55rem", color: T.grey }}>SURYA J</span>
-                      <span style={{ ...TYPE.meta, fontSize: "0.55rem", color: T.blueLit }}>DARX</span>
+                      <span style={{ ...TYPE.meta, fontSize: "0.55rem", color: T.blueLit }}>2026</span>
                     </span>
                   </div>
                 </DepthFrames>
