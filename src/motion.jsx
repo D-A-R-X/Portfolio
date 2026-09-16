@@ -177,6 +177,12 @@ function bindWatch() {
     watchBound = true;
     window.addEventListener("scroll", scheduleWatch, { passive: true });
     window.addEventListener("resize", scheduleWatch);
+    // A hidden tab has no rAF and heavily throttled timers, so nothing
+    // resolves while it is in the background. Flush the moment it comes
+    // forward, before the user can see a half-revealed page.
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) flushWatchers();
+    });
   }
   // slow heartbeat catches late layout: fonts landing, images decoding,
   // a panel expanding and pushing everything below it down
@@ -266,6 +272,9 @@ function bindScrub() {
   scrubBound = true;
   window.addEventListener("scroll", scheduleScrub, { passive: true });
   window.addEventListener("resize", scheduleScrub);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) flushScrub();
+  });
 }
 
 /**

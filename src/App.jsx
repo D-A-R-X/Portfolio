@@ -15,6 +15,7 @@ import {
   ScrollHighlight, ScrubBar,
 } from "./motion.jsx";
 import { Wireframe } from "./canvas3d.jsx";
+import { Mockup } from "./mockups.jsx";
 import { Layer, DepthFrames, Scene, SectionHead, Marker, Marquee } from "./parallax.jsx";
 
 /* ─── SEGMENTED METER ─────────────────────────────────────
@@ -294,9 +295,18 @@ function ProjectRow({ project, mobile, motion, index, activeIndex, onHover, isOp
             <BorderBeam active={isOpen && motion} duration={4.2} />
 
             {!mobile && (
-              <div style={{ gridRow: "span 2", paddingRight: "1.1rem", borderRight: `1px solid ${whiteA(0.06)}` }}>
-                <ProjectMark seed={Number(project.id)} size={108} draw={isOpen} />
-                <div style={{ ...TYPE.label, fontSize: "0.5rem", color: T.faint, marginTop: "0.8rem" }}>{project.cat}</div>
+              <div style={{ gridRow: "span 2", paddingRight: "1.3rem", borderRight: `1px solid ${whiteA(0.06)}`, width: "236px" }}>
+                <Mockup kind={project.mock} width={224} draw={isOpen} />
+                <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", marginTop: "0.9rem" }}>
+                  <ProjectMark seed={Number(project.id)} size={30} draw={isOpen} />
+                  <span style={{ ...TYPE.label, fontSize: "0.5rem", color: T.faint }}>{project.cat}</span>
+                </div>
+              </div>
+            )}
+
+            {mobile && (
+              <div style={{ marginBottom: "0.2rem" }}>
+                <Mockup kind={project.mock} width={280} draw={isOpen} />
               </div>
             )}
 
@@ -396,7 +406,7 @@ function ProjectPreview({ project }) {
       aria-hidden="true"
       style={{
         position: "fixed", top: 0, left: 0, zIndex: 900, pointerEvents: "none",
-        width: 228, padding: "1rem", ...GLASS.panelLit,
+        width: 228, padding: "0.85rem", ...GLASS.panelLit,
         opacity: project ? 1 : 0,
         scale: project ? "1" : "0.88",
         transition: `opacity 0.35s ease, scale 0.5s ${EASE.spring}`,
@@ -406,8 +416,8 @@ function ProjectPreview({ project }) {
       <BorderBeam active={!!project} duration={3} />
       {project && (
         <>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.8rem" }}>
-            <ProjectMark seed={Number(project.id)} size={94} draw />
+          <div style={{ marginBottom: "0.8rem" }}>
+            <Mockup kind={project.mock} width={196} draw />
           </div>
           <div style={{ ...TYPE.label, fontSize: "0.5rem", color: T.blueLit, marginBottom: "0.35rem" }}>{project.cat}</div>
           <div style={{ fontFamily: FONT.sans, fontWeight: 600, fontSize: "0.95rem", letterSpacing: "-0.02em", color: T.white, marginBottom: "0.3rem" }}>

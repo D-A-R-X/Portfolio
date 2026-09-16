@@ -106,7 +106,7 @@ export const PROJECT_FILTERS = ["All", "Professional", "AI Systems", "Products",
 
 export const PROJECTS = [
   {
-    id: "01", name: "Mconnect", tag: "Manju Groups PMS · Android", cat: "Professional",
+    id: "01", name: "Mconnect", tag: "Manju Groups PMS · Android", cat: "Professional", mock: "phone-app",
     problem: "Field and office staff were spread across disconnected tools — attendance, leave, HR records and team chat each lived somewhere else, so nothing reconciled.",
     stack: ["Kotlin", "MVVM", "Retrofit", "Coroutines", "EncryptedSharedPreferences"],
     power: "A single Android client for the Manju Groups project-management system: OTP authentication, HR, attendance, leave and chat in one app.",
@@ -114,7 +114,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Company Project", org: "Manju Global",
   },
   {
-    id: "02", name: "Airix Geo Tracking", tag: "Live Location & Trip Service", cat: "Professional",
+    id: "02", name: "Airix Geo Tracking", tag: "Live Location & Trip Service", cat: "Professional", mock: "map",
     problem: "Location ingestion was welded into the main application, so tracking load could not scale independently and every tamper or trip feature meant touching the monolith.",
     stack: ["Go", "PostgreSQL", "PostGIS", "TimescaleDB", "Redis", "Docker"],
     power: "A dedicated Go service for location ingestion, live tracking, trip sessions and tamper monitoring — scalable apart from the platform it serves.",
@@ -122,7 +122,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Company Project", org: "Manju Global",
   },
   {
-    id: "03", name: "Manju PMS Platform", tag: "Land & Project Operations", cat: "Professional",
+    id: "03", name: "Manju PMS Platform", tag: "Land & Project Operations", cat: "Professional", mock: "dashboard",
     problem: "Land procurement, legal clearance, feasibility and channel-partner workflows ran on spreadsheets and messages — no shared state, no audit trail, no way to see where a deal actually stood.",
     stack: ["Next.js", "TypeScript", "Convex", "Tailwind", "Recharts", "AI SDK"],
     power: "A full operations platform covering land procurement, legal and feasibility gates, channel-partner management, reporting and an AI sales assistant.",
@@ -130,7 +130,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Company Project", org: "Manju Global",
   },
   {
-    id: "04", name: "Travel Desk", tag: "Trip Allocation & Fleet Billing", cat: "Professional",
+    id: "04", name: "Travel Desk", tag: "Trip Allocation & Fleet Billing", cat: "Professional", mock: "ops-board",
     problem: "Trip requests, driver assignment and billing were coordinated over phone calls — extra kilometres, cancellations and on-site delays were argued after the fact with no evidence.",
     stack: ["Next.js 16", "React 19", "TypeScript", "Tesseract.js", "Tailwind"],
     power: "End-to-end trip desk: request, allocate, dispatch to the driver, track each status transition, and finalise billing against what actually happened.",
@@ -138,7 +138,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Company Project", org: "Manju Global",
   },
   {
-    id: "05", name: "Mentorix", tag: "AI Career Intelligence System", cat: "AI Systems",
+    id: "05", name: "Mentorix", tag: "AI Career Intelligence System", cat: "AI Systems", mock: "gauge",
     problem: "Students receive generic career advice that ignores behavioural patterns and decision history — static data fails to capture how a student actually evolves over time.",
     stack: ["Python", "FastAPI", "RandomForest", "SQLite", "HTML/CSS/JS"],
     power: "AI-driven engine that analyses student behaviour patterns to predict career instability and recommend personalised career paths.",
@@ -146,7 +146,7 @@ export const PROJECTS = [
     repo: "https://github.com/D-A-R-X/mentorix-ai", repoLabel: "GitHub", org: "Cruza",
   },
   {
-    id: "06", name: "Megatron", tag: "Modular Adaptive AI Control System", cat: "AI Systems",
+    id: "06", name: "Megatron", tag: "Modular Adaptive AI Control System", cat: "AI Systems", mock: "graph",
     problem: "Single-purpose AI systems are brittle — any new capability requires rewriting core logic, making them impossible to scale meaningfully.",
     stack: ["Python", "FastAPI", "HTML", "CSS", "JavaScript"],
     power: "Modular AI controller with a central reasoning layer that analyses intent and delegates to specialised modules.",
@@ -154,7 +154,7 @@ export const PROJECTS = [
     repo: "https://github.com/D-A-R-X/Megatron", repoLabel: "GitHub",
   },
   {
-    id: "07", name: "Darx Dialer", tag: "Default Phone App + Cloud Recording", cat: "Products",
+    id: "07", name: "Darx Dialer", tag: "Default Phone App + Cloud Recording", cat: "Products", mock: "phone-dialer",
     problem: "Client and staff calls carry commitments nobody writes down. Stock dialers give you a call log and nothing else — no searchable record of what was actually agreed.",
     stack: ["Kotlin", "Jetpack Compose", "InCallService", "Convex", "Material 3"],
     power: "A full default-dialer replacement: outgoing and incoming calls, contacts, recents, and disclosed per-call recording synced to cloud storage.",
@@ -162,7 +162,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Private Build",
   },
   {
-    id: "08", name: "Brownie Care", tag: "AI Companion Health App", cat: "Products",
+    id: "08", name: "Brownie Care", tag: "AI Companion Health App", cat: "Products", mock: "phone-companion",
     problem: "Health apps nag. They track numbers and push reminders, and people abandon them because nothing in the app actually feels like it cares whether you show up.",
     stack: ["Kotlin", "Compose Canvas", "Groq LLM", "Convex", "WorkManager", "DataStore"],
     power: "A personal health companion built around DARX — a character drawn entirely in Compose Canvas who reacts, talks and reminds, powered by llama-3.3-70b.",
@@ -170,7 +170,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Private Build",
   },
   {
-    id: "09", name: "Signal Tracker · SentinelX", tag: "Trading Signal Verification", cat: "Products",
+    id: "09", name: "Signal Tracker · SentinelX", tag: "Trading Signal Verification", cat: "Products", mock: "chart",
     problem: "Signal channels advertise near-perfect win rates by quietly never posting their losses. There is no way to judge one without independently recording every call they make.",
     stack: ["Python", "Telegram API", "Next.js", "Convex", "Pine Script", "SQLite"],
     power: "Listens to a signal channel, parses every call, and logs what would have happened — measuring true win rate without placing a single real trade.",
@@ -178,7 +178,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Private Build",
   },
   {
-    id: "10", name: "GenZ Reading Academy", tag: "Academy Site & Admissions Flow", cat: "Products",
+    id: "10", name: "GenZ Reading Academy", tag: "Academy Site & Admissions Flow", cat: "Products", mock: "landing",
     problem: "Admissions ran on forms that produced nothing usable — enquiries arrived as raw text with no record, no document, and no reliable follow-up.",
     stack: ["Next.js", "TypeScript", "better-sqlite3", "jsPDF", "Nodemailer"],
     power: "Academy site with a complete application pipeline — structured form, server-side persistence, generated PDF, and automated email delivery.",
@@ -186,7 +186,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Client Project",
   },
   {
-    id: "11", name: "The Flashback Cafe", tag: "Brand Site · Tanglish Menu", cat: "Products",
+    id: "11", name: "The Flashback Cafe", tag: "Brand Site · Tanglish Menu", cat: "Products", mock: "menu-site",
     problem: "A cafe's personality lives in how its regulars talk about it. A translated, sanitised menu throws away exactly the thing that makes people come back.",
     stack: ["Next.js", "React", "CSS"],
     power: "A brand site that presents the menu in the cafe's own Tanglish voice alongside plain English, structured as courses rather than a price list.",
@@ -194,7 +194,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Client Project",
   },
   {
-    id: "12", name: "Kosal-Link", tag: "Landing Page Structure Extractor", cat: "Products",
+    id: "12", name: "Kosal-Link", tag: "Landing Page Structure Extractor", cat: "Products", mock: "terminal",
     problem: "Rebuilding a reference landing page means manually re-deriving its structure. Plain scrapers return a tangle of HTML with no sense of which parts are sections.",
     stack: ["Python", "Node.js", "Playwright", "CLI"],
     power: "A four-tool scraper suite: static downloader, browser-based scraper for JS-heavy pages, structure extractor, and a CLI for section detection and component export.",
@@ -202,7 +202,7 @@ export const PROJECTS = [
     repo: null, repoLabel: "Company Project", org: "Kosal Tech",
   },
   {
-    id: "13", name: "Smart Campus", tag: "Academic Resource Management App", cat: "Mobile",
+    id: "13", name: "Smart Campus", tag: "Academic Resource Management App", cat: "Mobile", mock: "phone-grid",
     problem: "Academic resources are fragmented across platforms — students waste time hunting for materials across WhatsApp groups, drives, and portals.",
     stack: ["Flutter", "Firebase Auth", "Firestore", "Firebase Storage"],
     power: "Cross-platform mobile app delivering centralised academic resources. Deployed to the Google Play Store.",
@@ -210,7 +210,7 @@ export const PROJECTS = [
     repo: "https://play.google.com/store/apps/details?id=com.schrodingerlab.curiosity", repoLabel: "Play Store",
   },
   {
-    id: "14", name: "Drive Track Mate", tag: "Intelligent Driving Monitoring", cat: "Mobile",
+    id: "14", name: "Drive Track Mate", tag: "Intelligent Driving Monitoring", cat: "Mobile", mock: "phone-timeline",
     problem: "Passive dash cameras record continuous footage without context — finding critical events means scrubbing hours of unstructured video.",
     stack: ["Android", "Dash Camera Integration", "Event-Based Recording"],
     power: "Event-aware recording logic that auto-tags critical driving events with timestamps and contextual metadata.",
@@ -218,7 +218,7 @@ export const PROJECTS = [
     repo: "https://github.com/D-A-R-X/drive-track-mate", repoLabel: "GitHub",
   },
   {
-    id: "15", name: "Fitcore", tag: "AI-Based Fitness Tracking System", cat: "Mobile",
+    id: "15", name: "Fitcore", tag: "AI-Based Fitness Tracking System", cat: "Mobile", mock: "phone-progress",
     problem: "Most fitness apps rely on manual input — users manipulate their own data, generating inaccurate progress metrics.",
     stack: ["Flutter", "Firebase Auth", "Firestore"],
     power: "Adaptive fitness progression logic using verified activity data and dynamic experience-based levelling.",
