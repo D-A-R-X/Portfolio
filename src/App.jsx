@@ -1,1467 +1,737 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import { CERT_IMAGES } from "./assets.js";
-import { T, FONT, TYPE, GLASS, EASE, blueA, whiteA } from "./theme.js";
-import {
-  NAV_LINKS, CONTACT_LINKS, EXPERIENCE, SKILL_BARS, PROJECTS, PROJECT_FILTERS,
-  CERTS, ACHIEVEMENTS, INTERESTS, PHILOSOPHY, GOALS,
-} from "./data.js";
-import {
-  useMotionEngine, useScrolled, useReducedMotion, useIsMobile, useInView,
-  Cursor, SplitText, Scramble, Magnetic, Glass, Reveal, Grain, Aurora, Shards, Intro,
-  ScrubIn, ScrubShift, useScrollDirection, BorderBeam, Counter, useHoverDecode,
-  ScrollHighlight, ScrubBar,
-} from "./motion.jsx";
-import { Wireframe } from "./canvas3d.jsx";
+import { T, FONT, SHADOW, EASE, blueA } from "./theme.js";
+import { CONTACT_LINKS, EXPERIENCE, PROJECTS, PROJECT_FILTERS, CERTS, ACHIEVEMENTS } from "./data.js";
+import { useReducedMotion, useIsMobile, useScrubber, useReveal, Reveal, Decode, Magnetic, MOTION_CSS } from "./motion.jsx";
+import { Landscape, Particles } from "./world.jsx";
+import { Smoke } from "./fluid.jsx";
+import { FXArt, FXGrid, FX_CSS } from "./cardfx.jsx";
 import { Mockup } from "./mockups.jsx";
-import { Layer, DepthFrames, Scene, SectionHead, Marker, Marquee } from "./parallax.jsx";
 
-/* ─── SEGMENTED METER ─────────────────────────────────────
-   Reads as an instrument. Cells light in sequence from the left. */
-function Meter({ name, level, delay }) {
-  const [ref, inView] = useInView(0.12);
-  const cells = 22;
-  const filled = Math.round((level / 100) * cells);
+/* ─── CONTENT SPECIFIC TO THIS LAYOUT ─────────────────────── */
 
+// "*word*" renders in the italic; a leading "→" renders the ↳ hook and indent.
+const CHAPTERS = [
+  { id: "top", caption: "Surya J — Software developer · Android, web & backend", lines: ["*I turn*", "ideas into", "→software people", "actually use"] },
+  { id: "about", pill: "About", lines: ["*I* build", "→Android apps,", "web platforms", "& their backends"], mono: "CSE at DSCE Coimbatore, class of 2026. Kotlin on the client, Next.js on the web, Go and Python underneath." },
+  { id: "now", pill: "Now", lines: ["*Currently*", "shipping at", "→Kosal Tech", "& Manju Global"], mono: "Software developer at Kosal Tech Solutions. On contract with Manju Global: an Android app, an operations ERP and a Go tracking service." },
+  { id: "approach", pill: "Approach", lines: ["Simple *by*", "→design, built", "to last"], mono: "Understand the problem before writing code. Keep the architecture small enough for the next engineer to read." },
+  { id: "studio", pill: "Studio", lines: ["*Co-founder of*", "→Cruza, an", "independent", "studio"], mono: "Building intelligent systems that solve real problems. Flagship: Mentorix, a live career-intelligence system.", link: { href: "https://cruza.vercel.app", label: "Visit Cruza" } },
+];
+
+const SERVICES = [
+  ["Android Applications", "Kotlin · Jetpack Compose"],
+  ["Web Platforms", "Next.js · React · TypeScript"],
+  ["Backend Services", "Go · Python · FastAPI"],
+  ["Realtime Systems", "Convex · Firebase"],
+  ["Geospatial & Live Tracking", "PostGIS · TimescaleDB · Redis"],
+  ["AI & ML Systems", "Generative AI · Prompting · ML"],
+  ["Design Systems", "Tokens · Theming · Components"],
+  ["APIs & Integrations", "REST · Webhooks · WhatsApp"],
+  ["Cross-platform Apps", "Flutter · Firebase"],
+  ["Deployment", "Vercel · Render · Docker"],
+];
+
+const MENU = [["Home", "top"], ["About", "about"], ["What I do", "services"], ["Experience", "experience"], ["Projects", "projects"], ["Credentials", "credentials"], ["Contact", "contact"]];
+
+/* ─── CSS ─────────────────────────────────────────────────── */
+const CSS = `
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:clip}
+  body{background:#f7faff;color:${T.ink};font-family:${FONT.sans};overflow-x:clip}
+  ::selection{background:${T.blue};color:#fff}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  img{max-width:100%;display:block}
+  :focus-visible{outline:2px solid ${T.blue};outline-offset:3px;border-radius:6px}
+
+  .wrap{max-width:1320px;margin:0 auto;padding:0 clamp(1.25rem,4vw,3.5rem);position:relative}
+  .sec{position:relative;padding:clamp(5.5rem,11vw,10rem) 0;overflow:clip}
+
+  .pill{display:inline-flex;align-items:center;gap:.4rem;font-family:${FONT.mono};font-weight:500;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:.36rem .72rem;border-radius:999px;background:${T.blue};color:#fff}
+  .pill-soft{background:${T.tint};color:${T.blueDeep}}
+  .mono{font-family:${FONT.mono};text-transform:uppercase;letter-spacing:.04em}
+  .cap{font-family:${FONT.mono};font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:${T.muted}}
+
+  /* display: narrow serif caps with an italic lead-in */
+  .disp{font-family:${FONT.serif};font-weight:400;text-transform:uppercase;line-height:.9;letter-spacing:-.005em;color:${T.ink}}
+  .disp em{font-style:italic;text-transform:none;color:${T.blue}}
+  .hook{font-family:${FONT.sans};font-size:.4em;font-style:normal;color:${T.blue};margin-right:.7em;vertical-align:.45em;display:inline-block}
+
+  /* the world */
+  .chapter{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end}
+  .petal{position:absolute;border-radius:70% 30% 70% 30%;animation:petal linear infinite;will-change:transform}
+  @keyframes petal{
+    0%{transform:translate3d(0,-10vh,0) rotate(0deg)}
+    100%{transform:translate3d(-38vw,110vh,0) rotate(540deg)}
+  }
+
+  /* services — the active row reads, the rest recede */
+  .svc{display:grid;grid-template-columns:5.5rem 1fr;align-items:baseline;gap:1rem;padding:.55rem 0;transition:opacity .5s ${EASE.out},transform .6s ${EASE.out}}
+  .svc[data-d="0"]{opacity:1}
+  .svc[data-d="1"]{opacity:.5}
+  .svc[data-d="2"]{opacity:.26}
+  .svc[data-d="3"]{opacity:.12}
+  .svc .svc-i{font-family:${FONT.mono};font-size:.78rem;color:${T.muted};transition:color .4s ease}
+  .svc[data-d="0"] .svc-i{color:${T.blue}}
+  .svc .svc-n{justify-self:end;text-align:right;font-weight:500;letter-spacing:-.025em;transition:transform .6s ${EASE.out}}
+  .svc[data-d="0"] .svc-n{transform:translate3d(-8px,0,0)}
+
+  /* rows — experience, credentials */
+  .row{border-top:1px solid ${T.line2}}
+  .row-btn{width:100%;text-align:left;display:grid;align-items:center;gap:1.2rem;padding:1.35rem 0}
+  .row-t{transition:transform .6s ${EASE.out},color .3s ease}
+  .row-btn:hover .row-t{transform:translate3d(10px,0,0);color:${T.blue}}
+  .row-x{transition:transform .6s ${EASE.spring};color:${T.blue}}
+
+  .drawer{display:grid;grid-template-rows:0fr;transition:grid-template-rows .75s ${EASE.out}}
+  .drawer.open{grid-template-rows:1fr}
+  .drawer>div{overflow:hidden}
+
+  /* project cards */
+  .pcard{text-align:left;display:block;width:100%}
+  .pcard-art{position:relative;border-radius:18px;background:#fff;border:1px solid ${T.line};overflow:hidden;aspect-ratio:10/8;display:grid;place-items:center;padding:8%;transition:border-color .3s ease}
+  .pcard-art .wipe-art{width:100%}
+  .pcard-scan{position:absolute;left:-30%;top:0;bottom:0;width:30%;background:linear-gradient(90deg,transparent,${blueA(0.12)},transparent);transform:translate3d(0,0,0);transition:transform .9s ${EASE.out};pointer-events:none}
+  .pcard:hover .pcard-art{border-color:${T.ice}}
+  .pcard:hover .pcard-scan{transform:translate3d(470%,0,0)}
+  .pcard-mock{transition:transform .8s ${EASE.out}}
+  .pcard:hover .pcard-mock{transform:scale(1.045)}
+  .pcard-name{transition:color .3s ease}
+  .pcard:hover .pcard-name{color:${T.blue}}
+
+  .chip{font-family:${FONT.mono};font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:.5rem .85rem;border-radius:999px;border:1px solid ${T.line2};color:${T.body};background:#fff;transition:background-color .3s ease,color .3s ease,border-color .3s ease}
+  .chip:hover{border-color:${T.blue};color:${T.blue}}
+  .chip.on{background:${T.blue};border-color:${T.blue};color:#fff}
+
+  .tag{display:inline-flex;font-family:${FONT.mono};font-size:.7rem;padding:.28rem .55rem;border-radius:6px;border:1px solid ${T.line};color:${T.body};background:#fff;white-space:nowrap}
+
+  .ghost-btn{display:inline-flex;align-items:center;gap:.6rem;font-weight:500;padding:.85rem 1.3rem;border-radius:999px;border:1px solid ${T.ice};color:${T.navy};background:linear-gradient(180deg,#fff,${T.tint});transition:border-color .3s ease,color .3s ease}
+  .ghost-btn:hover{border-color:${T.blue};color:${T.blue}}
+  .ghost-btn .arr{transition:transform .5s ${EASE.out}}
+  .ghost-btn:hover .arr{transform:translate3d(3px,-3px,0)}
+
+  /* bottom pill navigation */
+  .dock{position:fixed;left:50%;bottom:clamp(.9rem,2.4vh,1.6rem);z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:min(380px,calc(100vw - 2rem));height:62px;padding:0 .55rem 0 1.1rem;border-radius:999px;background:linear-gradient(100deg,${T.navy} 0%,${T.blueDeep} 45%,${T.blue} 100%);box-shadow:0 18px 40px -18px rgba(15,34,86,.7),inset 0 1px 0 rgba(255,255,255,.22);transform:translate3d(-50%,0,0)}
+  .dock-menu{width:34px;height:34px;display:grid;place-items:center}
+  .dock-menu i{display:block;width:22px;height:1.6px;background:#fff;border-radius:2px;transition:transform .5s ${EASE.out}}
+  .dock-menu i+i{margin-top:6px}
+  .dock-menu.x i:first-child{transform:translate3d(0,3.8px,0) rotate(45deg)}
+  .dock-menu.x i:last-child{transform:translate3d(0,-3.8px,0) rotate(-45deg)}
+  .orb{position:relative;width:46px;height:46px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 34% 30%,#fff 0%,#dbe6ff 26%,${T.sky} 62%,${T.blueDeep} 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+  .orb::after{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.55) 60deg,rgba(255,255,255,0) 140deg);animation:spin 5s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .menu{position:fixed;inset:0;z-index:999;background:#f7faff;display:flex;flex-direction:column;transform:translate3d(0,102%,0);transition:transform .8s ${EASE.inOut};overflow:auto}
+  .menu.open{transform:none}
+  .menu>.wrap{margin-block:auto;padding-top:5rem}
+  .menu-link{display:flex;align-items:baseline;gap:1rem;padding:.2rem 0;opacity:0;transform:translate3d(0,40px,0);transition:opacity .6s ${EASE.out},transform .8s ${EASE.out},color .3s ease}
+  .menu.open .menu-link{opacity:1;transform:none}
+  .menu-link:hover{color:${T.blue}}
+
+  .modal-bg{position:fixed;inset:0;z-index:1100;background:rgba(10,20,50,.38);animation:fade .35s ease both}
+  .modal{position:fixed;left:50%;top:50%;z-index:1101;width:min(1040px,calc(100vw - 2rem));max-height:calc(100svh - 3rem);overflow:auto;background:#fff;border-radius:22px;box-shadow:0 40px 120px -40px rgba(10,20,50,.6);transform:translate3d(-50%,-50%,0);animation:rise .6s ${EASE.out} both}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes rise{from{opacity:0;transform:translate3d(-50%,-46%,0)}to{opacity:1;transform:translate3d(-50%,-50%,0)}}
+
+  .loader{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#c7d9ff 0%,#eef4ff 60%,#f7faff 100%);transition:transform 1s ${EASE.inOut}}
+  .loader.out{transform:translate3d(0,-101%,0)}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    .petal,.orb::after{animation:none!important}
+    .menu,.menu-link{transition:none!important}
+  }
+`;
+
+/* ─── SMALL PIECES ────────────────────────────────────────── */
+
+function Arrow({ size = 16, up = false }) {
   return (
-    <div ref={ref} style={{ display: "flex", alignItems: "center", gap: "0.9rem", padding: "0.42rem 0" }}>
-      <span style={{ ...TYPE.body, color: T.white, fontSize: "0.83rem", flex: "0 0 auto", minWidth: "8.6rem" }}>{name}</span>
-      <span style={{ display: "flex", gap: "2px", flex: 1, minWidth: 0 }}>
-        {Array.from({ length: cells }, (_, i) => {
-          const on = inView && i < filled;
-          return (
-            <span
-              key={i}
-              style={{
-                flex: 1, height: "10px", minWidth: "2px",
-                background: on ? T.blue : whiteA(0.055),
-                boxShadow: on ? `0 0 10px -2px ${blueA(0.8)}` : "none",
-                transform: on ? "scaleY(1)" : "scaleY(0.45)",
-                opacity: on ? 1 - (i / cells) * 0.32 : 1,
-                transition: `background 0.4s ${EASE.out} ${delay + i * 0.022}s, transform 0.4s ${EASE.spring} ${delay + i * 0.022}s, box-shadow 0.4s ease ${delay + i * 0.022}s, opacity 0.4s ease ${delay + i * 0.022}s`,
-              }}
-            />
-          );
-        })}
-      </span>
-      <span style={{ ...TYPE.meta, color: T.greyDim, flex: "0 0 auto", width: "1.8rem", textAlign: "right" }}>
-        <Counter value={level} />
-      </span>
-    </div>
-  );
-}
-
-/* ─── PROJECT MARK ────────────────────────────────────────
-   Deterministic blueprint glyph per project — same wireframe
-   language as the hero canvas, seeded so each project keeps its own
-   mark. When `draw` flips true the strokes paint themselves on. */
-function ProjectMark({ seed, size = 96, draw = true }) {
-  const pts = useMemo(() => {
-    let a = (seed * 9301 + 49297) % 233280;
-    const rnd = () => { a = (a * 9301 + 49297) % 233280; return a / 233280; };
-    const n = 5 + Math.floor(rnd() * 3);
-    return Array.from({ length: n }, (_, i) => {
-      const ang = (i / n) * Math.PI * 2 + rnd() * 0.5;
-      const rad = 0.3 + rnd() * 0.62;
-      return [50 + Math.cos(ang) * rad * 42, 50 + Math.sin(ang) * rad * 42];
-    });
-  }, [seed]);
-
-  const poly = pts.map((q) => q.join(",")).join(" ");
-  const on = draw;
-
-  return (
-    <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true" style={{ display: "block", overflow: "visible" }}>
-      <circle
-        cx="50" cy="50" r="46" fill="none" stroke={blueA(0.2)} strokeWidth="0.5" strokeDasharray="2 3"
-        style={{ transformOrigin: "50% 50%", animation: on ? "markSpin 26s linear infinite" : "none" }}
-      />
-      <circle
-        cx="50" cy="50" r="30" fill="none" stroke={blueA(0.16)} strokeWidth="0.5"
-        strokeDasharray="189" strokeDashoffset={on ? 0 : 189}
-        style={{ transition: `stroke-dashoffset 1.1s ${EASE.out} 0.1s` }}
-      />
-      <polygon
-        points={poly} fill={blueA(0.07)} stroke={T.blueLit} strokeWidth="0.9" strokeLinejoin="round"
-        strokeDasharray="300" strokeDashoffset={on ? 0 : 300}
-        style={{
-          transition: `stroke-dashoffset 1.3s ${EASE.out} 0.16s, fill-opacity 0.8s ease 0.7s`,
-          fillOpacity: on ? 1 : 0,
-        }}
-      />
-      {pts.map((q, i) => (
-        <g key={i}>
-          <line
-            x1="50" y1="50" x2={q[0]} y2={q[1]} stroke={blueA(0.32)} strokeWidth="0.4"
-            strokeDasharray="60" strokeDashoffset={on ? 0 : 60}
-            style={{ transition: `stroke-dashoffset 0.75s ${EASE.out} ${0.3 + i * 0.07}s` }}
-          />
-          <rect
-            x={q[0] - 1.6} y={q[1] - 1.6} width="3.2" height="3.2" fill={T.blueLit}
-            style={{
-              transformBox: "fill-box", transformOrigin: "center",
-              transform: on ? "scale(1)" : "scale(0)",
-              transition: `transform 0.5s ${EASE.spring} ${0.5 + i * 0.07}s`,
-            }}
-          />
-        </g>
-      ))}
-      <rect x="48.6" y="48.6" width="2.8" height="2.8" fill={T.white} />
+    <svg className="arr" width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+      {up
+        ? <path d="M4.5 11.5l7-7M5.5 4.5h6v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        : <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />}
     </svg>
   );
 }
 
-/* ─── PROJECT ROW ─────────────────────────────────────────
-   List row. Hovering one row displaces its neighbours and dims
-   them, a light sweeps across it, and the name decodes out of
-   noise. Opening slides a frosted pane out with the mark drawing
-   itself in the rail. */
-function ProjectRow({ project, mobile, motion, index, activeIndex, onHover, isOpen, onToggle }) {
-  const hover = activeIndex === index;
-  const lit = hover || isOpen;
-  const name = useHoverDecode(project.name, hover && !isOpen, { enabled: motion });
+/** "*italic*" segments and a leading "→" hook, for display lines. */
+function DispText({ text }) {
+  const hook = text.startsWith("→");
+  const body = hook ? text.slice(1) : text;
+  const parts = body.split(/(\*[^*]+\*)/g).filter(Boolean);
+  return (
+    <>
+      {hook && <span className="hook">↳</span>}
+      {parts.map((p, i) => (p.startsWith("*") ? <em key={i}>{p.slice(1, -1)}</em> : <span key={i}>{p}</span>))}
+    </>
+  );
+}
 
-  // fisheye: neighbours are pushed away and faded, nearest pushed most
-  const dist = activeIndex === null || isOpen ? 0 : Math.abs(index - activeIndex);
-  const push = dist === 0 ? 0 : Math.sign(index - activeIndex) * Math.max(0, 9 - dist * 2.6);
-  const dim = dist === 0 ? 1 : Math.max(0.42, 1 - dist * 0.16);
+/** Display heading whose lines rise from behind their own baseline. */
+function Lines({ lines, motion, style, as: Tag = "h2", stagger = 0.09, delay = 0 }) {
+  const ref = useReveal({ enabled: motion });
+  return (
+    <Tag ref={ref} className="disp sw" style={style}>
+      {lines.map((ln, i) => (
+        <span key={i} className="sw-m" style={{ display: "block" }}>
+          <span className="sw-w" style={{ "--d": `${delay + i * stagger}s` }}><DispText text={ln} /></span>
+        </span>
+      ))}
+    </Tag>
+  );
+}
 
-  const cols = mobile
-    ? "2.6rem 1fr 1.4rem"
-    : "3.6rem minmax(0,1.15fr) minmax(0,0.95fr) minmax(0,0.95fr) 7rem 1.6rem";
+function ScrollBar() {
+  const ref = useRef(null);
+  useEffect(() => {
+    let max = 1;
+    const refresh = () => { max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight); };
+    const on = () => { if (ref.current) ref.current.style.transform = `scaleX(${(window.scrollY / max).toFixed(4)})`; };
+    refresh(); on();
+    const ro = new ResizeObserver(() => { refresh(); on(); });
+    ro.observe(document.body);
+    window.addEventListener("scroll", on, { passive: true });
+    window.addEventListener("resize", refresh, { passive: true });
+    return () => { ro.disconnect(); window.removeEventListener("scroll", on); window.removeEventListener("resize", refresh); };
+  }, []);
+  return <div ref={ref} aria-hidden="true" style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, zIndex: 1001, background: T.blue, transform: "scaleX(0)", transformOrigin: "left" }} />;
+}
+
+/* ─── LOADER ──────────────────────────────────────────────────
+   Finishes on its own — a recruiter never has to click to get in. */
+function Loader({ onDone, reduced }) {
+  const [n, setN] = useState(0);
+  const [out, setOut] = useState(false);
+  const [gone, setGone] = useState(reduced);
+  const done = useRef(onDone);
+  done.current = onDone;
+
+  useEffect(() => {
+    if (reduced) { done.current(); return; }
+    const t0 = performance.now();
+    const DUR = 1500;
+    let raf = 0;
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / DUR);
+      setN(Math.round(100 * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    // timers, not rAF, own the exit — it must happen even if frames stall
+    const a = setTimeout(() => { setN(100); setOut(true); done.current(); }, DUR + 150);
+    const b = setTimeout(() => setGone(true), DUR + 1250);
+    return () => { cancelAnimationFrame(raf); clearTimeout(a); clearTimeout(b); };
+  }, [reduced]);
+
+  if (gone) return null;
+  return (
+    <div className={`loader${out ? " out" : ""}`} aria-hidden="true">
+      <div style={{ fontFamily: FONT.serif, fontSize: "clamp(2.6rem,6vw,4rem)", color: T.ink, letterSpacing: "-.01em" }}>
+        Surya <em style={{ color: T.blue }}>J</em>
+      </div>
+      <div className="mono" style={{ fontSize: ".72rem", color: T.navy, marginTop: ".8rem", textAlign: "center" }}>Software developer · Android, web &amp; backend</div>
+      <div style={{ width: "min(260px,60vw)", height: 1, background: T.ice, marginTop: "2.2rem", overflow: "hidden" }}>
+        <div style={{ height: "100%", background: T.blue, transform: `scaleX(${n / 100})`, transformOrigin: "left" }} />
+      </div>
+      <div className="mono" style={{ fontSize: ".72rem", color: T.muted, marginTop: ".8rem" }}>{String(n).padStart(3, "0")}</div>
+    </div>
+  );
+}
+
+/* ─── DOCK + MENU ─────────────────────────────────────────── */
+function Dock({ open, setOpen, go }) {
+  return (
+    <nav className="dock" aria-label="Primary">
+      <button className={`dock-menu${open ? " x" : ""}`} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Close menu" : "Open menu"}>
+        <span><i /><i /></span>
+      </button>
+      <button onClick={() => go("top")} style={{ fontFamily: FONT.serif, fontSize: "1.45rem", color: "#fff", letterSpacing: "-.01em" }} aria-label="Back to top">
+        Surya <em style={{ color: "#c3d2f7" }}>J</em>
+      </button>
+      <button className="orb" onClick={() => go("contact")} aria-label="Get in touch" title="Get in touch" />
+    </nav>
+  );
+}
+
+function Menu({ open, go, mobile }) {
+  return (
+    <div className={`menu${open ? " open" : ""}`} aria-hidden={!open}>
+      <div className="wrap" style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1.6fr 1fr", gap: "3rem", alignItems: "end", paddingBottom: "6rem" }}>
+        <div>
+          {MENU.map(([label, id], i) => (
+            <button key={id} className="menu-link" onClick={() => go(id)} tabIndex={open ? 0 : -1} style={{ transitionDelay: open ? `${0.15 + i * 0.05}s` : "0s" }}>
+              <span className="mono" style={{ fontSize: ".72rem", color: T.blue }}>{String(i + 1).padStart(2, "0")}</span>
+              <span className="disp" style={{ fontSize: mobile ? "2.6rem" : "clamp(3rem,6vw,5.2rem)" }}>{label}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "grid", gap: "1.2rem" }}>
+          <span className="pill">Get in touch</span>
+          {CONTACT_LINKS.map((c) => (
+            <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" tabIndex={open ? 0 : -1} style={{ display: "flex", justifyContent: "space-between", gap: "1rem", borderTop: `1px solid ${T.line2}`, paddingTop: ".8rem" }}>
+              <span className="cap">{c.label}</span>
+              <span style={{ color: T.ink }}>{c.value}</span>
+            </a>
+          ))}
+          <a className="ghost-btn" href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer" tabIndex={open ? 0 : -1} style={{ justifySelf: "start", marginTop: ".6rem" }}>Download résumé <Arrow up size={14} /></a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── THE WORLD ───────────────────────────────────────────────
+   A sticky scene the five chapters scroll over. The scrubber turns
+   progress through the section into the particle morph (0→4) and a
+   camera drift across the landscape layers. */
+function World({ mobile, motion, reduced, ready }) {
+  const morph = useRef(0);
+  const visible = useRef(true);
+  const layers = useRef([]);
+  const frame = useRef(null);
+
+  const ref = useScrubber((p) => {
+    morph.current = p * (CHAPTERS.length - 1);
+    const L = layers.current;
+    const set = (i, v) => { if (L[i]) L[i].style.transform = v; };
+    set(0, `translate3d(0,${(p * -60).toFixed(1)}px,0)`);
+    set(1, `translate3d(${(p * -80).toFixed(1)}px,${(p * -30).toFixed(1)}px,0)`);
+    set(2, `translate3d(0,${(p * 26).toFixed(1)}px,0)`);
+    set(3, `translate3d(0,${(p * 60).toFixed(1)}px,0) scale(${(1 + p * 0.05).toFixed(4)})`);
+    set(4, `translate3d(0,${(p * 130).toFixed(1)}px,0) scale(${(1 + p * 0.14).toFixed(4)})`);
+    set(5, `translate3d(0,${(p * -120).toFixed(1)}px,0)`);
+  }, { mode: "pin", enabled: motion });
+
+  // Pause the particles once the scene has scrolled away. This only ever
+  // pauses — if the observer never reports, they keep drawing.
+  useEffect(() => {
+    const el = frame.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => { visible.current = e.isIntersecting; });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <div
-      onMouseEnter={() => onHover?.(index)}
-      onMouseLeave={() => onHover?.(null)}
-      style={{
-        position: "relative",
-        borderBottom: `1px solid ${lit ? whiteA(0.15) : T.line}`,
-        transform: motion ? `translateY(${push}px)` : "none",
-        opacity: dim,
-        transition: `transform 0.55s ${EASE.out}, opacity 0.45s ease, border-color 0.45s ${EASE.out}`,
-        zIndex: lit ? 2 : 1,
-      }}
-    >
-      {/* glass wash */}
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          background: `linear-gradient(90deg, ${whiteA(0.07)} 0%, ${blueA(0.06)} 42%, transparent 100%)`,
-          backdropFilter: lit ? "blur(10px)" : "none",
-          WebkitBackdropFilter: lit ? "blur(10px)" : "none",
-          transformOrigin: "left",
-          transform: lit ? "scaleX(1)" : "scaleX(0)",
-          opacity: lit ? 1 : 0,
-          transition: `transform 0.7s ${EASE.out}, opacity 0.45s ease`,
-        }}
-      />
+    <section ref={ref} style={{ position: "relative" }}>
+      <div ref={frame} style={{ position: "sticky", top: 0, height: "100svh", overflow: "clip", zIndex: 0 }}>
+        <Landscape layers={layers} />
+        <Particles morphRef={morph} visibleRef={visible} mobile={mobile} reduced={reduced} />
+      </div>
 
-      {/* scan line sweeping the row */}
-      {motion && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute", top: 0, bottom: 0, width: "72px", pointerEvents: "none",
-            background: `linear-gradient(90deg, transparent, ${blueA(0.5)} 45%, ${whiteA(0.5)} 50%, ${blueA(0.5)} 55%, transparent)`,
-            filter: "blur(0.4px)",
-            opacity: hover && !isOpen ? 1 : 0,
-            left: hover && !isOpen ? "calc(100% - 72px)" : "-72px",
-            transition: hover && !isOpen
-              ? `left 0.85s ${EASE.out}, opacity 0.2s ease`
-              : "opacity 0.35s ease, left 0s linear 0.35s",
-          }}
-        />
-      )}
-
-      <button
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        data-cursor={mobile ? undefined : "expand"}
-        data-cursor-label={isOpen ? "CLOSE" : "OPEN"}
-        style={{
-          position: "relative", width: "100%", background: "none", border: "none", cursor: "pointer",
-          color: "inherit", font: "inherit", textAlign: "left",
-          display: "grid", gridTemplateColumns: cols,
-          alignItems: "center", gap: mobile ? "0.8rem" : "1.5rem",
-          paddingTop: mobile ? "1.05rem" : "1.4rem",
-          paddingBottom: mobile ? "1.05rem" : "1.4rem",
-          paddingRight: mobile ? "0.5rem" : "1rem",
-          paddingLeft: mobile ? "0.5rem" : lit ? "1.9rem" : "1rem",
-          transition: `padding-left 0.65s ${EASE.out}`,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: FONT.sans, fontWeight: 700,
-            fontSize: mobile ? "1.15rem" : "1.75rem", lineHeight: 1, letterSpacing: "-0.04em",
-            color: lit ? T.blue : "transparent",
-            WebkitTextStroke: lit ? "0px" : `1px ${T.line3}`,
-            textShadow: lit ? `0 0 22px ${blueA(0.7)}` : "none",
-            transition: "color 0.35s ease, text-shadow 0.35s ease",
-          }}
-        >
-          {project.id}
-        </span>
-
-        <span style={{ minWidth: 0, display: "block", overflow: "hidden" }}>
-          <span
-            style={{
-              fontFamily: FONT.sans, fontWeight: 600,
-              fontSize: mobile ? "1.05rem" : "1.55rem", letterSpacing: "-0.03em", lineHeight: 1.12,
-              color: T.white, display: "block",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              transform: lit && !mobile ? "translateX(7px)" : "none",
-              transition: `transform 0.6s ${EASE.out}`,
-            }}
-          >
-            {name}
-          </span>
-          {mobile && (
-            <span style={{ ...TYPE.meta, display: "block", marginTop: "0.3rem", fontSize: "0.6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {project.tag}
-            </span>
-          )}
-        </span>
-
-        {!mobile && (
-          <span style={{ ...TYPE.meta, fontSize: "0.68rem", color: lit ? T.grey : T.greyDim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", transition: "color 0.35s ease" }}>
-            {project.tag}
-          </span>
-        )}
-
-        {/* stack chips cascade up on hover */}
-        {!mobile && (
-          <span style={{ display: "flex", gap: "0.3rem", alignItems: "center", minWidth: 0 }}>
-            {project.stack.slice(0, 2).map((t, i) => (
-              <span
-                key={t}
-                style={{
-                  ...TYPE.meta, fontSize: "0.58rem", color: lit ? T.white : T.grey,
-                  ...GLASS.chip, padding: "0.15rem 0.42rem", whiteSpace: "nowrap",
-                  transform: lit ? "translateY(0)" : "translateY(0)",
-                  borderColor: lit ? whiteA(0.2) : whiteA(0.07),
-                  transition: `color 0.35s ease ${i * 0.05}s, border-color 0.35s ease ${i * 0.05}s`,
-                }}
-              >
-                {t}
-              </span>
-            ))}
-            {project.stack.length > 2 && (
-              <span style={{ ...TYPE.meta, fontSize: "0.58rem", color: lit ? T.blueLit : T.faint, whiteSpace: "nowrap", transition: "color 0.35s ease" }}>
-                +{project.stack.length - 2}
-              </span>
-            )}
-          </span>
-        )}
-
-        {!mobile && (
-          <span style={{ ...TYPE.label, fontSize: "0.52rem", color: project.org ? (lit ? T.grey : T.greyDim) : T.faint, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", transition: "color 0.35s ease" }}>
-            {project.org || project.repoLabel}
-          </span>
-        )}
-
-        <span
-          style={{
-            ...TYPE.meta, color: lit ? T.blue : T.greyDim, fontSize: "0.95rem", lineHeight: 1,
-            justifySelf: "end",
-            transform: isOpen ? "rotate(135deg)" : lit ? "rotate(90deg)" : "none",
-            transition: `transform 0.6s ${EASE.spring}, color 0.3s ease`,
-          }}
-        >
-          +
-        </span>
-      </button>
-
-      <div style={{ display: "grid", gridTemplateRows: isOpen ? "1fr" : "0fr", transition: `grid-template-rows 0.75s ${EASE.out}` }}>
-        <div style={{ overflow: "hidden" }}>
-          <div
-            style={{
-              position: "relative",
-              margin: mobile ? "0 0.4rem 1.1rem" : "0 1rem 1.6rem 4.6rem",
-              padding: mobile ? "1.1rem" : "1.6rem 1.8rem",
-              ...GLASS.panel,
-              display: "grid",
-              gridTemplateColumns: mobile ? "1fr" : "auto 1fr 1fr",
-              gap: mobile ? "1.3rem" : "1.7rem 2.4rem",
-              opacity: isOpen ? 1 : 0,
-              transform: isOpen ? "translateY(0)" : "translateY(-12px)",
-              transition: `opacity 0.5s ease ${isOpen ? "0.16s" : "0s"}, transform 0.6s ${EASE.out} ${isOpen ? "0.12s" : "0s"}`,
-            }}
-          >
-            <BorderBeam active={isOpen && motion} duration={4.2} />
-
-            {!mobile && (
-              <div style={{ gridRow: "span 2", paddingRight: "1.3rem", borderRight: `1px solid ${whiteA(0.06)}`, width: "236px" }}>
-                <Mockup kind={project.mock} width={224} draw={isOpen} />
-                <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", marginTop: "0.9rem" }}>
-                  <ProjectMark seed={Number(project.id)} size={30} draw={isOpen} />
-                  <span style={{ ...TYPE.label, fontSize: "0.5rem", color: T.faint }}>{project.cat}</span>
-                </div>
-              </div>
-            )}
-
-            {mobile && (
-              <div style={{ marginBottom: "0.2rem" }}>
-                <Mockup kind={project.mock} width={280} draw={isOpen} />
-              </div>
-            )}
-
-            {[["Problem", project.problem], ["Design", project.highlight], ["Outcome", project.power]].map(([k, v], i) => (
-              <div
-                key={k}
-                style={{
-                  opacity: isOpen ? 1 : 0,
-                  transform: isOpen ? "translateY(0)" : "translateY(10px)",
-                  transition: `opacity 0.6s ease ${0.2 + i * 0.07}s, transform 0.7s ${EASE.out} ${0.2 + i * 0.07}s`,
-                }}
-              >
-                <div style={{ ...TYPE.label, fontSize: "0.55rem", color: T.blueLit, marginBottom: "0.55rem" }}>{k}</div>
-                <p style={{ ...TYPE.body, fontSize: "0.855rem", margin: 0 }}>{v}</p>
-              </div>
-            ))}
-
-            <div
-              style={{
-                opacity: isOpen ? 1 : 0,
-                transform: isOpen ? "translateY(0)" : "translateY(10px)",
-                transition: `opacity 0.6s ease 0.41s, transform 0.7s ${EASE.out} 0.41s`,
-              }}
-            >
-              <div style={{ ...TYPE.label, fontSize: "0.55rem", color: T.blueLit, marginBottom: "0.6rem" }}>Stack</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem 0.5rem" }}>
-                {project.stack.map((t, i) => (
-                  <span
-                    key={t}
-                    style={{
-                      ...TYPE.meta, fontSize: "0.63rem", color: T.grey, ...GLASS.chip, padding: "0.18rem 0.5rem",
-                      opacity: isOpen ? 1 : 0,
-                      transform: isOpen ? "translateY(0) scale(1)" : "translateY(8px) scale(0.92)",
-                      transition: `opacity 0.4s ease ${0.46 + i * 0.045}s, transform 0.55s ${EASE.spring} ${0.46 + i * 0.045}s`,
-                    }}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-              <div style={{ marginTop: "1.2rem" }}>
-                {project.repo ? (
-                  <Magnetic enabled={!mobile} strength={0.22}>
-                    <a
-                      href={project.repo} target="_blank" rel="noopener noreferrer"
-                      data-cursor={mobile ? undefined : "link"} data-cursor-label="VISIT"
-                      style={{ ...TYPE.label, fontSize: "0.58rem", color: T.blueLit, textDecoration: "none", borderBottom: `1px solid ${T.blueDim}`, paddingBottom: "0.2rem", transition: "border-color 0.3s, color 0.3s" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.blue; e.currentTarget.style.color = T.white; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.blueDim; e.currentTarget.style.color = T.blueLit; }}
-                    >
-                      {project.repoLabel} ↗
-                    </a>
-                  </Magnetic>
-                ) : (
-                  <span style={{ ...TYPE.label, fontSize: "0.58rem", color: T.faint }}>{project.repoLabel}</span>
+      <div style={{ position: "relative", zIndex: 1, marginTop: "-100svh" }}>
+        {CHAPTERS.map((c, i) => (
+          <div key={c.id} id={c.id} className="chapter">
+            <div className="wrap" style={{ width: "100%", paddingBottom: mobile ? "20svh" : "22svh" }}>
+              <div style={{ maxWidth: mobile ? "100%" : "58%" }}>
+                {c.caption && (i > 0 || ready) && (
+                  <Decode as="p" text={c.caption} enabled={motion} className="mono" style={{ fontSize: ".74rem", color: T.navy, marginBottom: "1.3rem", maxWidth: "40ch" }} />
+                )}
+                {c.pill && <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.3rem" }}><span className="pill">{c.pill}</span></Reveal>}
+                {(i > 0 || ready) && (
+                  <Lines
+                    as={i === 0 ? "h1" : "h2"}
+                    lines={c.lines}
+                    motion={motion}
+                    delay={i === 0 ? 0.05 : 0}
+                    style={{ fontSize: mobile ? "clamp(2.9rem,13vw,4.2rem)" : "clamp(3.6rem,7.2vw,7.4rem)" }}
+                  />
+                )}
+                {c.mono && (
+                  <Decode text={c.mono} enabled={motion} delay={0.25} className="mono" style={{ fontSize: mobile ? ".74rem" : ".8rem", lineHeight: 1.6, color: T.navy, marginTop: "1.6rem", maxWidth: "46ch" }} />
+                )}
+                {c.link && (
+                  <Reveal dir="up" delay={0.3} enabled={motion} style={{ marginTop: "1.6rem" }}>
+                    <a className="ghost-btn" href={c.link.href} target="_blank" rel="noopener noreferrer">{c.link.label} <Arrow up size={14} /></a>
+                  </Reveal>
                 )}
               </div>
             </div>
           </div>
-        </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-/* ─── HOVER PREVIEW ───────────────────────────────────────
-   Frosted tile trailing the cursor across the list. Lerped in its
-   own rAF loop, so the list never re-renders on mouse move. */
-function ProjectPreview({ project }) {
-  const ref = useRef(null);
+/* ─── WHAT I DO ───────────────────────────────────────────────
+   The row nearest the middle of the screen reads fully; the others
+   recede by distance. Only rows whose distance bucket changed are
+   written, so a scroll through ten rows costs a handful of writes. */
+function Services({ mobile, motion }) {
+  const rows = useRef([]);
+  const last = useRef(-1);
+  const listH = useRef(1);
+  const n = SERVICES.length;
+
+  // "through" progress runs from the list entering at the bottom to leaving at
+  // the top, which is not where you are reading. Convert it back to "which row
+  // is at mid-screen" using the list height — cached on resize, never read per frame.
+  const ref = useScrubber((p) => {
+    const vh = window.innerHeight;
+    const H = listH.current;
+    const atMiddle = p * (H + vh) - vh / 2; // px from the list top to mid-screen
+    const active = Math.min(n - 1, Math.max(0, Math.floor(atMiddle / (H / n))));
+    if (active === last.current) return;
+    last.current = active;
+    rows.current.forEach((el, i) => {
+      if (!el) return;
+      const d = String(Math.min(3, Math.abs(i - active)));
+      if (el.dataset.d !== d) el.dataset.d = d;
+      const idx = el.firstChild;
+      if (idx) idx.textContent = i === active ? "↳" : `(${String(i + 1).padStart(3, "0")})`;
+    });
+  }, { mode: "through", enabled: motion });
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, seeded = false;
-    const onMove = (e) => {
-      tx = e.clientX + 28;
-      ty = e.clientY - 158;
-      if (!seeded) { cx = tx; cy = ty; seeded = true; }
-    };
-    const tick = () => {
-      cx += (tx - cx) * 0.13;
-      cy += (ty - cy) * 0.13;
-      // lean into the direction of travel
-      const lean = Math.max(-9, Math.min(9, (tx - cx) * 0.35));
-      el.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0) rotate(${lean.toFixed(2)}deg)`;
-      raf = requestAnimationFrame(tick);
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    raf = requestAnimationFrame(tick);
-    return () => { window.removeEventListener("mousemove", onMove); cancelAnimationFrame(raf); };
-  }, []);
+    const measure = () => { listH.current = Math.max(1, el.offsetHeight); };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
 
   return (
-    <div
-      ref={ref}
-      aria-hidden="true"
-      style={{
-        position: "fixed", top: 0, left: 0, zIndex: 900, pointerEvents: "none",
-        width: 228, padding: "0.85rem", ...GLASS.panelLit,
-        opacity: project ? 1 : 0,
-        scale: project ? "1" : "0.88",
-        transition: `opacity 0.35s ease, scale 0.5s ${EASE.spring}`,
-        willChange: "transform",
-      }}
-    >
-      <BorderBeam active={!!project} duration={3} />
-      {project && (
-        <>
-          <div style={{ marginBottom: "0.8rem" }}>
-            <Mockup kind={project.mock} width={196} draw />
-          </div>
-          <div style={{ ...TYPE.label, fontSize: "0.5rem", color: T.blueLit, marginBottom: "0.35rem" }}>{project.cat}</div>
-          <div style={{ fontFamily: FONT.sans, fontWeight: 600, fontSize: "0.95rem", letterSpacing: "-0.02em", color: T.white, marginBottom: "0.3rem" }}>
-            {project.name}
-          </div>
-          <div style={{ ...TYPE.meta, fontSize: "0.6rem", color: T.greyDim, lineHeight: 1.5 }}>{project.tag}</div>
-          <div style={{ marginTop: "0.75rem", paddingTop: "0.6rem", borderTop: `1px solid ${whiteA(0.07)}`, display: "flex", justifyContent: "space-between" }}>
-            <span style={{ ...TYPE.meta, fontSize: "0.55rem", color: T.faint }}>{project.stack.length} technologies</span>
-            <span style={{ ...TYPE.meta, fontSize: "0.55rem", color: T.blue }}>{project.id}</span>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/* ─── EXPERIENCE ENTRY ──────────────────────────────────────
-   Timeline node. The rail beside it fills with the scroll, the
-   node lights as the card arrives, and the highlights stagger in
-   line by line. */
-function Role({ job, mobile, motion, index, last }) {
-  const [ref, inView] = useInView(0.25);
-  const [open, setOpen] = useState(index === 0);
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        display: "grid",
-        gridTemplateColumns: mobile ? "22px 1fr" : "28px 1fr",
-        gap: mobile ? "0.9rem" : "1.8rem",
-        paddingBottom: last ? 0 : mobile ? "1rem" : "1.4rem",
-      }}
-    >
-      {/* rail + node */}
-      <div ref={ref} style={{ position: "relative", display: "flex", justifyContent: "center", color: T.line3 }}>
-        {!last && (
-          <ScrubBar
-            span={1.6}
-            width={1}
-            colour={`linear-gradient(${T.blue}, ${T.blueLit})`}
-            glow={`0 0 10px ${blueA(0.7)}`}
-            style={{ top: "2.6rem", left: "50%", marginLeft: "-0.5px" }}
-          />
-        )}
-        <span
-          aria-hidden="true"
-          style={{
-            position: "relative", marginTop: "1.55rem", zIndex: 1,
-            width: job.current ? 11 : 8,
-            height: job.current ? 11 : 8,
-            background: inView ? (job.contract ? "transparent" : T.blue) : "transparent",
-            border: `1px solid ${inView ? T.blue : T.line3}`,
-            boxShadow: inView ? `0 0 0 4px ${blueA(0.14)}, 0 0 16px ${blueA(0.6)}` : "none",
-            transform: inView ? "scale(1)" : "scale(0.55)",
-            transition: `transform 0.6s ${EASE.spring}, background 0.5s ease, border-color 0.5s ease, box-shadow 0.6s ease`,
-          }}
-        />
-      </div>
-
-      <Glass
-        enabled={motion}
-        tilt={motion ? 1.6 : 0}
-        beam
-        depth={18}
-        style={{ padding: mobile ? "1.2rem" : "1.5rem 1.7rem", marginBottom: "0.85rem" }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap", marginBottom: "0.9rem" }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.45rem", flexWrap: "wrap" }}>
-              <span
-                style={{
-                  ...TYPE.label, fontSize: "0.48rem",
-                  color: job.current ? T.blueLit : T.greyDim,
-                  border: `1px solid ${job.current ? blueA(0.4) : T.line2}`,
-                  padding: "0.16rem 0.45rem",
-                }}
-              >
-                {job.current ? (job.contract ? "Contract" : "Current") : job.period}
-              </span>
-              <span style={{ ...TYPE.meta, fontSize: "0.58rem", color: T.faint }}>{job.sector}</span>
-            </div>
-            <h3 style={{ ...TYPE.h3(mobile), margin: 0 }}>{job.company}</h3>
-            <div style={{ ...TYPE.label, fontSize: "0.55rem", color: T.blueLit, marginTop: "0.45rem" }}>{job.role}</div>
-          </div>
-
-          <span style={{ fontFamily: FONT.sans, fontWeight: 700, fontSize: mobile ? "1.5rem" : "2rem", letterSpacing: "-0.04em", lineHeight: 1, color: "transparent", WebkitTextStroke: `1px ${T.line3}` }}>
-            {String(index + 1).padStart(2, "0")}
-          </span>
-        </div>
-
-        {/* what the place actually is */}
-        <p style={{ ...TYPE.body, fontSize: "0.86rem", margin: "0 0 1rem", maxWidth: "64ch", color: T.grey }}>
-          {job.about}
-        </p>
-
-        {/* what I did there */}
-        <button
-          onClick={() => setOpen(!open)}
-          aria-expanded={open}
-          data-cursor={mobile ? undefined : "expand"}
-          style={{
-            background: "none", border: "none", cursor: "pointer", padding: 0,
-            display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: open ? "0.9rem" : "0.2rem",
-            ...TYPE.label, fontSize: "0.5rem", color: open ? T.blueLit : T.greyDim,
-            transition: "color 0.3s ease",
-          }}
-        >
-          <span>{open ? "Hide work" : `${job.highlights.length} things I built`}</span>
-          <span style={{ display: "inline-block", transform: open ? "rotate(135deg)" : "none", transition: `transform 0.5s ${EASE.spring}`, fontSize: "0.8rem", lineHeight: 1 }}>+</span>
-        </button>
-
-        <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", transition: `grid-template-rows 0.7s ${EASE.out}` }}>
-          <div style={{ overflow: "hidden" }}>
-            <ul style={{ listStyle: "none", margin: "0 0 1rem", padding: 0 }}>
-              {job.highlights.map((h, i) => (
-                <li
-                  key={i}
-                  style={{
-                    display: "grid", gridTemplateColumns: "14px 1fr", gap: "0.7rem",
-                    padding: "0.4rem 0",
-                    borderTop: i ? `1px solid ${whiteA(0.05)}` : "none",
-                    opacity: open ? 1 : 0,
-                    transform: open ? "translateX(0)" : "translateX(-10px)",
-                    transition: `opacity 0.5s ease ${0.1 + i * 0.07}s, transform 0.6s ${EASE.out} ${0.1 + i * 0.07}s`,
-                  }}
-                >
-                  <span aria-hidden="true" style={{ marginTop: "0.42rem", width: 5, height: 5, background: T.blue, flexShrink: 0 }} />
-                  <span style={{ ...TYPE.body, fontSize: "0.83rem", color: T.grey }}>{h}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem 0.45rem" }}>
-          {job.stack.map((sName) => (
-            <span key={sName} style={{ ...TYPE.meta, fontSize: "0.62rem", color: T.grey, ...GLASS.chip, padding: "0.16rem 0.48rem" }}>{sName}</span>
-          ))}
-        </div>
-      </Glass>
-    </div>
-  );
-}
-
-/* ─── CERT ────────────────────────────────────────────────── */
-function Cert({ cert, mobile, motion }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Glass enabled={motion} beam style={{ marginBottom: "0.7rem", overflow: "hidden" }}>
-      <button
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        data-cursor={mobile ? undefined : "expand"}
-        data-cursor-label={open ? "CLOSE" : "VIEW"}
-        style={{ width: "100%", background: "none", border: "none", cursor: "pointer", color: "inherit", font: "inherit", textAlign: "left", padding: mobile ? "1rem 1.1rem" : "1.1rem 1.3rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}
-      >
-        <span>
-          <span style={{ ...TYPE.label, fontSize: "0.55rem", color: T.blueLit, display: "block", marginBottom: "0.4rem" }}>{cert.issuer}</span>
-          <span style={{ ...TYPE.body, color: T.white, display: "block", fontSize: "0.9rem" }}>{cert.name}</span>
-          <span style={{ ...TYPE.meta, fontSize: "0.63rem", display: "block", marginTop: "0.2rem" }}>{cert.full}</span>
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: "0.7rem", flexShrink: 0 }}>
-          <span style={{ ...TYPE.meta, fontSize: "0.62rem", whiteSpace: "nowrap" }}>{cert.date}</span>
-          <span style={{ ...TYPE.meta, color: open ? T.blue : T.greyDim, fontSize: "0.9rem", lineHeight: 1, transform: open ? "rotate(135deg)" : "none", transition: `transform 0.6s ${EASE.spring}, color 0.25s`, display: "inline-block" }}>+</span>
-        </span>
-      </button>
-
-      <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", transition: `grid-template-rows 0.7s ${EASE.out}` }}>
-        <div style={{ overflow: "hidden" }}>
-          <div style={{ padding: mobile ? "0 1.1rem 1.1rem" : "0 1.3rem 1.3rem" }}>
-            <div style={{ overflow: "hidden", border: `1px solid ${whiteA(0.09)}`, marginBottom: "0.9rem" }}>
-              <img
-                src={CERT_IMAGES[cert.img]} alt={cert.name} loading="lazy"
-                style={{
-                  width: "100%", display: "block",
-                  transform: open ? "scale(1)" : "scale(1.08)",
-                  transition: `transform 1.1s ${EASE.out}`,
-                }}
-              />
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "1.4rem" }}>
-              {cert.valid && (
-                <span>
-                  <span style={{ ...TYPE.label, fontSize: "0.52rem", color: T.faint, display: "block", marginBottom: "0.22rem" }}>Validity</span>
-                  <span style={{ ...TYPE.meta, color: T.grey, fontSize: "0.68rem" }}>{cert.valid}</span>
-                </span>
-              )}
-              {cert.id && (
-                <span>
-                  <span style={{ ...TYPE.label, fontSize: "0.52rem", color: T.faint, display: "block", marginBottom: "0.22rem" }}>ID</span>
-                  <span style={{ ...TYPE.meta, color: T.grey, fontSize: "0.68rem" }}>{cert.id}</span>
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </Glass>
-  );
-}
-
-/* ─── MAIN ────────────────────────────────────────────────── */
-export default function Portfolio() {
-  const mobile = useIsMobile();
-  const wide = !useIsMobile(1180);
-  const reduced = useReducedMotion();
-  const motion = !mobile && !reduced;
-
-  useMotionEngine(!reduced);
-
-  const scrolled = useScrolled(30);
-  const dir = useScrollDirection();
-  const [navOpen, setNavOpen] = useState(false);
-  const [filter, setFilter] = useState("All");
-  const [hoverRow, setHoverRow] = useState(null);
-  const [openRow, setOpenRow] = useState(null);
-  const [clock, setClock] = useState("");
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const tick = () =>
-      setClock(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata", hour12: false }).format(new Date()));
-    tick();
-    const id = setInterval(tick, 20000);
-    return () => clearInterval(id);
-  }, []);
-
-  const scrollTo = useCallback((id) => {
-    document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
-    setNavOpen(false);
-  }, [reduced]);
-
-  const visibleProjects = useMemo(
-    () => (filter === "All" ? PROJECTS : PROJECTS.filter((p) => p.cat === filter)),
-    [filter]
-  );
-
-  const skillGroups = useMemo(() => {
-    const map = new Map();
-    for (const s of SKILL_BARS) {
-      if (!map.has(s.cat)) map.set(s.cat, []);
-      map.get(s.cat).push(s);
-    }
-    return [...map.entries()];
-  }, []);
-
-  const introOn = !reduced;
-  const heroReady = ready || !introOn;
-
-  return (
-    <div style={{ background: T.ink, color: T.white, minHeight: "100vh", fontFamily: FONT.sans, overflowX: "hidden", position: "relative" }}>
-      <style>{`
-        *{box-sizing:border-box;margin:0;padding:0;}
-        html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;--sy:0;--sv:0;--mx:0;--my:0;--prog:0;}
-        body{background:${T.ink};font-family:${FONT.sans};}
-        ::selection{background:${T.blue};color:#fff;}
-        ::-webkit-scrollbar{width:9px;}
-        ::-webkit-scrollbar-track{background:${T.ink};}
-        ::-webkit-scrollbar-thumb{background:${T.line2};border:3px solid ${T.ink};}
-        ::-webkit-scrollbar-thumb:hover{background:${T.line3};}
-        img{max-width:100%;}
-        a,button{touch-action:manipulation;}
-        button:focus-visible,a:focus-visible{outline:1px solid ${T.blue};outline-offset:3px;}
-        h1,h2,h3{font-weight:inherit;}
-
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-        @keyframes drop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes marquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-33.333%,0,0)}}
-        @keyframes auroraDrift{0%,100%{translate:0 0}33%{translate:4% -3%}66%{translate:-3% 3%}}
-        @keyframes shardFloat{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -14px;rotate:1.2deg}}
-        @keyframes grainShift{
-          0%{transform:translate(0,0)}20%{transform:translate(-4%,3%)}40%{transform:translate(3%,-4%)}
-          60%{transform:translate(-3%,-3%)}80%{transform:translate(4%,4%)}100%{transform:translate(0,0)}
-        }
-        @keyframes beamSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-        @keyframes markSpin{to{transform:rotate(360deg)}}
-        @keyframes scrollCue{0%{transform:translateY(-110%)}60%,100%{transform:translateY(420%)}}
-
-        @media (prefers-reduced-motion: reduce){
-          *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;}
-          html{scroll-behavior:auto;}
-        }
-      `}</style>
-
-      <Intro enabled={introOn} onDone={() => setReady(true)} />
-      <Cursor enabled={motion} />
-      <Aurora mobile={mobile} />
-      <Grain opacity={mobile ? 0.025 : 0.038} />
-
-      {/* ── NAV ── */}
-      <nav
-        style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
-          padding: mobile ? "0.85rem 1.35rem" : "1rem 3rem",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          ...(scrolled || navOpen ? GLASS.bar : { background: "transparent", borderBottom: "1px solid transparent" }),
-          // direction, not position: it gets out of the way while you read
-          // downward and comes back the moment you scroll back up
-          transform: scrolled && dir === "down" && !navOpen ? "translateY(-102%)" : "translateY(0)",
-          transition:
-            `transform 0.55s ${EASE.out}, background 0.5s ${EASE.out}, ` +
-            `border-color 0.5s ease, backdrop-filter 0.5s ease, padding 0.5s ${EASE.out}`,
-        }}
-      >
-        <button
-          onClick={() => scrollTo("top")}
-          data-cursor={motion ? "link" : undefined} data-cursor-label="TOP"
-          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "baseline", gap: "0.55rem", padding: 0 }}
-        >
-          <span style={{ fontFamily: FONT.sans, fontWeight: 700, fontSize: "0.92rem", letterSpacing: "-0.03em", color: T.white }}>Surya J</span>
-          <span style={{ ...TYPE.meta, fontSize: "0.58rem", color: T.faint }}>/ DARX</span>
-        </button>
-
-        {mobile ? (
-          <button
-            onClick={() => setNavOpen(!navOpen)}
-            aria-label={navOpen ? "Close menu" : "Open menu"} aria-expanded={navOpen}
-            style={{ ...GLASS.chip, color: T.white, cursor: "pointer", minWidth: "44px", minHeight: "36px", ...TYPE.label, fontSize: "0.55rem" }}
-          >
-            {navOpen ? "CLOSE" : "MENU"}
-          </button>
-        ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: "1.35rem" }}>
-            {NAV_LINKS.map((l) => (
-              <Magnetic key={l} enabled={motion} strength={0.3}>
-                <button
-                  onClick={() => scrollTo(l)}
-                  data-cursor={motion ? "link" : undefined}
-                  style={{ background: "none", border: "none", ...TYPE.label, fontSize: "0.58rem", color: T.greyDim, padding: "0.4rem 0", cursor: "pointer", transition: "color 0.25s ease" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = T.white)}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = T.greyDim)}
-                >
-                  {l}
-                </button>
-              </Magnetic>
-            ))}
-            {wide && (
-              <span style={{ ...TYPE.meta, fontSize: "0.58rem", color: T.faint, borderLeft: `1px solid ${T.line2}`, paddingLeft: "1.1rem" }}>
-                IST {clock}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div aria-hidden="true" style={{ position: "absolute", left: 0, bottom: 0, height: "1px", width: "calc(var(--prog) * 100%)", background: `linear-gradient(90deg, ${T.blueDim}, ${T.blue})`, boxShadow: `0 0 12px ${blueA(0.7)}` }} />
-      </nav>
-
-      {mobile && navOpen && (
-        <div style={{ position: "fixed", top: "52px", left: 0, right: 0, zIndex: 999, ...GLASS.bar, padding: "0 1.35rem 1.2rem", animation: "drop 0.25s ease" }}>
-          {NAV_LINKS.map((l, i) => (
-            <button
-              key={l} onClick={() => scrollTo(l)}
-              style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", borderBottom: `1px solid ${whiteA(0.06)}`, ...TYPE.label, fontSize: "0.66rem", color: T.grey, padding: "0.95rem 0", cursor: "pointer", minHeight: "46px", animation: `drop 0.4s ${EASE.out} ${i * 0.04}s both` }}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ── HERO ── */}
-      <section
-        id="top"
-        style={{
-          minHeight: "100svh", display: "flex", alignItems: "center",
-          padding: mobile ? "6.5rem 1.35rem 4rem" : "7rem 3rem 5rem",
-          position: "relative", overflow: "hidden", zIndex: 1,
-        }}
-      >
-        {/* ruled backplane, drifting */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute", inset: "-12%", pointerEvents: "none",
-            backgroundImage: `linear-gradient(90deg, ${T.line} 1px, transparent 1px), linear-gradient(${whiteA(0.016)} 1px, transparent 1px)`,
-            backgroundSize: mobile ? "60px 100%, 100% 60px" : "104px 100%, 100% 104px",
-            opacity: 0.65,
-            transform: "translate3d(calc(var(--mx) * -12px), calc(var(--sy) * -0.03px), 0)",
-            maskImage: "radial-gradient(ellipse at 40% 45%, #000 15%, transparent 78%)",
-            WebkitMaskImage: "radial-gradient(ellipse at 40% 45%, #000 15%, transparent 78%)",
-            willChange: "transform",
-          }}
-        />
-
-        {/* floating glass shards at four depths */}
-        {!mobile && (
-          <Shards
-            items={[
-              { top: "13%", left: "52%", w: 118, h: 150, r: -9,  d: 0.5, o: 0.85 },
-              { top: "60%", left: "47%", w: 86,  h: 86,  r: 7,   d: 1.5, o: 0.7 },
-              { top: "26%", right: "4%", w: 64,  h: 150, r: 4,   d: 2.2, o: 0.55 },
-              { top: "74%", left: "6%",  w: 140, h: 62,  r: -4,  d: 1.1, o: 0.4 },
-            ]}
-          />
-        )}
-
-        {/* 3D wireframe solid, rendered on canvas and driven by scroll */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 0, bottom: 0,
-            right: mobile ? "-18%" : "-4%",
-            width: mobile ? "128%" : "62%",
-            zIndex: 0, pointerEvents: "none",
-            opacity: mobile ? 0.5 : 0.95,
-          }}
-        >
-          <Wireframe reduced={reduced} mobile={mobile} />
-        </div>
-
-        <Layer d={0.35} style={{ top: "12%", right: "6%" }}>
-          <div style={{ width: mobile ? 280 : 560, height: mobile ? 280 : 560, background: `radial-gradient(circle, ${blueA(0.12)} 0%, transparent 62%)` }} />
-        </Layer>
-
-        <div style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: "1180px", margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "minmax(0,1.32fr) minmax(0,1fr)", gap: mobile ? "3rem" : "4rem", alignItems: "center" }}>
-            <div>
-              <div
-                style={{
-                  display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: mobile ? "1.6rem" : "2.1rem",
-                  opacity: heroReady ? 1 : 0, transform: heroReady ? "none" : "translateY(14px)",
-                  transition: `opacity 0.8s ${EASE.out} 0.05s, transform 0.8s ${EASE.out} 0.05s`,
-                }}
-              >
-                <span style={{ width: 5, height: 5, background: T.blue, boxShadow: `0 0 0 4px ${blueA(0.16)}`, animation: reduced ? "none" : "blink 2.6s ease-in-out infinite" }} />
-                <span style={{ ...TYPE.label, fontSize: "0.57rem", color: T.grey }}>Available for work</span>
-                <span style={{ width: "2.2rem", height: "1px", background: T.line2 }} />
-                <span style={{ ...TYPE.meta, fontSize: "0.6rem", color: T.faint }}>Coimbatore, IN</span>
-              </div>
-
-              <h1 style={{ ...TYPE.display(mobile), marginBottom: mobile ? "1.3rem" : "1.6rem" }}>
-                <SplitText enabled={!reduced} hold={!heroReady} delay={0.12} stagger={0.06}>App &amp; web</SplitText>
-                <SplitText enabled={!reduced} hold={!heroReady} delay={0.2} stagger={0.06}>developer</SplitText>
-                <span style={{ display: "block", overflow: "hidden" }}>
-                  <span
-                    style={{
-                      display: "inline-block", color: T.greyDim,
-                      transform: heroReady ? "translateY(0)" : "translateY(105%)",
-                      transition: `transform 0.95s ${EASE.out} 0.3s`,
-                    }}
-                  >
-                    building&nbsp;
-                  </span>
-                  <span style={{ display: "inline-block", overflow: "hidden", verticalAlign: "top" }}>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        transform: heroReady ? "translateY(0)" : "translateY(105%)",
-                        transition: `transform 0.95s ${EASE.out} 0.36s`,
-                      }}
-                    >
-                      real systems
-                    </span>
-                  </span>
-                </span>
-              </h1>
-
-              <Reveal delay={0.1}>
-                <p style={{ ...TYPE.body, maxWidth: "48ch", marginBottom: mobile ? "2rem" : "2.4rem", fontSize: "0.94rem" }}>
-                  I'm Surya — at <span style={{ color: T.white }}>Kosal Tech Solutions</span>, with a contract
-                  engagement at <span style={{ color: T.white }}>Manju Global</span>. Android apps in Kotlin,
-                  platforms in Next.js, and the Go and Python services underneath.
-                </p>
-              </Reveal>
-
-              <Reveal delay={0.16}>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.7rem", marginBottom: mobile ? "2.4rem" : "3rem" }}>
-                  <Magnetic enabled={motion} strength={0.28}>
-                    <a
-                      href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer"
-                      data-cursor={motion ? "link" : undefined} data-cursor-label="OPEN"
-                      style={{
-                        ...TYPE.label, fontSize: "0.6rem", background: T.blue, color: "#fff", textDecoration: "none",
-                        padding: "0.82rem 1.4rem", display: "inline-flex", alignItems: "center", gap: "0.5rem", minHeight: "44px",
-                        boxShadow: `0 16px 40px -18px ${blueA(1)}, inset 0 1px 0 ${whiteA(0.25)}`,
-                        transition: `box-shadow 0.4s ${EASE.out}, background 0.3s ease`,
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "#1a4fe0"; e.currentTarget.style.boxShadow = `0 22px 52px -18px ${blueA(1)}, inset 0 1px 0 ${whiteA(0.3)}`; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = T.blue; e.currentTarget.style.boxShadow = `0 16px 40px -18px ${blueA(1)}, inset 0 1px 0 ${whiteA(0.25)}`; }}
-                    >
-                      Resume <span aria-hidden="true">↓</span>
-                    </a>
-                  </Magnetic>
-
-                  <Magnetic enabled={motion} strength={0.28}>
-                    <button
-                      onClick={() => scrollTo("work")}
-                      data-cursor={motion ? "link" : undefined}
-                      style={{ ...TYPE.label, fontSize: "0.6rem", ...GLASS.chip, color: T.grey, padding: "0.82rem 1.4rem", cursor: "pointer", minHeight: "44px", transition: "color 0.3s, border-color 0.3s" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = T.white; e.currentTarget.style.borderColor = whiteA(0.2); }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = T.grey; e.currentTarget.style.borderColor = whiteA(0.07); }}
-                    >
-                      Selected work →
-                    </button>
-                  </Magnetic>
-                </div>
-              </Reveal>
-
-              <Reveal delay={0.22}>
-                <Glass enabled={motion} style={{ padding: mobile ? "0.3rem 0.9rem" : "0.4rem 1.2rem" }}>
-                  {[
-                    ["Currently", "Kosal Tech Solutions"],
-                    ["Contract", "Manju Global"],
-                    ["Studying", "B.E. CSE, DSCE Coimbatore — 2022/2026"],
-                    ["Also", "Co-founder, Cruza"],
-                  ].map(([k, v], i) => (
-                    <div key={k} style={{ display: "grid", gridTemplateColumns: mobile ? "6.2rem 1fr" : "8rem 1fr", gap: "1rem", padding: "0.66rem 0", borderBottom: i < 2 ? `1px solid ${whiteA(0.05)}` : "none" }}>
-                      <span style={{ ...TYPE.label, fontSize: "0.54rem", color: T.faint }}>{k}</span>
-                      <span style={{ ...TYPE.meta, fontSize: "0.68rem", color: T.grey }}>{v}</span>
-                    </div>
-                  ))}
-                </Glass>
-              </Reveal>
-            </div>
-
-            {/* the 3D object */}
-            {!mobile && (
-              <div
-                style={{
-                  display: "flex", justifyContent: "center", alignItems: "center", padding: "3rem",
-                  opacity: heroReady ? 1 : 0,
-                  transform: heroReady ? "none" : "scale(0.94)",
-                  transition: `opacity 1.1s ${EASE.out} 0.35s, transform 1.2s ${EASE.out} 0.35s`,
-                }}
-              >
-                <DepthFrames size={252}>
-                  {/* Identity plate. Sits where a portrait would, so the depth
-                      frames still enclose something with weight. */}
-                  <div
-                    data-cursor="expand" data-cursor-label="DARX"
-                    style={{
-                      position: "relative", width: "100%", height: "100%", overflow: "hidden",
-                      ...GLASS.panelLit, padding: 0,
-                      display: "flex", flexDirection: "column", justifyContent: "space-between",
-                    }}
-                  >
-                    {/* ruled ground, drifting with the pointer */}
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        position: "absolute", inset: "-20%",
-                        backgroundImage:
-                          `linear-gradient(90deg, ${whiteA(0.05)} 1px, transparent 1px),` +
-                          `linear-gradient(${whiteA(0.05)} 1px, transparent 1px)`,
-                        backgroundSize: "26px 26px",
-                        transform: "translate3d(calc(var(--mx) * 7px), calc(var(--my) * 7px), 0)",
-                        willChange: "transform",
-                      }}
-                    />
-
-                    <div style={{ position: "relative", padding: "0.75rem 0.85rem", display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ ...TYPE.label, fontSize: "0.48rem", color: T.faint }}>ID / 001</span>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
-                        <span style={{ width: 4, height: 4, background: T.blue, animation: reduced ? "none" : "blink 2.6s ease-in-out infinite" }} />
-                        <span style={{ ...TYPE.label, fontSize: "0.48rem", color: T.blueLit }}>Active</span>
-                      </span>
-                    </div>
-
-                    <div
-                      style={{
-                        position: "relative", textAlign: "center", padding: "0 0.85rem",
-                        transform: "translate3d(calc(var(--mx) * -5px), calc(var(--my) * -5px), 0)",
-                        willChange: "transform",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontFamily: FONT.sans, fontWeight: 700, fontSize: "2.5rem",
-                          letterSpacing: "0.08em", lineHeight: 1, color: T.white,
-                          textShadow: `0 0 34px ${blueA(0.55)}`,
-                        }}
-                      >
-                        DARX
-                      </div>
-                      <div style={{ ...TYPE.label, fontSize: "0.47rem", color: T.greyDim, marginTop: "0.5rem" }}>
-                        App &amp; Web Developer
-                      </div>
-                    </div>
-
-                    <div style={{ position: "relative", padding: "0.75rem 0.85rem" }}>
-                      {[["Base", "Coimbatore, IN"], ["Since", "2022"]].map(([k, v]) => (
-                        <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "0.16rem 0" }}>
-                          <span style={{ ...TYPE.label, fontSize: "0.45rem", color: T.faint }}>{k}</span>
-                          <span style={{ ...TYPE.meta, fontSize: "0.56rem", color: T.grey }}>{v}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        position: "relative", padding: "0.55rem 0.75rem",
-                        background: "rgba(8,10,15,0.5)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-                        borderTop: `1px solid ${whiteA(0.1)}`, display: "flex", justifyContent: "space-between",
-                      }}
-                    >
-                      <span style={{ ...TYPE.meta, fontSize: "0.55rem", color: T.grey }}>SURYA J</span>
-                      <span style={{ ...TYPE.meta, fontSize: "0.55rem", color: T.blueLit }}>2026</span>
-                    </span>
-                  </div>
-                </DepthFrames>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* scroll cue */}
-        {!mobile && (
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute", bottom: "1.6rem", left: "50%", transform: "translateX(-50%)",
-              display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem", zIndex: 2,
-              opacity: heroReady ? "calc(1 - var(--prog) * 14)" : 0,
-              transition: `opacity 0.8s ${EASE.out} 1s`,
-            }}
-          >
-            <span style={{ ...TYPE.label, fontSize: "0.48rem", color: T.faint }}>Scroll</span>
-            <span style={{ width: "1px", height: "44px", background: T.line2, position: "relative", overflow: "hidden" }}>
-              <span style={{ position: "absolute", inset: 0, height: "12px", background: T.blue, animation: reduced ? "none" : "scrollCue 2.6s ease-in-out infinite" }} />
-            </span>
-          </div>
-        )}
-      </section>
-
-      <Marquee
-        mobile={mobile}
-        items={["Kotlin", "Jetpack Compose", "Next.js", "TypeScript", "Go", "PostGIS", "FastAPI", "Convex", "React", "Python", "Firebase", "Docker"]}
-      />
-
-      {/* ── 01 PROFILE ── */}
-      <Scene id="about" mobile={mobile} background={T.paper}>
-        <SectionHead index="01" title="Profile" mobile={mobile} motion={!reduced} />
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "minmax(0,1.25fr) minmax(0,1fr)", gap: mobile ? "2.2rem" : "4rem" }}>
-          <div>
-            <SplitText
-              as="h2"
-              enabled={!reduced}
-              stagger={0.04}
-              style={{ ...TYPE.h2(mobile), marginBottom: "1.4rem", maxWidth: "22ch" }}
-            >
-              I build things that hold up outside the demo.
-            </SplitText>
-            <ScrollHighlight
-              enabled={!reduced}
-              style={{ ...TYPE.body, color: T.white, marginBottom: "1.1rem", maxWidth: "58ch" }}
-            >
-              CSE student at DSCE Coimbatore, 2022–2026, and a working app and web developer. I'm at Kosal Tech Solutions, with a contract engagement at Manju Global — shipping Android clients, Next.js platforms, and the services behind them.
-            </ScrollHighlight>
-            <Reveal delay={0.08}>
-              <p style={{ ...TYPE.body, color: T.greyDim, maxWidth: "58ch" }}>
-                The approach is deliberate: understand the domain before writing code, then keep the architecture small
-                enough that the next person can read it. I also co-founded Cruza, an independent studio building
-                intelligent systems.
+    <section id="services" className="sec" style={{ background: "linear-gradient(180deg,#f7faff 0%,#ffffff 30%)" }}>
+      <div className="wrap">
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1.3fr", gap: mobile ? "2.4rem" : "4rem", alignItems: "start" }}>
+          <div style={{ position: mobile ? "static" : "sticky", top: "18vh" }}>
+            <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">What I do</span></Reveal>
+            <Lines lines={["Software,", "→*end to end*"]} motion={motion} style={{ fontSize: mobile ? "3rem" : "clamp(3.4rem,5.6vw,5.6rem)", marginBottom: "1.6rem" }} />
+            <Reveal dir="up" delay={0.15} enabled={motion}>
+              <p style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.35rem" : "1.65rem", lineHeight: 1.3, color: T.text, maxWidth: "30ch" }}>
+                <span className="hook" style={{ fontSize: ".7em" }}>↳</span>
+                From the Android app in someone's pocket to the service tracking a fleet in real time — designed, built and shipped.
               </p>
             </Reveal>
           </div>
 
-          <ScrubShift enabled={!reduced && !mobile} distance={-54} span={1.6}>
-            <Glass enabled={motion} tilt={motion ? 2.4 : 0} beam depth={18} style={{ padding: mobile ? "0.4rem 1.1rem" : "0.5rem 1.4rem" }}>
-              {[
-                ["College", "DSCE, Coimbatore"],
-                ["Degree", "B.E. Computer Science"],
-                ["Batch", "2022 — 2026"],
-                ["Based", "Coimbatore, Tamil Nadu"],
-                ["Roles", "Kosal Tech · Manju Global (contract)"],
-                ["Startup", "Cruza — Co-founder"],
-              ].map(([k, v], i, arr) => (
-                <div key={k} style={{ display: "grid", gridTemplateColumns: "6.5rem 1fr", gap: "1rem", padding: "0.8rem 0", borderBottom: i < arr.length - 1 ? `1px solid ${whiteA(0.05)}` : "none" }}>
-                  <span style={{ ...TYPE.label, fontSize: "0.54rem", color: T.faint }}>{k}</span>
-                  <span style={{ ...TYPE.body, fontSize: "0.83rem", color: T.white }}>{v}</span>
-                </div>
-              ))}
-            </Glass>
-          </ScrubShift>
-        </div>
-      </Scene>
-
-      {/* ── 02 EXPERIENCE ── */}
-      <Scene id="experience" mobile={mobile} background={T.ink}>
-        <SectionHead index="02" title="Experience" note={`${EXPERIENCE.filter((e) => e.current).length} active`} mobile={mobile} motion={!reduced} />
-        {EXPERIENCE.map((job, i) => (
-          <ScrubIn key={job.company} enabled={!reduced} lift={44} rotate={8} span={0.8}>
-            <Role
-              job={job}
-              index={i}
-              last={i === EXPERIENCE.length - 1}
-              mobile={mobile}
-              motion={motion}
-            />
-          </ScrubIn>
-        ))}
-      </Scene>
-
-      {/* ── 03 STACK ── */}
-      <Scene id="stack" mobile={mobile} background={T.paper}>
-        <SectionHead index="03" title="Stack" note={`${SKILL_BARS.length} tracked`} mobile={mobile} motion={!reduced} />
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? "1.4rem" : "1.6rem 3rem" }}>
-          {skillGroups.map(([cat, items]) => (
-            <ScrubIn key={cat} enabled={!reduced} lift={44} rotate={8} span={0.78}>
-              <Glass enabled={motion} beam tilt={motion ? 1.4 : 0} depth={14} style={{ padding: mobile ? "1rem 1.1rem" : "1.1rem 1.4rem" }}>
-                <div style={{ ...TYPE.label, fontSize: "0.54rem", color: T.blueLit, marginBottom: "0.7rem" }}>{cat}</div>
-                {items.map((s, i) => (
-                  <Meter key={s.name} name={s.name} level={s.level} delay={i * 0.06} />
-                ))}
-              </Glass>
-            </ScrubIn>
-          ))}
-        </div>
-
-        <div style={{ marginTop: "2.6rem", paddingTop: "1.8rem", borderTop: `1px solid ${T.line}` }}>
-          <Reveal>
-            <div style={{ ...TYPE.label, fontSize: "0.54rem", color: T.faint, marginBottom: "1rem" }}>Interests</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem 0.5rem" }}>
-              {INTERESTS.map((t) => (
-                <span
-                  key={t}
-                  style={{ ...TYPE.meta, fontSize: "0.66rem", color: T.grey, ...GLASS.chip, padding: "0.32rem 0.7rem", transition: `color 0.3s, border-color 0.3s, transform 0.5s ${EASE.spring}`, cursor: "default", display: "inline-block" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = T.white; e.currentTarget.style.borderColor = whiteA(0.22); e.currentTarget.style.transform = "translateY(-3px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = T.grey; e.currentTarget.style.borderColor = whiteA(0.07); e.currentTarget.style.transform = "none"; }}
-                >
-                  {t}
+          <div ref={ref}>
+            {SERVICES.map(([name, stack], i) => (
+              <div key={name} ref={(el) => { rows.current[i] = el; }} className="svc" data-d={motion ? String(Math.min(3, i)) : "0"} style={{ borderTop: `1px solid ${T.line}` }}>
+                <span className="svc-i">{i === 0 ? "↳" : `(${String(i + 1).padStart(3, "0")})`}</span>
+                <span className="svc-n">
+                  <span style={{ display: "block", fontSize: mobile ? "1.5rem" : "clamp(1.8rem,2.8vw,2.7rem)", color: T.ink }}>{name}</span>
+                  <span className="mono" style={{ display: "block", fontSize: ".68rem", color: T.muted, marginTop: ".2rem" }}>{stack}</span>
                 </span>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </Scene>
-
-      {/* ── 04 WORK ── */}
-      <Scene id="work" mobile={mobile} background={T.ink}>
-        <SectionHead index="04" title="Selected Work" note={`${PROJECTS.length} projects`} mobile={mobile} motion={!reduced} />
-
-        <Reveal>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.4rem", marginBottom: "1.6rem" }}>
-            {PROJECT_FILTERS.map((f) => {
-              const active = filter === f;
-              const count = f === "All" ? PROJECTS.length : PROJECTS.filter((p) => p.cat === f).length;
-              return (
-                <Magnetic key={f} enabled={motion} strength={0.24}>
-                  <button
-                    onClick={() => { setFilter(f); setHoverRow(null); setOpenRow(null); }}
-                    data-cursor={motion ? "link" : undefined}
-                    style={{
-                      ...TYPE.label, fontSize: "0.57rem", background: "none", border: "none", cursor: "pointer",
-                      color: active ? T.white : T.faint,
-                      borderBottom: `1px solid ${active ? T.blue : "transparent"}`,
-                      paddingBottom: "0.35rem", transition: `color 0.3s ease, border-color 0.4s ${EASE.out}`,
-                    }}
-                  >
-                    {f}
-                    <sup style={{ ...TYPE.meta, fontSize: "0.5rem", marginLeft: "0.25rem", color: active ? T.blue : T.faint }}>{count}</sup>
-                  </button>
-                </Magnetic>
-              );
-            })}
-          </div>
-        </Reveal>
-
-        {/* column header — the thing that makes it read as a list, not cards */}
-        {!mobile && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "3.6rem minmax(0,1.15fr) minmax(0,0.95fr) minmax(0,0.95fr) 7rem 1.6rem",
-              gap: "1.5rem", padding: "0 1rem 0.7rem",
-              borderBottom: `1px solid ${T.line2}`,
-            }}
-          >
-            {["#", "Project", "Discipline", "Stack", "Owner", ""].map((h, i) => (
-              <span key={i} style={{ ...TYPE.label, fontSize: "0.5rem", color: T.faint }}>{h}</span>
-            ))}
-          </div>
-        )}
-
-        <div style={{ borderTop: mobile ? `1px solid ${T.line2}` : "none" }}>
-          {visibleProjects.map((p, i) => (
-            <ScrubIn
-              key={p.id}
-              enabled={!reduced}
-              lift={30}
-              rotate={6}
-              blur={3}
-              shift={i % 2 === 0 ? -26 : 26}
-              span={0.72}
-            >
-              <ProjectRow
-                project={p}
-                index={i}
-                mobile={mobile}
-                motion={motion}
-                activeIndex={hoverRow}
-                onHover={setHoverRow}
-                isOpen={openRow === p.id}
-                onToggle={() => setOpenRow(openRow === p.id ? null : p.id)}
-              />
-            </ScrubIn>
-          ))}
-        </div>
-
-        {motion && (
-          <ProjectPreview
-            project={hoverRow === null || openRow !== null ? null : visibleProjects[hoverRow] || null}
-          />
-        )}
-      </Scene>
-
-      {/* ── 05 APPROACH ── */}
-      <Scene id="approach" mobile={mobile} background={T.paper}>
-        <SectionHead index="05" title="Approach" mobile={mobile} motion={!reduced} />
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? "2.4rem" : "3rem" }}>
-          {[["How I build", PHILOSOPHY], ["Where it's going", GOALS]].map(([label, items], col) => (
-            <div key={label}>
-              <Reveal delay={col * 0.08}>
-                <div style={{ ...TYPE.label, fontSize: "0.54rem", color: T.blueLit, marginBottom: "1.1rem" }}>{label}</div>
-              </Reveal>
-              {items.map((p, i) => (
-                <ScrubIn key={p.t} enabled={!reduced} lift={38} rotate={8} span={0.74}>
-                  <Glass enabled={motion} beam tilt={motion ? 2 : 0} depth={16} style={{ padding: mobile ? "1rem 1.1rem" : "1.1rem 1.3rem", marginBottom: "0.7rem" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "2.4rem 1fr", gap: "0.8rem" }}>
-                      <span style={{ ...TYPE.meta, fontSize: "0.63rem", color: T.blue }}>{p.n}</span>
-                      <span>
-                        <span style={{ ...TYPE.body, color: T.white, display: "block", fontSize: "0.9rem", marginBottom: "0.32rem" }}>{p.t}</span>
-                        <span style={{ ...TYPE.body, fontSize: "0.84rem", display: "block" }}>{p.b}</span>
-                      </span>
-                    </div>
-                  </Glass>
-                </ScrubIn>
-              ))}
-            </div>
-          ))}
-        </div>
-      </Scene>
-
-      {/* ── 06 CREDENTIALS ── */}
-      <Scene id="credentials" mobile={mobile} background={T.ink}>
-        <SectionHead index="06" title="Credentials" mobile={mobile} motion={!reduced} />
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? "2.4rem" : "3rem" }}>
-          <div>
-            <Reveal>
-              <div style={{ ...TYPE.label, fontSize: "0.54rem", color: T.blueLit, marginBottom: "1rem" }}>Certifications</div>
-            </Reveal>
-            {CERTS.map((c, i) => (
-              <Reveal key={c.issuer} delay={Math.min(i * 0.06, 0.2)}>
-                <Cert cert={c} mobile={mobile} motion={motion} />
-              </Reveal>
-            ))}
-          </div>
-
-          <div>
-            <Reveal delay={0.08}>
-              <div style={{ ...TYPE.label, fontSize: "0.54rem", color: T.blueLit, marginBottom: "1rem" }}>Recognition</div>
-            </Reveal>
-            {ACHIEVEMENTS.map((a, i) => (
-              <Reveal key={a.title} delay={Math.min(0.08 + i * 0.045, 0.3)}>
-                <div
-                  style={{ display: "grid", gridTemplateColumns: "2.4rem 1fr", gap: "1rem", padding: "0.9rem 0", borderTop: `1px solid ${T.line}`, transition: `transform 0.5s ${EASE.out}` }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateX(0.7rem)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; }}
-                >
-                  <span style={{ ...TYPE.meta, fontSize: "0.62rem", color: T.faint }}>{String(i + 1).padStart(2, "0")}</span>
-                  <span>
-                    <span style={{ ...TYPE.body, color: T.white, display: "block", fontSize: "0.87rem" }}>{a.title}</span>
-                    <span style={{ ...TYPE.meta, fontSize: "0.64rem", display: "block", marginTop: "0.22rem", lineHeight: 1.6 }}>{a.detail}</span>
-                  </span>
-                </div>
-              </Reveal>
+              </div>
             ))}
             <div style={{ borderTop: `1px solid ${T.line}` }} />
           </div>
         </div>
-      </Scene>
+      </div>
+    </section>
+  );
+}
 
-      {/* ── 07 CRUZA ── */}
-      <Scene id="cruza" mobile={mobile} background={T.paper}>
-        <SectionHead index="07" title="Cruza" note="Independent studio" mobile={mobile} motion={!reduced} />
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "minmax(0,1.2fr) minmax(0,1fr)", gap: mobile ? "2.4rem" : "4rem", alignItems: "start" }}>
+/* ─── EXPERIENCE ──────────────────────────────────────────── */
+function Experience({ mobile, motion }) {
+  const [open, setOpen] = useState(0);
+  return (
+    <section id="experience" className="sec" style={{ background: "#fff" }}>
+      <div className="wrap">
+        <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Experience</span></Reveal>
+        <Lines lines={["Where *I've*", "→worked"]} motion={motion} style={{ fontSize: mobile ? "3rem" : "clamp(3.6rem,6.4vw,6.4rem)", marginBottom: mobile ? "2.4rem" : "3.6rem" }} />
+
+        <div style={{ borderBottom: `1px solid ${T.line2}` }}>
+          {EXPERIENCE.map((job, i) => {
+            const isOpen = open === i;
+            return (
+              <Reveal key={job.company} dir="up" delay={i * 0.06} enabled={motion} className="row">
+                <button className="row-btn" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen} style={{ gridTemplateColumns: mobile ? "1fr auto" : "9rem 1fr 1fr auto" }}>
+                  {!mobile && <span className="mono" style={{ fontSize: ".72rem", color: job.current ? T.blue : T.muted }}>{job.current ? (job.contract ? "Contract" : "Current") : job.period}</span>}
+                  <span className="row-t" style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.9rem" : "clamp(2rem,3.2vw,3rem)", lineHeight: 1.05, color: T.ink }}>
+                    {job.company}
+                    {mobile && <span className="mono" style={{ display: "block", fontSize: ".68rem", color: T.blue, marginTop: ".4rem" }}>{job.current ? (job.contract ? "Contract" : "Current") : job.period} · {job.role}</span>}
+                  </span>
+                  {!mobile && <span style={{ color: T.body }}>{job.role}<span className="mono" style={{ display: "block", fontSize: ".66rem", color: T.faint, marginTop: ".2rem" }}>{job.sector}</span></span>}
+                  <span className="row-x" style={{ fontSize: "1.5rem", lineHeight: 1, transform: isOpen ? "rotate(45deg)" : "none" }}>+</span>
+                </button>
+                <div className={`drawer${isOpen ? " open" : ""}`}>
+                  <div>
+                    <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "9rem 1fr", gap: "1.2rem", paddingBottom: "2rem" }}>
+                      {!mobile && <span />}
+                      <div>
+                        <p style={{ fontSize: "1.08rem", lineHeight: 1.7, color: T.text, maxWidth: "66ch", marginBottom: "1.2rem" }}>{job.about}</p>
+                        <ol style={{ listStyle: "none", marginBottom: "1.2rem", maxWidth: "76ch" }}>
+                          {job.highlights.map((h, k) => (
+                            <li key={k} style={{ display: "grid", gridTemplateColumns: "2.4rem 1fr", padding: ".8rem 0", borderTop: `1px solid ${T.line}` }}>
+                              <span className="mono" style={{ fontSize: ".72rem", color: T.blue, paddingTop: ".2rem" }}>{String(k + 1).padStart(2, "0")}</span>
+                              <span style={{ lineHeight: 1.65, color: T.body }}>{h}</span>
+                            </li>
+                          ))}
+                        </ol>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem" }}>
+                          {job.stack.map((s) => <span key={s} className="tag">{s}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── PROJECTS ────────────────────────────────────────────── */
+function ProjectModal({ project, onClose, mobile }) {
+  const closeBtn = useRef(null);
+  useEffect(() => {
+    if (!project) return;
+    const prev = document.activeElement;
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.documentElement.style.overflow = "hidden";
+    closeBtn.current && closeBtn.current.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.documentElement.style.overflow = "";
+      if (prev && prev.focus) prev.focus();
+    };
+  }, [project, onClose]);
+
+  if (!project) return null;
+  return (
+    <>
+      <div className="modal-bg" onClick={onClose} />
+      <div className="modal" role="dialog" aria-modal="true" aria-label={project.name}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", padding: mobile ? "1.2rem" : "1.6rem 2rem", borderBottom: `1px solid ${T.line}`, position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
+          <span className="mono" style={{ fontSize: ".72rem", color: T.blue }}>{project.id} · {project.cat}</span>
+          <button ref={closeBtn} onClick={onClose} aria-label="Close" style={{ width: 40, height: 40, borderRadius: "50%", border: `1px solid ${T.line2}`, fontSize: "1.2rem", color: T.ink }}>×</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? "1.6rem" : "2.6rem", padding: mobile ? "1.4rem" : "2.2rem 2rem 2.6rem" }}>
           <div>
-            <Reveal>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.4rem" }}>
-                <span style={{ width: 5, height: 5, background: T.blue, boxShadow: `0 0 0 4px ${blueA(0.16)}`, animation: reduced ? "none" : "blink 2.6s ease-in-out infinite" }} />
-                <span style={{ ...TYPE.label, fontSize: "0.55rem", color: T.grey }}>Co-founder · Est. 2025</span>
+            <div style={{ borderRadius: 16, background: T.paper, border: `1px solid ${T.line}`, padding: "7%" }}>
+              <Mockup kind={project.mock} width="100%" draw />
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem", marginTop: "1rem" }}>
+              {project.stack.map((s) => <span key={s} className="tag">{s}</span>)}
+            </div>
+          </div>
+          <div>
+            <h3 className="disp" style={{ fontSize: mobile ? "2.6rem" : "3.4rem", marginBottom: ".4rem" }}>{project.name}</h3>
+            <p style={{ color: T.muted, marginBottom: "1.6rem" }}>{project.tag}</p>
+            {[["The problem", project.problem], ["The design", project.highlight], ["The outcome", project.power]].map(([k, v]) => (
+              <div key={k} style={{ borderTop: `1px solid ${T.line}`, padding: "1rem 0" }}>
+                <div className="cap" style={{ color: T.blue, marginBottom: ".4rem" }}>{k}</div>
+                <p style={{ lineHeight: 1.7, color: T.text }}>{v}</p>
+              </div>
+            ))}
+            <div style={{ marginTop: "1rem" }}>
+              {project.repo
+                ? <a className="ghost-btn" href={project.repo} target="_blank" rel="noopener noreferrer">{project.repoLabel} <Arrow up size={14} /></a>
+                : <span className="pill pill-soft">{project.org ? `${project.repoLabel} · ${project.org}` : project.repoLabel}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Projects({ mobile, motion }) {
+  const [filter, setFilter] = useState("All");
+  const [active, setActive] = useState(null);
+  const close = useCallback(() => setActive(null), []);
+  const list = useMemo(() => (filter === "All" ? PROJECTS : PROJECTS.filter((p) => p.cat === filter)), [filter]);
+  const cols = mobile ? 1 : 3;
+
+  return (
+    <section id="projects" className="sec" style={{ background: "#f7faff" }}>
+      <div className="wrap">
+        {/* "SOME   of my / PROJECTS" — the split-line heading */}
+        <div className="disp" style={{ fontSize: mobile ? "3.2rem" : "clamp(4rem,8vw,8.4rem)", marginBottom: mobile ? "1.6rem" : "2rem" }}>
+          <Lines lines={["Some"]} motion={motion} as="div" />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
+            <Lines lines={["→projects"]} motion={motion} as="div" delay={0.1} />
+            <Lines lines={["*of my own*"]} motion={motion} as="div" delay={0.2} />
+          </div>
+        </div>
+        <Decode text="A selection of fifteen: client platforms, products and experiments. Open any one for the problem, the design decision and a schematic." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "58ch", marginBottom: "2.4rem" }} />
+
+        <Reveal dir="up" enabled={motion} style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", marginBottom: "2.6rem" }}>
+          {PROJECT_FILTERS.map((f) => {
+            const n = f === "All" ? PROJECTS.length : PROJECTS.filter((p) => p.cat === f).length;
+            return <button key={f} className={`chip${f === filter ? " on" : ""}`} onClick={() => setFilter(f)}>{f} · {n}</button>;
+          })}
+        </Reveal>
+
+        <FXGrid style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: mobile ? "2.4rem" : "3rem 2rem" }}>
+          {list.map((p, i) => (
+            <Reveal key={p.id} dir="up" delay={(i % cols) * 0.08} enabled={motion}>
+              <button className="pcard" onClick={() => setActive(p)} aria-label={`${p.name} — open details`}>
+                <FXArt>
+                  <div className="pcard-art wipe" style={{ "--d": `${(i % cols) * 0.08 + 0.1}s` }}>
+                    <i className="wipe-cover" />
+                    <span className="pcard-scan" aria-hidden="true" />
+                    <div className="wipe-art"><div className="pcard-mock"><Mockup kind={p.mock} width="100%" draw /></div></div>
+                  </div>
+                </FXArt>
+                <div className="mono" style={{ fontSize: ".68rem", color: T.muted, marginTop: "1rem" }}>{p.stack.slice(0, 2).join(" / ")}</div>
+                <div className="pcard-name" style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.8rem" : "2rem", lineHeight: 1.1, color: T.ink, marginTop: ".3rem" }}>{p.name}</div>
+              </button>
+            </Reveal>
+          ))}
+        </FXGrid>
+      </div>
+      <ProjectModal project={active} onClose={close} mobile={mobile} />
+    </section>
+  );
+}
+
+/* ─── CREDENTIALS — an awards-style table ─────────────────── */
+function Credentials({ mobile, motion }) {
+  const [open, setOpen] = useState(-1);
+  return (
+    <section id="credentials" className="sec" style={{ background: "#fff" }}>
+      <div className="wrap">
+        <Lines lines={["Credentials *&*", "recognition"]} motion={motion} style={{ fontSize: mobile ? "2.8rem" : "clamp(3.4rem,6.6vw,6.6rem)", marginBottom: "1.4rem" }} />
+        <Decode text="Certified, published and presented — across industry certifications, a conference paper and national hackathons." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "1.6rem" }} />
+        <Reveal dir="up" enabled={motion} style={{ marginBottom: "3rem" }}><span className="pill">Total: {CERTS.length + ACHIEVEMENTS.length}</span></Reveal>
+
+        <Reveal dir="up" enabled={motion} style={{ display: "flex", alignItems: "baseline", gap: ".5rem", padding: "1rem 0", borderTop: `1px solid ${T.ink}` }}>
+          <span style={{ fontWeight: 600, letterSpacing: ".02em" }}>CERTIFICATIONS</span>
+          <span className="mono" style={{ fontSize: ".7rem", color: T.muted }}>[{String(CERTS.length).padStart(2, "0")}]</span>
+        </Reveal>
+        {CERTS.map((c, i) => {
+          const isOpen = open === i;
+          return (
+            <Reveal key={c.issuer} dir="up" delay={i * 0.05} enabled={motion} className="row">
+              <button className="row-btn" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen} style={{ gridTemplateColumns: "1fr auto" }}>
+                <span className="row-t" style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.35rem" : "1.7rem", color: T.ink }}>
+                  {c.name} <span style={{ color: T.muted, fontSize: ".72em" }}>— {c.issuer}</span>
+                </span>
+                <span className="mono" style={{ fontSize: ".72rem", color: T.muted }}>{c.date}</span>
+              </button>
+              <div className={`drawer${isOpen ? " open" : ""}`}>
+                <div>
+                  <div style={{ paddingBottom: "1.6rem", maxWidth: 720 }}>
+                    <img src={CERT_IMAGES[c.img]} alt={`${c.name} certificate`} loading="lazy" style={{ width: "100%", borderRadius: 12, border: `1px solid ${T.line}`, marginBottom: ".8rem" }} />
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem" }}>
+                      <span className="tag">{c.full}</span>
+                      {c.valid && <span className="tag">{c.valid}</span>}
+                      {c.id && <span className="tag">ID {c.id}</span>}
+                    </div>
+                  </div>
+                </div>
               </div>
             </Reveal>
+          );
+        })}
 
-            <SplitText
-              as="h2"
-              enabled={!reduced}
-              stagger={0.05}
-              style={{ ...TYPE.display(mobile), fontSize: mobile ? "clamp(2.6rem,15vw,4rem)" : "clamp(3rem,5.6vw,5rem)", marginBottom: "1.2rem" }}
-            >
-              CRUZA
-            </SplitText>
-
-            <Reveal delay={0.08}>
-              <p style={{ ...TYPE.body, maxWidth: "46ch", marginBottom: "2rem", fontSize: "0.94rem" }}>
-                An independent software startup building intelligent systems that solve real problems — not tools
-                that impress in a demo and fail in practice.
-              </p>
-            </Reveal>
-
-            <Reveal delay={0.12}>
-              <Glass enabled={motion} tilt={motion ? 2 : 0} beam depth={18} style={{ padding: mobile ? "1.2rem" : "1.6rem", marginBottom: "1.6rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.9rem", gap: "1rem" }}>
-                  <span style={{ ...TYPE.label, fontSize: "0.53rem", color: T.faint }}>Flagship / 01</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
-                    <Marker active />
-                    <span style={{ ...TYPE.label, fontSize: "0.53rem", color: T.blueLit }}>Live</span>
-                  </span>
-                </div>
-                <h3 style={{ ...TYPE.h3(mobile), marginBottom: "0.55rem" }}>Mentorix AI</h3>
-                <p style={{ ...TYPE.body, fontSize: "0.855rem", marginBottom: "1.1rem" }}>
-                  Behavioural career intelligence — analyses decision patterns to predict career stability and
-                  recommend personalised paths.
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem 0.45rem", marginBottom: "1.2rem" }}>
-                  {["FastAPI", "RandomForest", "Vercel", "Render"].map((t) => (
-                    <span key={t} style={{ ...TYPE.meta, fontSize: "0.62rem", color: T.grey, ...GLASS.chip, padding: "0.16rem 0.48rem" }}>{t}</span>
-                  ))}
-                </div>
-                <Magnetic enabled={motion} strength={0.22}>
-                  <a
-                    href="https://mentorix-ai.vercel.app" target="_blank" rel="noopener noreferrer"
-                    data-cursor={motion ? "link" : undefined} data-cursor-label="VISIT"
-                    style={{ ...TYPE.label, fontSize: "0.57rem", color: T.blueLit, textDecoration: "none", borderBottom: `1px solid ${T.blueDim}`, paddingBottom: "0.2rem", transition: "color 0.3s, border-color 0.3s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = T.white; e.currentTarget.style.borderColor = T.blue; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = T.blueLit; e.currentTarget.style.borderColor = T.blueDim; }}
-                  >
-                    Visit system ↗
-                  </a>
-                </Magnetic>
-              </Glass>
-            </Reveal>
-
-            <Reveal delay={0.16}>
-              <Magnetic enabled={motion} strength={0.26}>
-                <a
-                  href="https://cruza.vercel.app" target="_blank" rel="noopener noreferrer"
-                  data-cursor={motion ? "link" : undefined} data-cursor-label="VISIT"
-                  style={{ ...TYPE.label, fontSize: "0.57rem", color: T.grey, textDecoration: "none", ...GLASS.chip, padding: "0.75rem 1.25rem", display: "inline-block", transition: "color 0.3s, border-color 0.3s" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = T.white; e.currentTarget.style.borderColor = whiteA(0.2); }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = T.grey; e.currentTarget.style.borderColor = whiteA(0.07); }}
-                >
-                  Cruza portfolio ↗
-                </a>
-              </Magnetic>
-            </Reveal>
-          </div>
-
-          <Reveal delay={0.14}>
-            <div style={{ ...TYPE.label, fontSize: "0.54rem", color: T.faint, marginBottom: "0.9rem" }}>Founders</div>
-            <Glass enabled={motion} style={{ padding: mobile ? "0.3rem 1.1rem" : "0.4rem 1.3rem" }}>
-              {[
-                { name: "Surya J", role: "Systems & Product Engineer", me: true },
-                { name: "Buvanashri", role: "Product Strategy", me: false },
-                { name: "Shajith", role: "Operations & Project Management", me: false },
-              ].map((f, i, arr) => (
-                <div key={f.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", padding: "0.9rem 0", borderBottom: i < arr.length - 1 ? `1px solid ${whiteA(0.05)}` : "none" }}>
-                  <span>
-                    <span style={{ ...TYPE.body, color: T.white, fontSize: "0.87rem", display: "block" }}>{f.name}</span>
-                    <span style={{ ...TYPE.meta, fontSize: "0.62rem", display: "block", marginTop: "0.18rem" }}>{f.role}</span>
-                  </span>
-                  {f.me && <span style={{ ...TYPE.label, fontSize: "0.5rem", color: T.blue, flexShrink: 0 }}>You are here</span>}
-                </div>
-              ))}
-            </Glass>
-
-            <blockquote style={{ marginTop: "1.6rem", paddingLeft: "1.1rem", borderLeft: `2px solid ${T.blue}` }}>
-              <p style={{ ...TYPE.body, fontSize: "0.88rem", color: T.grey, margin: 0 }}>
-                We build systems that are understandable, maintainable, and genuinely useful — not systems that
-                impress in demos but fail in practice.
-              </p>
-            </blockquote>
-          </Reveal>
-        </div>
-      </Scene>
-
-      {/* ── 08 CONTACT ── */}
-      <Scene id="contact" mobile={mobile} background={T.ink} style={{ paddingBottom: mobile ? "3.5rem" : "5rem" }}>
-        <SectionHead index="08" title="Contact" mobile={mobile} motion={!reduced} />
-        <SplitText
-          as="h2"
-          enabled={!reduced}
-          stagger={0.06}
-          style={{ ...TYPE.display(mobile), marginBottom: mobile ? "2.2rem" : "3rem", maxWidth: "16ch" }}
-        >
-          Let's build something.
-        </SplitText>
-
-        <Reveal delay={0.08}>
-          <div style={{ borderTop: `1px solid ${T.line2}` }}>
-            {CONTACT_LINKS.map((c) => (
-              <a
-                key={c.label}
-                href={c.href} target="_blank" rel="noopener noreferrer"
-                data-cursor={motion ? "link" : undefined} data-cursor-label="OPEN"
-                style={{
-                  position: "relative", display: "grid",
-                  gridTemplateColumns: mobile ? "5.2rem 1fr 1.2rem" : "9rem 1fr 2rem",
-                  alignItems: "center", gap: "1rem",
-                  padding: mobile ? "1.05rem 0" : "1.35rem 0",
-                  borderBottom: `1px solid ${T.line}`, textDecoration: "none", overflow: "hidden",
-                  transition: `transform 0.55s ${EASE.out}`,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = mobile ? "translateX(0.6rem)" : "translateX(1.2rem)";
-                  const w = e.currentTarget.querySelector("[data-wash]");
-                  if (w) { w.style.transform = "scaleX(1)"; w.style.opacity = "1"; }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "none";
-                  const w = e.currentTarget.querySelector("[data-wash]");
-                  if (w) { w.style.transform = "scaleX(0)"; w.style.opacity = "0"; }
-                }}
-              >
-                <span
-                  data-wash
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute", inset: 0, pointerEvents: "none",
-                    background: `linear-gradient(90deg, ${whiteA(0.06)}, ${blueA(0.05)} 50%, transparent)`,
-                    transformOrigin: "left", transform: "scaleX(0)", opacity: 0,
-                    transition: `transform 0.7s ${EASE.out}, opacity 0.4s ease`,
-                  }}
-                />
-                <span style={{ ...TYPE.label, fontSize: "0.55rem", color: T.blueLit, position: "relative" }}>{c.label}</span>
-                <span style={{ ...TYPE.body, color: T.white, fontSize: mobile ? "0.86rem" : "1rem", wordBreak: "break-word", position: "relative" }}>{c.value}</span>
-                <span style={{ ...TYPE.meta, color: T.greyDim, justifySelf: "end", position: "relative" }}>↗</span>
-              </a>
-            ))}
-          </div>
+        <Reveal dir="up" enabled={motion} style={{ display: "flex", alignItems: "baseline", gap: ".5rem", padding: "1rem 0", borderTop: `1px solid ${T.ink}`, marginTop: "3rem" }}>
+          <span style={{ fontWeight: 600, letterSpacing: ".02em" }}>RECOGNITION</span>
+          <span className="mono" style={{ fontSize: ".7rem", color: T.muted }}>[{String(ACHIEVEMENTS.length).padStart(2, "0")}]</span>
         </Reveal>
-      </Scene>
+        {ACHIEVEMENTS.map((a, i) => (
+          <Reveal key={a.title} dir="up" delay={i * 0.05} enabled={motion} className="row" style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1.2fr", gap: mobile ? ".3rem" : "2rem", padding: "1.2rem 0", alignItems: "baseline" }}>
+            <span style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.35rem" : "1.7rem", color: T.ink }}>{a.title}</span>
+            <span style={{ color: T.muted }}>{a.detail}</span>
+          </Reveal>
+        ))}
+        <div style={{ borderTop: `1px solid ${T.line2}` }} />
+      </div>
+    </section>
+  );
+}
 
-      {/* ── FOOTER ── */}
-      <footer style={{ position: "relative", zIndex: 1, padding: mobile ? "1.4rem 1.35rem" : "1.7rem 3rem", borderTop: `1px solid ${T.line}`, background: T.ink, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.6rem" }}>
-        <span style={{ ...TYPE.meta, fontSize: "0.6rem", color: T.faint }}>© 2026 Surya J</span>
-        <span style={{ ...TYPE.meta, fontSize: "0.6rem", color: T.faint }}>Built by hand · Coimbatore, IN</span>
-      </footer>
+/* ─── CONTACT ─────────────────────────────────────────────── */
+function Contact({ mobile, motion }) {
+  const email = CONTACT_LINKS.find((c) => c.label === "Email");
+  return (
+    <section id="contact" className="sec" style={{ background: `linear-gradient(180deg,#fff 0%,${T.tint} 100%)`, paddingBottom: "12rem" }}>
+      <div className="wrap">
+        <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Contact</span></Reveal>
+        <Lines lines={["*Let's*", "build", "→something"]} motion={motion} style={{ fontSize: mobile ? "3.6rem" : "clamp(4.4rem,10vw,10rem)", marginBottom: "2.4rem" }} />
+
+        {email && (
+          <Reveal dir="up" delay={0.1} enabled={motion}>
+            <Magnetic enabled={motion && !mobile} strength={0.12}>
+              <a href={email.href} style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.7rem" : "clamp(2rem,4vw,3.6rem)", color: T.blue, borderBottom: `1.5px solid ${T.ice}`, paddingBottom: ".2rem", wordBreak: "break-word" }}>{email.value}</a>
+            </Magnetic>
+          </Reveal>
+        )}
+
+        <Reveal dir="up" delay={0.2} enabled={motion} style={{ display: "flex", flexWrap: "wrap", gap: ".7rem", marginTop: "2.6rem" }}>
+          {CONTACT_LINKS.filter((c) => c.label !== "Email").map((c) => (
+            <a key={c.label} className="ghost-btn" href={c.href} target="_blank" rel="noopener noreferrer">{c.label} <Arrow up size={14} /></a>
+          ))}
+          <a className="ghost-btn" href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer" style={{ background: T.blue, color: "#fff", borderColor: T.blue }}>Download résumé <Arrow up size={14} /></a>
+        </Reveal>
+
+        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", marginTop: "7rem", paddingTop: "1.4rem", borderTop: `1px solid ${T.line2}` }}>
+          <span className="cap">© 2026 Surya J</span>
+          <span className="cap">Coimbatore, India</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── PAGE ────────────────────────────────────────────────── */
+export default function Portfolio() {
+  const mobile = useIsMobile();
+  const reduced = useReducedMotion();
+  const motion = !reduced;
+  const [ready, setReady] = useState(reduced);
+  const [menu, setMenu] = useState(false);
+  const onLoaded = useCallback(() => setReady(true), []);
+
+  const go = useCallback((id) => {
+    setMenu(false);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+  }, [reduced]);
+
+  useEffect(() => {
+    if (!menu) return;
+    const onKey = (e) => { if (e.key === "Escape") setMenu(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menu]);
+
+  return (
+    <>
+      <style>{CSS + MOTION_CSS + FX_CSS}</style>
+      <Loader onDone={onLoaded} reduced={reduced} />
+      <ScrollBar />
+
+      {/* résumé always one click away — the first thing a recruiter looks for */}
+      <a
+        href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer"
+        className="ghost-btn"
+        style={{ position: "fixed", top: "1rem", right: "1rem", zIndex: 1000, padding: ".6rem 1rem", fontSize: ".85rem", boxShadow: SHADOW.card }}
+      >
+        Résumé <Arrow up size={13} />
+      </a>
+
+      <main>
+        <World mobile={mobile} motion={motion} reduced={reduced} ready={ready} />
+        <Services mobile={mobile} motion={motion} />
+        <Experience mobile={mobile} motion={motion} />
+        <Projects mobile={mobile} motion={motion} />
+        <Credentials mobile={mobile} motion={motion} />
+        <Contact mobile={mobile} motion={motion} />
+      </main>
+
+      {/* cursor smoke: above the page, below the dock, menu and modals */}
+      <Smoke />
+      <Menu open={menu} go={go} mobile={mobile} />
+      <Dock open={menu} setOpen={setMenu} go={go} />
 
       <Analytics />
       <SpeedInsights />
-    </div>
+    </>
   );
 }

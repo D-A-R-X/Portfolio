@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { T, EASE, blueA, whiteA } from "./theme.js";
+import { T, EASE, blueA, inkA } from "./theme.js";
+
+// Structure was "white on dark"; on white it becomes ink. Scaled down,
+// because ink on white carries far more contrast at the same alpha.
+const whiteA = (a) => inkA(a * 0.72);
 
 /* ─────────────────────────────────────────────────────────
    PROJECT MOCKUPS
@@ -18,7 +22,7 @@ import { T, EASE, blueA, whiteA } from "./theme.js";
 
 const LINE = whiteA(0.16);
 const FAINT = whiteA(0.08);
-const FILL = "rgba(255,255,255,0.03)";
+const FILL = "#ffffff";
 
 /* ─── shared chrome ──────────────────────────────────────── */
 
@@ -50,7 +54,7 @@ function PhoneFrame({ children }) {
 function TerminalFrame({ children }) {
   return (
     <>
-      <rect x="6" y="12" width="188" height="118" rx="3" fill="rgba(0,0,0,0.25)" stroke={LINE} strokeWidth="1" />
+      <rect x="6" y="12" width="188" height="118" rx="3" fill="#f3f6fd" stroke={LINE} strokeWidth="1" />
       <rect x="6" y="12" width="188" height="12" rx="3" fill={whiteA(0.05)} stroke={LINE} strokeWidth="1" />
       <rect x="12" y="16" width="42" height="4" rx="2" fill={whiteA(0.14)} />
       {children}
@@ -63,7 +67,7 @@ function TerminalFrame({ children }) {
 /** Mobile app: header, stat tiles, list rows. */
 const phoneApp = (
   <PhoneFrame>
-    <rect x="75" y="14" width="30" height="4" rx="2" fill={T.blueLit} />
+    <rect x="75" y="14" width="30" height="4" rx="2" fill={T.sky} />
     <rect x="75" y="21" width="20" height="3" rx="1.5" fill={whiteA(0.18)} />
     {[0, 1].map((i) => (
       <rect key={i} x={75 + i * 26} y="29" width="24" height="18" rx="2" fill={blueA(0.12)} stroke={blueA(0.4)} strokeWidth="0.7" />
@@ -83,7 +87,7 @@ const phoneApp = (
 const phoneDialer = (
   <PhoneFrame>
     <rect x="77" y="16" width="46" height="10" rx="2" fill={blueA(0.1)} stroke={blueA(0.35)} strokeWidth="0.7" />
-    <rect x="82" y="20" width="36" height="2.6" rx="1.3" fill={T.blueLit} />
+    <rect x="82" y="20" width="36" height="2.6" rx="1.3" fill={T.sky} />
     {Array.from({ length: 12 }, (_, i) => (
       <circle
         key={i}
@@ -96,9 +100,9 @@ const phoneDialer = (
       />
     ))}
     <circle cx="100" cy="117" r="8" fill={T.blue} />
-    <rect x="96.5" y="113.5" width="7" height="7" rx="1.6" fill={whiteA(0.85)} />
+    <rect x="96.5" y="113.5" width="7" height="7" rx="1.6" fill="#ffffff" />
     {/* recording indicator */}
-    <circle cx="118" cy="30" r="2.2" fill={T.blueLit} />
+    <circle cx="118" cy="30" r="2.2" fill={T.sky} />
   </PhoneFrame>
 );
 
@@ -106,7 +110,7 @@ const phoneDialer = (
 const phoneCompanion = (
   <PhoneFrame>
     <circle cx="100" cy="52" r="24" fill="none" stroke={blueA(0.18)} strokeWidth="0.7" strokeDasharray="2 3" />
-    <circle cx="100" cy="52" r="17" fill={blueA(0.14)} stroke={blueA(0.5)} strokeWidth="1" />
+    <circle cx="100" cy="52" r="17" fill={T.blue} stroke={T.blueDeep} strokeWidth="1" />
     <circle cx="94" cy="49" r="2" fill={T.white} />
     <circle cx="106" cy="49" r="2" fill={T.white} />
     <path d="M94 57 Q100 62 106 57" fill="none" stroke={T.white} strokeWidth="1.2" strokeLinecap="round" />
@@ -122,7 +126,7 @@ const phoneCompanion = (
 /** Resource grid: tiles of course material. */
 const phoneGrid = (
   <PhoneFrame>
-    <rect x="75" y="14" width="34" height="4" rx="2" fill={T.blueLit} />
+    <rect x="75" y="14" width="34" height="4" rx="2" fill={T.sky} />
     <rect x="75" y="23" width="50" height="8" rx="2" fill={whiteA(0.05)} stroke={FAINT} strokeWidth="0.6" />
     {Array.from({ length: 6 }, (_, i) => (
       <g key={i}>
@@ -145,11 +149,11 @@ const phoneProgress = (
       cx="100" cy="46" r="20" fill="none" stroke={T.blue} strokeWidth="4" strokeLinecap="round"
       strokeDasharray="126" strokeDashoffset="42" transform="rotate(-90 100 46)"
     />
-    <rect x="92" y="43" width="16" height="3.4" rx="1.7" fill={T.white} />
+    <rect x="92" y="43" width="16" height="3.4" rx="1.7" fill={T.ink} />
     {[34, 22, 40, 16].map((w, i) => (
       <g key={i}>
         <rect x="76" y={80 + i * 13} width="48" height="6" rx="3" fill={whiteA(0.06)} />
-        <rect x="76" y={80 + i * 13} width={w} height="6" rx="3" fill={i === 0 ? T.blueLit : blueA(0.45)} />
+        <rect x="76" y={80 + i * 13} width={w} height="6" rx="3" fill={i === 0 ? T.sky : blueA(0.45)} />
       </g>
     ))}
   </PhoneFrame>
@@ -160,7 +164,7 @@ const phoneTimeline = (
   <PhoneFrame>
     <rect x="75" y="14" width="50" height="34" rx="2" fill={whiteA(0.06)} stroke={FAINT} strokeWidth="0.7" />
     <path d="M79 44 L92 26 L108 26 L121 44" fill="none" stroke={blueA(0.45)} strokeWidth="0.8" />
-    <circle cx="119" cy="18" r="2.2" fill={T.blueLit} />
+    <circle cx="119" cy="18" r="2.2" fill={T.sky} />
     <rect x="75" y="54" width="50" height="1" fill={whiteA(0.14)} />
     {[8, 20, 33, 44].map((x, i) => (
       <g key={i}>
@@ -184,13 +188,13 @@ const dashboard = (
     <rect x="6" y="25" width="38" height="105" fill={whiteA(0.03)} />
     <line x1="44" y1="25" x2="44" y2="130" stroke={LINE} strokeWidth="0.8" />
     {Array.from({ length: 7 }, (_, i) => (
-      <rect key={i} x="11" y={32 + i * 11} width={i === 1 ? 26 : 20} height="3.4" rx="1.7" fill={i === 1 ? T.blueLit : whiteA(0.14)} />
+      <rect key={i} x="11" y={32 + i * 11} width={i === 1 ? 26 : 20} height="3.4" rx="1.7" fill={i === 1 ? T.sky : whiteA(0.14)} />
     ))}
     {[0, 1, 2].map((i) => (
       <g key={i}>
         <rect x={51 + i * 46} y="31" width="40" height="22" rx="2" fill={whiteA(0.04)} stroke={FAINT} strokeWidth="0.6" />
         <rect x={55 + i * 46} y="36" width="14" height="2.4" rx="1.2" fill={whiteA(0.18)} />
-        <rect x={55 + i * 46} y="42" width="22" height="5" rx="1.5" fill={i === 0 ? T.blueLit : whiteA(0.28)} />
+        <rect x={55 + i * 46} y="42" width="22" height="5" rx="1.5" fill={i === 0 ? T.sky : whiteA(0.28)} />
       </g>
     ))}
     <rect x="51" y="59" width="86" height="40" rx="2" fill={whiteA(0.03)} stroke={FAINT} strokeWidth="0.6" />
@@ -212,7 +216,7 @@ const dashboard = (
 /** Ops board: rows with status pills and an evidence thumb. */
 const opsBoard = (
   <BrowserFrame>
-    <rect x="14" y="32" width="46" height="4" rx="2" fill={T.blueLit} />
+    <rect x="14" y="32" width="46" height="4" rx="2" fill={T.sky} />
     {["", "", ""].map((_, i) => (
       <rect key={i} x={112 + i * 26} y="31" width="22" height="6" rx="3" fill={i === 0 ? blueA(0.4) : whiteA(0.08)} />
     ))}
@@ -259,7 +263,7 @@ const menuSite = (
       <g key={i}>
         <rect x="16" y={70 + i * 11} width={52 - (i % 3) * 8} height="3" rx="1.5" fill={whiteA(0.24)} />
         <rect x="16" y={75 + i * 11} width={36 - (i % 2) * 8} height="2.2" rx="1.1" fill={whiteA(0.1)} />
-        <rect x="170" y={70 + i * 11} width="14" height="3" rx="1.5" fill={i === 0 ? T.blueLit : whiteA(0.18)} />
+        <rect x="170" y={70 + i * 11} width="14" height="3" rx="1.5" fill={i === 0 ? T.sky : whiteA(0.18)} />
       </g>
     ))}
     <rect x="120" y="68" width="42" height="44" rx="2" fill={whiteA(0.05)} stroke={FAINT} strokeWidth="0.6" />
@@ -269,7 +273,7 @@ const menuSite = (
 /** Live map: route, pins, accuracy halo. */
 const mapView = () => (
   <BrowserFrame>
-    <rect x="6" y="25" width="188" height="105" fill="rgba(10,16,30,0.5)" />
+    <rect x="6" y="25" width="188" height="105" fill={T.tint} />
     {Array.from({ length: 7 }, (_, i) => (
       <line key={`v${i}`} x1={6 + i * 27} y1="25" x2={6 + i * 27} y2="130" stroke={whiteA(0.05)} strokeWidth="0.6" />
     ))}
@@ -279,12 +283,12 @@ const mapView = () => (
     <path d="M26 116 L52 96 L70 100 L96 70 L124 76 L150 46 L176 52" fill="none" stroke={T.blue} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
     <circle cx="26" cy="116" r="3" fill={whiteA(0.5)} />
     <circle cx="176" cy="52" r="10" fill={blueA(0.14)} />
-    <circle cx="176" cy="52" r="4" fill={T.blueLit} />
+    <circle cx="176" cy="52" r="4" fill={T.sky} />
     {[[70, 100], [124, 76]].map(([cx, cy], i) => (
       <rect key={i} x={cx - 2.4} y={cy - 2.4} width="4.8" height="4.8" fill={whiteA(0.55)} transform={`rotate(45 ${cx} ${cy})`} />
     ))}
-    <rect x="12" y="31" width="52" height="16" rx="2" fill="rgba(8,10,15,0.75)" stroke={FAINT} strokeWidth="0.6" />
-    <circle cx="19" cy="39" r="2" fill={T.blueLit} />
+    <rect x="12" y="31" width="52" height="16" rx="2" fill="#ffffff" stroke={FAINT} strokeWidth="0.6" />
+    <circle cx="19" cy="39" r="2" fill={T.sky} />
     <rect x="25" y="35" width="32" height="2.4" rx="1.2" fill={whiteA(0.28)} />
     <rect x="25" y="40" width="22" height="2" rx="1" fill={whiteA(0.12)} />
   </BrowserFrame>
@@ -293,7 +297,7 @@ const mapView = () => (
 /** Signal chart: candles, entry markers, verdict rail. */
 const chartView = (
   <BrowserFrame>
-    <rect x="6" y="25" width="188" height="105" fill="rgba(8,12,22,0.4)" />
+    <rect x="6" y="25" width="188" height="105" fill={T.paper} />
     {Array.from({ length: 4 }, (_, i) => (
       <line key={i} x1="14" y1={40 + i * 22} x2="152" y2={40 + i * 22} stroke={whiteA(0.05)} strokeWidth="0.6" />
     ))}
@@ -308,9 +312,9 @@ const chartView = (
         </g>
       );
     })}
-    <polyline points="20,96 40,88 60,92 80,74 100,80 120,66 140,72" fill="none" stroke={T.blueLit} strokeWidth="0.9" strokeDasharray="3 2" />
+    <polyline points="20,96 40,88 60,92 80,74 100,80 120,66 140,72" fill="none" stroke={T.sky} strokeWidth="0.9" strokeDasharray="3 2" />
     {[[60, 92], [120, 66]].map(([cx, cy], i) => (
-      <circle key={i} cx={cx} cy={cy} r="3.2" fill="none" stroke={T.blueLit} strokeWidth="1.1" />
+      <circle key={i} cx={cx} cy={cy} r="3.2" fill="none" stroke={T.sky} strokeWidth="1.1" />
     ))}
     {Array.from({ length: 5 }, (_, i) => (
       <rect key={i} x="160" y={34 + i * 12} width="26" height="7" rx="1.5" fill={i % 2 ? whiteA(0.08) : blueA(0.4)} />
@@ -330,13 +334,13 @@ const nodeGraph = (
         <g key={i}>
           <line x1="100" y1="76" x2={x} y2={y} stroke={blueA(0.28)} strokeWidth="0.8" />
           <rect x={x - 11} y={y - 6} width="22" height="12" rx="2" fill={whiteA(0.05)} stroke={i === 0 ? blueA(0.55) : LINE} strokeWidth="0.8" />
-          <rect x={x - 7} y={y - 1.2} width="14" height="2.4" rx="1.2" fill={i === 0 ? T.blueLit : whiteA(0.22)} />
+          <rect x={x - 7} y={y - 1.2} width="14" height="2.4" rx="1.2" fill={i === 0 ? T.sky : whiteA(0.22)} />
         </g>
       );
     })}
-    <circle cx="100" cy="76" r="15" fill={blueA(0.16)} stroke={T.blue} strokeWidth="1.2" />
+    <circle cx="100" cy="76" r="15" fill={T.blue} stroke={T.blueDeep} strokeWidth="1.2" />
     <rect x="93" y="73" width="14" height="2.6" rx="1.3" fill={T.white} />
-    <rect x="95" y="78" width="10" height="2.2" rx="1.1" fill={whiteA(0.5)} />
+    <rect x="95" y="78" width="10" height="2.2" rx="1.1" fill="rgba(255,255,255,0.7)" />
   </BrowserFrame>
 );
 
@@ -345,12 +349,12 @@ const gaugeView = (
   <BrowserFrame>
     <path d="M30 96 A38 38 0 0 1 106 96" fill="none" stroke={whiteA(0.1)} strokeWidth="7" strokeLinecap="round" />
     <path d="M30 96 A38 38 0 0 1 88 65" fill="none" stroke={T.blue} strokeWidth="7" strokeLinecap="round" />
-    <rect x="56" y="80" width="24" height="5" rx="2.5" fill={T.white} />
+    <rect x="56" y="80" width="24" height="5" rx="2.5" fill={T.ink} />
     <rect x="60" y="89" width="16" height="2.6" rx="1.3" fill={whiteA(0.2)} />
     {Array.from({ length: 4 }, (_, i) => (
       <g key={i}>
         <rect x="120" y={36 + i * 17} width="60" height="13" rx="2" fill={whiteA(0.04)} stroke={FAINT} strokeWidth="0.55" />
-        <rect x="124" y={39 + i * 17} width="4" height="7" rx="1" fill={i === 0 ? T.blueLit : whiteA(0.16)} />
+        <rect x="124" y={39 + i * 17} width="4" height="7" rx="1" fill={i === 0 ? T.sky : whiteA(0.16)} />
         <rect x="132" y={40 + i * 17} width={34 - i * 5} height="2.4" rx="1.2" fill={whiteA(0.2)} />
         <rect x="132" y={44.5 + i * 17} width="22" height="2" rx="1" fill={whiteA(0.09)} />
       </g>
@@ -367,11 +371,11 @@ const terminal = (
       const isCmd = i === 0 || i === 5;
       return (
         <g key={i}>
-          {isCmd && <rect x="13" y={32 + i * 10} width="4" height="3" rx="1" fill={T.blueLit} />}
+          {isCmd && <rect x="13" y={32 + i * 10} width="4" height="3" rx="1" fill={T.sky} />}
           <rect
             x={isCmd ? 21 : 19} y={32 + i * 10}
             width={isCmd ? 92 : 40 + ((i * 29) % 110)} height="3" rx="1.5"
-            fill={isCmd ? T.blueLit : whiteA(0.13)}
+            fill={isCmd ? T.sky : whiteA(0.13)}
           />
         </g>
       );
