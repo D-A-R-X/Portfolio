@@ -15,7 +15,7 @@ import { Mockup } from "./mockups.jsx";
 
 // "*word*" renders in the italic; a leading "→" renders the ↳ hook and indent.
 const CHAPTERS = [
-  { id: "top", caption: "Surya J — Software developer · Android, web & backend", lines: ["*I turn*", "ideas into", "→software people", "actually use"] },
+  { id: "top", name: "Surya J", caption: "Software developer · Android, web & backend", lines: ["*I turn*", "ideas into", "→software people", "actually use"] },
   { id: "about", pill: "About", lines: ["*I* build", "→Android apps,", "web platforms", "& their backends"], mono: "CSE at DSCE Coimbatore, class of 2026. Kotlin on the client, Next.js on the web, Go and Python underneath." },
   { id: "now", pill: "Now", lines: ["*Currently*", "shipping at", "→Kosal Tech", "& Manju Global"], mono: "Software developer at Kosal Tech Solutions. On contract with Manju Global: an Android app, an operations ERP and a Go tracking service." },
   { id: "approach", pill: "Approach", lines: ["Simple *by*", "→design, built", "to last"], mono: "Understand the problem before writing code. Keep the architecture small enough for the next engineer to read." },
@@ -51,6 +51,7 @@ const CSS = `
   .wrap{max-width:1320px;margin:0 auto;padding:0 clamp(1.25rem,4vw,3.5rem);position:relative}
   .sec{position:relative;padding:clamp(5.5rem,11vw,10rem) 0;overflow:clip}
 
+  .name-mark{display:inline-block;font-family:${FONT.name};font-weight:340;text-transform:uppercase;line-height:.82;letter-spacing:.03em;background:linear-gradient(100deg,${T.navy} 5%,${T.blue} 60%,${T.sky});-webkit-background-clip:text;background-clip:text;color:transparent;padding:.04em 0}
   .pill{display:inline-flex;align-items:center;gap:.4rem;font-family:${FONT.mono};font-weight:500;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:.36rem .72rem;border-radius:999px;background:${T.blue};color:#fff}
   .pill-soft{background:${T.tint};color:${T.blueDeep}}
   .mono{font-family:${FONT.mono};text-transform:uppercase;letter-spacing:.04em}
@@ -329,6 +330,12 @@ function World({ mobile, motion, reduced, ready }) {
           <div key={c.id} id={c.id} className="chapter">
             <div className="wrap" style={{ width: "100%", paddingBottom: mobile ? "20svh" : "22svh" }}>
               <div style={{ maxWidth: mobile ? "100%" : "58%" }}>
+                {/* the name: tall, slim stencil capitals */}
+                {c.name && ready && (
+                  <Reveal dir="up" enabled={motion} delay={0.05} style={{ marginBottom: "1rem" }}>
+                    <span className="name-mark" style={{ fontSize: mobile ? "clamp(4rem,19vw,5.4rem)" : "clamp(5rem,8.4vw,8.6rem)" }}>{c.name}</span>
+                  </Reveal>
+                )}
                 {c.caption && (i > 0 || ready) && (
                   <Decode as="p" text={c.caption} enabled={motion} className="mono" style={{ fontSize: ".74rem", color: T.navy, marginBottom: "1.3rem", maxWidth: "40ch" }} />
                 )}

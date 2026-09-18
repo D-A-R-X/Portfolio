@@ -64,7 +64,7 @@ behind stays readable, and pointer parallax switches off. Everything respects
 
 Append `?perf` to the URL to expose `window.__particleBench(frames)`,
 `window.__particleSweep(x0, y0, x1, y1, frames, settle)` and
-`window.__smokeBench(frames)` and `window.__cardProbe[i](state)`.
+`window.__smokeBench(frames)`, `window.__smokeTest(frames)` and `window.__cardProbe[i](state)`.
 
 ## Stack
 

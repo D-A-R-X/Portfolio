@@ -17,13 +17,19 @@ import { useEffect, useRef } from "react";
    ───────────────────────────────────────────────────────── */
 
 const SIM_RES = 128;
-const DYE_RES = 512;
-const PRESSURE_ITERS = 16;
-const CURL = 24;
-const VEL_DISSIPATION = 0.45;
+const DYE_RES = 448;
+const PRESSURE_ITERS = 12;
+const CURL = 12;
+const VEL_DISSIPATION = 1.1;
 const DYE_DISSIPATION = 1.5;
 const SPLAT_RADIUS = 0.0023;
-const SPLAT_FORCE = 5200;
+const SPLAT_FORCE = 2600;
+// pointer response: movement is gathered into one stroke per frame (high-rate
+// mice send many events a frame), tiny jitters are ignored, and the push and
+// the amount of smoke both grow with speed but level off
+const DEADZONE = 0.0016;   // uv per frame, ~2px on a laptop screen
+const MAX_STEP = 0.035;    // uv per frame counted as full speed
+const SEG = 0.018;         // a long stroke is laid down in pieces this long
 const IDLE_MS = 3200;
 
 const VS = `
@@ -381,7 +387,17 @@ function createFluid(canvas) {
     gl.deleteBuffer(idx);
   };
 
-  return { gl, splat, step, render, clear, resize, destroy };
+  // empties every field (used by the ?perf test harness)
+  const reset = () => {
+    for (const t of [vel.read, vel.write, dye.read, dye.write, pres.read, pres.write, div, curl]) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, t.fb);
+      gl.viewport(0, 0, t.w, t.h);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+  };
+
+  return { gl, splat, step, render, clear, reset, resize, destroy };
 }
 
 /* the page's blues, from deep to ice; each stroke picks a nearby shade */
@@ -407,13 +423,15 @@ export function Smoke() {
 
     let raf = 0, running = false, last = 0, lastMove = 0;
     let px = -1, py = -1, hue = Math.random() * PALETTE.length;
-    const queue = [];
+    // movement gathered since the last frame, in uv
+    let gx = 0, gy = 0, sx = -1, sy = -1, pending = false;
 
+    let amount = 1;
     const colour = () => {
       hue = (hue + 0.03) % PALETTE.length;
       const a = PALETTE[Math.floor(hue)], b = PALETTE[(Math.floor(hue) + 1) % PALETTE.length];
       const t = hue % 1;
-      const k = 0.15;
+      const k = 0.15 * amount;
       return [(a[0] + (b[0] - a[0]) * t) * k, (a[1] + (b[1] - a[1]) * t) * k, (a[2] + (b[2] - a[2]) * t) * k];
     };
 
@@ -421,8 +439,7 @@ export function Smoke() {
       if (document.hidden) { running = false; return; }
       const dt = Math.min((now - last) / 1000, 1 / 60);
       last = now;
-      for (const s of queue) fx.splat(s[0], s[1], s[2], s[3], s[4]);
-      queue.length = 0;
+      if (pending) { stroke(); pending = false; }
       fx.step(dt);
       fx.render();
       if (now - lastMove > IDLE_MS) {
@@ -439,18 +456,39 @@ export function Smoke() {
       raf = requestAnimationFrame(loop);
     };
 
+    // one stroke per frame from where the pointer was to where it is
+    const stroke = () => {
+      const w = canvas.clientWidth, h = canvas.clientHeight, aspect = w / h;
+      let dx = gx, dy = gy;
+      if (aspect < 1) dx *= aspect; else dy /= aspect;
+      const dist = Math.hypot(dx, dy);
+      if (dist < DEADZONE) return;
+      // full force up to MAX_STEP, then flattening out: a flick is only a
+      // little stronger than a brisk move
+      const speed = Math.min(1, dist / MAX_STEP);
+      const gain = (speed < 1 ? 1 : MAX_STEP / dist) * (0.35 + 0.65 * speed);
+      amount = 0.2 + 0.8 * speed;
+      const n = Math.min(4, Math.max(1, Math.ceil(dist / SEG)));
+      // the pieces overlap, so each carries a share of the push and the dye
+      const share = 1 / Math.sqrt(n);
+      const fx0 = dx * SPLAT_FORCE * gain * share, fy0 = dy * SPLAT_FORCE * gain * share;
+      for (let i = 1; i <= n; i += 1) {
+        const t = i / n;
+        fx.splat(sx + gx * t, sy + gy * t, fx0, fy0, colour().map((c) => c * share));
+      }
+      sx += gx; sy += gy;
+      gx = 0; gy = 0;
+    };
+
     const onMove = (e) => {
       if (e.pointerType !== "mouse") return;
       const w = canvas.clientWidth, h = canvas.clientHeight;
       const x = e.clientX / w, y = 1 - e.clientY / h;
-      if (px < 0) { px = x; py = y; return; }
-      let dx = x - px, dy = y - py;
+      if (px < 0) { px = x; py = y; sx = x; sy = y; gx = 0; gy = 0; return; }
+      gx += x - px; gy += y - py;
       px = x; py = y;
-      if (!dx && !dy) return;
-      const aspect = w / h;
-      if (aspect < 1) dx *= aspect; else dy /= aspect;
-      queue.push([x, y, dx * SPLAT_FORCE, dy * SPLAT_FORCE, colour()]);
-      if (queue.length > 6) queue.shift();
+      if (!pending && Math.abs(gx) + Math.abs(gy) < 1e-5) return;
+      pending = true;
       lastMove = performance.now();
       wake();
     };
@@ -465,6 +503,34 @@ export function Smoke() {
 
     if (new URLSearchParams(window.location.search).has("perf")) {
       // times `frames` solver steps + a present, synchronously
+      // feeds a scripted pointer path through a cleared fluid, one entry per
+      // frame (each entry a list of [clientX, clientY] events), and reports
+      // how much smoke is on screen at its peak
+      window.__smokeTest = (frames, tail = 20) => {
+        fx.reset();
+        px = -1; pending = false; gx = 0; gy = 0;
+        const g = fx.gl, w = g.drawingBufferWidth, h = g.drawingBufferHeight;
+        const buf = new Uint8Array(w * h * 4);
+        let peak = 0, cover = 0, max = 0;
+        const W = canvas.clientWidth, H = canvas.clientHeight;
+        for (let f = 0; f < frames.length + tail; f += 1) {
+          for (const [cx, cy] of frames[f] || []) {
+            const x = cx / W, y = 1 - cy / H;
+            if (px < 0) { px = x; py = y; sx = x; sy = y; gx = 0; gy = 0; continue; }
+            gx += x - px; gy += y - py; px = x; py = y; pending = true;
+          }
+          if (pending) { stroke(); pending = false; }
+          fx.step(1 / 60);
+          fx.render();
+          g.readPixels(0, 0, w, h, g.RGBA, g.UNSIGNED_BYTE, buf);
+          let n = 0, sum = 0, m = 0;
+          for (let i = 3; i < buf.length; i += 16) { const v = buf[i]; if (v > 6) { n += 1; sum += v; if (v > m) m = v; } }
+          if (sum > peak) { peak = sum; cover = n / (w * h / 4); max = m; }
+        }
+        fx.clear();
+        px = -1;
+        return { peak, coverage: +cover.toFixed(4), maxAlpha: max };
+      };
       window.__smokeBench = (frames = 60) => {
         fx.splat(0.5, 0.5, 400, 200, [0.1, 0.2, 0.5]);
         const a = performance.now();

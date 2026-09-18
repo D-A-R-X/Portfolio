@@ -36,6 +36,8 @@ export const T = {
 
 export const FONT = {
   serif: "'Instrument Serif', 'Iowan Old Style', Georgia, serif",
+  // tall, condensed stencil (Big Shoulders Stencil, self-hosted via Fontsource) — the name only
+  name:  "'Big Shoulders Stencil Variable', 'Arial Narrow', sans-serif",
   sans:  "'Hanken Grotesk', 'Segoe UI', system-ui, sans-serif",
   mono:  "'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace",
 };
