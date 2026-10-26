@@ -26,7 +26,7 @@ const MARGIN = 18;      // css px of room around each card for the edge to bulge
 const RADIUS = 18;      // matches .pcard-art
 const BUFFER = 260;     // css px the layer extends past the viewport, each side
 const HOP = 120;        // the layer moves in steps this size
-const DPR_CAP = 1.25;
+const DPR_CAP = 2;
 
 const VS = `
 attribute vec2 aPos;
@@ -72,38 +72,37 @@ void main() {
   // edge: rounded rect whose outline breathes and bulges toward the pointer
   vec2 q = abs(p - card * 0.5) - (card * 0.5 - uRadius);
   float sd = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - uRadius;
-  float wob = noise(p * 0.012 + uTime * 0.6) - 0.5;
-  float edgeNear = exp(-dot(dm, dm) / 0.25);
-  sd -= uHover * (edgeNear * uMargin * 0.7 + wob * 7.0);
-  sd -= abs(uBend) * wob * 10.0;
-  float alpha = 1.0 - smoothstep(-0.75, 0.75, sd);
+  float wob = noise(p * 0.009 + uTime * 0.35) - 0.5;
+  float edgeNear = exp(-dot(dm, dm) / 0.3);
+  sd -= uHover * (edgeNear * uMargin * 0.42 + wob * 1.6);
+  sd -= abs(uBend) * wob * 2.2;
+  // a wide falloff is what keeps the edge smooth rather than stepped
+  float alpha = 1.0 - smoothstep(-1.6, 1.6, sd);
   if (alpha <= 0.0) { gl_FragColor = vec4(0.0); return; }
 
   // liquid: streaky flow, strongest under the pointer
-  float t = uTime * 0.8;
-  vec2 flow = vec2(noise(vec2(uv.y * 7.0, t)) - 0.5, noise(vec2(uv.x * 4.0 + 9.0, t * 0.7)) - 0.5);
-  flow += 0.5 * (vec2(noise(uv * 11.0 + t), noise(uv * 11.0 - t + 5.0)) - 0.5);
-  vec2 disp = flow * uHover * near * 0.16;
-  disp += normalize(dm + 1e-4) * uHover * near * 0.025 / vec2(aspect, 1.0);
+  float t = uTime * 0.45;
+  vec2 flow = vec2(noise(vec2(uv.y * 3.4, t)) - 0.5, noise(vec2(uv.x * 2.6 + 9.0, t * 0.8)) - 0.5);
+  vec2 disp = flow * uHover * near * 0.055;
+  // a gentle pull toward the pointer, so the surface follows the hand
+  disp += normalize(dm + 1e-4) * uHover * near * 0.012 / vec2(aspect, 1.0);
 
   // hover zoom
   uv = (uv - 0.5) / (1.0 + 0.045 * uHover) + 0.5;
 
   // glitch: bands of the image jump sideways and pixelate
   if (uGlitch > 0.001) {
-    float band = floor(uv.y * 18.0);
-    float seed = floor(uTime * 24.0);
+    float band = floor(uv.y * 14.0);
+    float seed = floor(uTime * 18.0);
     float h = hash(vec2(band, seed));
-    if (h < uGlitch * 0.55) {
-      uv.x += (hash(vec2(seed, band)) - 0.5) * 0.12 * uGlitch;
-      vec2 blocks = vec2(46.0, 34.0) * (1.0 - 0.6 * uGlitch) + 4.0;
-      uv = (floor(uv * blocks) + 0.5) / blocks;
+    if (h < uGlitch * 0.35) {
+      uv.x += (hash(vec2(seed, band)) - 0.5) * 0.05 * uGlitch;
     }
   }
 
   // RGB split: channels ride the distortion at different strengths
   vec2 dir = normalize(disp + vec2(0.0001, 0.0)) ;
-  float ca = uHover * near * 0.018 + abs(uBend) * 0.012 + uGlitch * 0.02;
+  float ca = uHover * near * 0.005 + abs(uBend) * 0.004 + uGlitch * 0.012;
   vec2 c = clamp(uv + disp, 0.0, 1.0);
   float r = texture2D(uTex, clamp(uv + disp * 1.25 + dir * ca, 0.0, 1.0)).r;
   float g = texture2D(uTex, c).g;
@@ -111,8 +110,8 @@ void main() {
   vec3 col = vec3(r, g, b);
 
   // hairline border, as on the DOM card
-  float line = 1.0 - smoothstep(0.0, 1.2, abs(sd + 0.6));
-  col = mix(col, uBorder, line * 0.9);
+  float line = 1.0 - smoothstep(0.0, 1.6, abs(sd + 0.8));
+  col = mix(col, uBorder, line * 0.75);
 
   gl_FragColor = vec4(col * alpha, alpha);
 }`;
@@ -133,6 +132,18 @@ function rasterise(art) {
   const cy = (br.top + br.height / 2 - ar.top) * (H / ar.height);
 
   const clone = mock.cloneNode(true);
+  // A serialised SVG is its own document: it cannot see the page's custom
+  // properties, so every var() would fall back to black. Bake them in.
+  const rootCS = getComputedStyle(document.documentElement);
+  const bake = (v) => v.replace(/var\((--[\w-]+)\)/g, (_, n) => rootCS.getPropertyValue(n).trim() || "#000");
+  for (const node of [clone, ...clone.querySelectorAll("*")]) {
+    for (const attr of ["fill", "stroke", "stop-color", "color"]) {
+      const v = node.getAttribute && node.getAttribute(attr);
+      if (v && v.includes("var(")) node.setAttribute(attr, bake(v));
+    }
+    const st = node.getAttribute && node.getAttribute("style");
+    if (st && st.includes("var(")) node.setAttribute("style", bake(st));
+  }
   clone.setAttribute("width", bw);
   clone.setAttribute("height", bh);
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -144,7 +155,8 @@ function rasterise(art) {
     c.width = Math.round(W * dpr);
     c.height = Math.round(H * dpr);
     const x = c.getContext("2d");
-    x.fillStyle = "#ffffff";
+    // the card's own background, so the capture matches the live theme
+    x.fillStyle = getComputedStyle(art).backgroundColor || "#ffffff";
     x.fillRect(0, 0, c.width, c.height);
     x.drawImage(img, (cx - bw / 2) * dpr, (cy - bh / 2) * dpr, bw * dpr, bh * dpr);
     URL.revokeObjectURL(url);
@@ -301,7 +313,25 @@ if (typeof window !== "undefined") window.addEventListener("scroll", () => { if 
 
 /* ─── one card ───────────────────────────────────────────── */
 
+const parseRGB = (v) => {
+  const t = (v || "").trim();
+  if (t.startsWith("#")) {
+    const h = t.slice(1);
+    const n = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+    return [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255);
+  }
+  const m = /(\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)[,\s]+(\d+(?:\.\d+)?)/.exec(t);
+  return m ? [+m[1] / 255, +m[2] / 255, +m[3] / 255] : [0.9, 0.91, 0.94];
+};
+
 function mountCard(layer, wrap, art, fine) {
+  /* resting border, then the hover border — both straight from the CSS */
+  const border = () => {
+    const cs = getComputedStyle(art);
+    const rest = parseRGB(cs.borderTopColor);
+    const hot = parseRGB(getComputedStyle(document.documentElement).getPropertyValue("--ice"));
+    return [...rest, ...hot];
+  };
   const gl = layer.gl;
   const st = {
     tex: null, loading: false, ready: false, inView: false, on: false,
@@ -350,9 +380,10 @@ function mountCard(layer, wrap, art, fine) {
     // 0: idle · 1: animating but off screen · 2: draw me
     tick(v) {
       if (!st.tex) return 0;
-      st.hover += (st.hoverTo - st.hover) * (st.hoverTo ? 0.09 : 0.07);
-      st.mx += (st.tmx - st.mx) * 0.2;
-      st.my += (st.tmy - st.my) * 0.2;
+      // critically-damped-ish approach; slower out than in reads as weight
+      st.hover += (st.hoverTo - st.hover) * (st.hoverTo ? 0.075 : 0.055);
+      st.mx += (st.tmx - st.mx) * 0.12;
+      st.my += (st.tmy - st.my) * 0.12;
       const bendTo = st.inView ? Math.max(-1, Math.min(1, v / 45)) : 0;
       st.bend += (bendTo - st.bend) * 0.2;
       const gTo = st.inView ? Math.min(1, Math.max(0, (Math.abs(v) - 28) / 50)) : 0;
@@ -375,9 +406,10 @@ function mountCard(layer, wrap, art, fine) {
       g.uniform1f(u.uBend, st.bend);
       g.uniform1f(u.uGlitch, st.glitch);
       g.uniform1f(u.uTime, time);
-      // #e5e8ef at rest, ice blue on hover — the DOM card's border
+      // the DOM card's own border colour, read live so it tracks the theme
       const k = st.hover;
-      g.uniform3f(u.uBorder, 0.898 - 0.133 * k, 0.91 - 0.086 * k, 0.937 + 0.032 * k);
+      const b = border();
+      g.uniform3f(u.uBorder, b[0] + (b[3] - b[0]) * k, b[1] + (b[4] - b[1]) * k, b[2] + (b[5] - b[2]) * k);
     },
     // ?perf: load, set a state, draw one frame synchronously, read it back
     async probe({ hover = 0, mx = 0.5, my = 0.5, bend = 0, glitch = 0 } = {}) {

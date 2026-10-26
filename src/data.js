@@ -80,6 +80,18 @@ export const EXPERIENCE = [
 ];
 
 /* ─── SKILLS ─────────────────────────────── */
+/* ─── EDUCATION ──────────────────────────── */
+export const EDUCATION = [
+  {
+    degree: "B.E. Computer Science & Engineering",
+    school: "Dhanalakshmi Srinivasan College of Engineering",
+    place: "Coimbatore, Tamil Nadu",
+    when: "2022 — 2026",
+    score: "CGPA 7.43 / 10",
+    note: "Coursework in data structures, databases, networks and machine learning, alongside production work in Android and full-stack development.",
+  },
+];
+
 export const SKILL_BARS = [
   { name: "Python",             level: 87, cat: "Languages"  },
   { name: "JavaScript / TS",    level: 78, cat: "Languages"  },
@@ -101,6 +113,32 @@ export const SKILL_BARS = [
   { name: "Creativity",         level: 90, cat: "Skill"      },
 ];
 
+/* ─── WHO THE WORK WAS FOR ───────────────────
+   Keyed by the `org` on each project. `relation` is my side of it,
+   `blurb` is theirs — so a card can say both without a sentence. */
+export const ORGS = {
+  "Manju Groups": {
+    relation: "Client \u00b7 on contract",
+    blurb: "Property development group \u2014 land, sales and operations. Engaged through Manju Global.",
+  },
+  "Kosal Tech Solutions": {
+    relation: "Employer",
+    blurb: "Software services company. Internal tooling and client-facing web work.",
+  },
+  Cruza: {
+    relation: "My studio",
+    blurb: "Independent software studio I co-founded, building intelligent systems.",
+  },
+  "GenZ Reading Academy": {
+    relation: "Client",
+    blurb: "Reading academy running admissions and student programmes.",
+  },
+  "The Flashback Cafe": {
+    relation: "Client",
+    blurb: "Neighbourhood cafe, menu and brand in its own voice.",
+  },
+};
+
 /* ─── PROJECTS ───────────────────────────── */
 export const PROJECT_FILTERS = ["All", "Professional", "AI Systems", "Products", "Mobile"];
 
@@ -111,7 +149,7 @@ export const PROJECTS = [
     stack: ["Kotlin", "MVVM", "Retrofit", "Coroutines", "EncryptedSharedPreferences"],
     power: "A single Android client for the Manju Groups project-management system: OTP authentication, HR, attendance, leave and chat in one app.",
     highlight: "Semantic colour-token design system so every screen themes light/dark from one source. AES256-GCM encrypted local storage for session and credentials.",
-    repo: null, repoLabel: "Company Project", org: "Manju Global",
+    repo: null, repoLabel: "Company Project", org: "Manju Groups",
   },
   {
     id: "02", name: "Airix Geo Tracking", tag: "Live Location & Trip Service", cat: "Professional", mock: "map",
@@ -119,7 +157,7 @@ export const PROJECTS = [
     stack: ["Go", "PostgreSQL", "PostGIS", "TimescaleDB", "Redis", "Docker"],
     power: "A dedicated Go service for location ingestion, live tracking, trip sessions and tamper monitoring — scalable apart from the platform it serves.",
     highlight: "HTTP API plus independently scaled workers. PostGIS + TimescaleDB as system of record, Redis for live state, idempotency and event fan-out. Compatibility adapters keep the existing tracking contracts intact.",
-    repo: null, repoLabel: "Company Project", org: "Manju Global",
+    repo: null, repoLabel: "Company Project", org: "Manju Groups",
   },
   {
     id: "03", name: "Manju PMS Platform", tag: "Land & Project Operations", cat: "Professional", mock: "dashboard",
@@ -127,7 +165,7 @@ export const PROJECTS = [
     stack: ["Next.js", "TypeScript", "Convex", "Tailwind", "Recharts", "AI SDK"],
     power: "A full operations platform covering land procurement, legal and feasibility gates, channel-partner management, reporting and an AI sales assistant.",
     highlight: "Mandatory-field gating per workflow stage so records cannot advance half-complete. Real-time Convex backend, generated Excel/PDF reporting, push notifications and guided in-app tours.",
-    repo: null, repoLabel: "Company Project", org: "Manju Global",
+    repo: null, repoLabel: "Company Project", org: "Manju Groups",
   },
   {
     id: "04", name: "Travel Desk", tag: "Trip Allocation & Fleet Billing", cat: "Professional", mock: "ops-board",
@@ -135,7 +173,7 @@ export const PROJECTS = [
     stack: ["Next.js 16", "React 19", "TypeScript", "Tesseract.js", "Tailwind"],
     power: "End-to-end trip desk: request, allocate, dispatch to the driver, track each status transition, and finalise billing against what actually happened.",
     highlight: "Token-scoped driver pages sent over WhatsApp — no driver login needed. OCR on uploaded odometer and document evidence. Explicit states for extra-km, cancellation billing and offline completion.",
-    repo: null, repoLabel: "Company Project", org: "Manju Global",
+    repo: null, repoLabel: "Company Project", org: "Manju Groups",
   },
   {
     id: "05", name: "Mentorix", tag: "AI Career Intelligence System", cat: "AI Systems", mock: "gauge",
@@ -174,7 +212,7 @@ export const PROJECTS = [
     problem: "Signal channels advertise near-perfect win rates by quietly never posting their losses. There is no way to judge one without independently recording every call they make.",
     stack: ["Python", "Telegram API", "Next.js", "Convex", "Pine Script", "SQLite"],
     power: "Listens to a signal channel, parses every call, and logs what would have happened — measuring true win rate without placing a single real trade.",
-    highlight: "Deliberately paper-only by design. Companion SentinelX Pine Script strategies (scalper, intraday, fusion) for independent chart-side validation on TradingView.",
+    highlight: "Deliberately paper-only by design. Companion SentinelX Pine Script strategies (scalper, intraday, fusion) for independent chart-side validation on TradingView, plus an Indian-market build on Zerodha Kite Connect for MCX gold futures — virtual broker fills, expiry and rollover rules, and hard risk caps, with live trading still gated off.",
     repo: null, repoLabel: "Private Build",
   },
   {
@@ -183,7 +221,7 @@ export const PROJECTS = [
     stack: ["Next.js", "TypeScript", "better-sqlite3", "jsPDF", "Nodemailer"],
     power: "Academy site with a complete application pipeline — structured form, server-side persistence, generated PDF, and automated email delivery.",
     highlight: "Each submission becomes a stored record and a generated PDF in one pass, then goes out by email — no manual re-entry anywhere in the loop.",
-    repo: null, repoLabel: "Client Project",
+    repo: null, repoLabel: "Client Project", org: "GenZ Reading Academy",
   },
   {
     id: "11", name: "The Flashback Cafe", tag: "Brand Site · Tanglish Menu", cat: "Products", mock: "menu-site",
@@ -191,7 +229,7 @@ export const PROJECTS = [
     stack: ["Next.js", "React", "CSS"],
     power: "A brand site that presents the menu in the cafe's own Tanglish voice alongside plain English, structured as courses rather than a price list.",
     highlight: "Scroll-sectioned single page — story, menu, room, visit — with the voice of the place kept intact instead of flattened into standard restaurant copy.",
-    repo: null, repoLabel: "Client Project",
+    repo: null, repoLabel: "Client Project", org: "The Flashback Cafe",
   },
   {
     id: "12", name: "Kosal-Link", tag: "Landing Page Structure Extractor", cat: "Products", mock: "terminal",
@@ -199,7 +237,7 @@ export const PROJECTS = [
     stack: ["Python", "Node.js", "Playwright", "CLI"],
     power: "A four-tool scraper suite: static downloader, browser-based scraper for JS-heavy pages, structure extractor, and a CLI for section detection and component export.",
     highlight: "Renders the page, detects section boundaries, and exports selector-scoped components — turning a live page into a reusable blueprint rather than a flat copy.",
-    repo: null, repoLabel: "Company Project", org: "Kosal Tech",
+    repo: null, repoLabel: "Company Project", org: "Kosal Tech Solutions",
   },
   {
     id: "13", name: "Smart Campus", tag: "Academic Resource Management App", cat: "Mobile", mock: "phone-grid",
@@ -224,6 +262,46 @@ export const PROJECTS = [
     power: "Adaptive fitness progression logic using verified activity data and dynamic experience-based levelling.",
     highlight: "Progress calculated from validated signals, not user-controlled inputs. Cheat-resistant by architecture.",
     repo: null, repoLabel: "In Progress",
+  },
+  {
+    id: "16", name: "Telecaller Core", tag: "Call Operations Service · Go", cat: "Professional", mock: "graph",
+    problem: "The telecaller module sat inside the main Convex backend, where retries, follow-ups and daily rollups competed with the rest of the platform and failed quietly.",
+    stack: ["Go", "PostgreSQL", "Temporal", "Docker", "REST"],
+    power: "A standalone Go service owning the whole call lifecycle: dialer webhooks, incoming, follow-up and outbound lanes, AI call-result commits, the outcome funnel and dashboard APIs.",
+    highlight: "Durable work — retried follow-ups, abandoned callbacks, rollups, daily finalize and outbox delivery — runs on self-hosted Temporal, while the hot path stays a single Postgres transaction.",
+    repo: null, repoLabel: "Company Project", org: "Manju Groups",
+  },
+  {
+    id: "17", name: "Airix iOS", tag: "Mconnect for iPhone · SwiftUI", cat: "Professional", mock: "phone-grid",
+    problem: "Everything the company ran on existed only on Android, so staff on iPhones were locked out of attendance, leave, chat and field work.",
+    stack: ["Swift", "SwiftUI", "SwiftData", "REST", "iOS 26"],
+    power: "The iOS counterpart to Mconnect against the same production backend: apps grid, attendance, leave, HR, chat, leads, field visits, fleet requests, collections and push notifications.",
+    highlight: "A written parity roadmap keeps the backend behaviour identical to the Android client while the interface stays native to iOS rather than a port.",
+    repo: null, repoLabel: "Company Project", org: "Manju Groups",
+  },
+  {
+    id: "18", name: "Airix WhatsApp Platform", tag: "Multi-tenant Business Messaging", cat: "Professional", mock: "dashboard",
+    problem: "Campaigns, templates and customer replies were scattered across personal phones, with no record of what had been sent or delivered.",
+    stack: ["Next.js 16", "React 19", "TypeScript", "Convex", "Clerk", "WhatsApp Cloud API"],
+    power: "A multi-tenant platform over the WhatsApp Business Cloud API: account selection, template creation and sync, campaigns, a shared inbox, media and delivery tracking.",
+    highlight: "Idempotent sends stop duplicate messages on retry, and a documented server-to-server API lets the other products send their own notifications through it.",
+    repo: null, repoLabel: "Company Project", org: "Manju Groups",
+  },
+  {
+    id: "19", name: "Manju Customer App", tag: "Buyer Portal · React Native", cat: "Mobile", mock: "phone-timeline",
+    problem: "Buyers had to call the office for payment schedules, documents and the status of every request.",
+    stack: ["Expo", "React Native", "Expo Router", "HeroUI Native", "TypeScript"],
+    power: "A customer-facing app for property buyers: bookings with a paper-calendar collections view, a document vault, and a support-ticket centre.",
+    highlight: "Built design-first against a demo data layer, so the whole flow could be reviewed and reshaped before any of it was wired to the live backend.",
+    repo: null, repoLabel: "In Progress", org: "Manju Groups",
+  },
+  {
+    id: "20", name: "Sniper Arena", tag: "Multiplayer Roblox Game", cat: "Products", mock: "gauge",
+    problem: "Round-based shooters usually hand out roles at random, so nobody has a stake in who gets the advantage.",
+    stack: ["Luau", "Roblox", "Rojo", "DataStore", "Node"],
+    power: "A multiplayer arena where a twelve-second coin auction decides who takes the tower as sniper while everyone else runs the open field.",
+    highlight: "The sniper wins only by clearing the field; runners win on the clock. Shields, scoped weapons, saved progression and Studio dev-tools round it out.",
+    repo: null, repoLabel: "Prototype",
   },
 ];
 

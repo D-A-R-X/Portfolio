@@ -3,8 +3,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import { CERT_IMAGES } from "./assets.js";
-import { T, FONT, SHADOW, EASE, blueA } from "./theme.js";
-import { CONTACT_LINKS, EXPERIENCE, PROJECTS, PROJECT_FILTERS, CERTS, ACHIEVEMENTS } from "./data.js";
+import { T, FONT, TYPE, SHADOW, EASE, blueA, THEME_CSS, RAW } from "./theme.js";
+import { CONTACT_LINKS, EXPERIENCE, EDUCATION, SKILL_BARS, PROJECTS, PROJECT_FILTERS, ORGS, CERTS, ACHIEVEMENTS, INTERESTS, PHILOSOPHY, GOALS } from "./data.js";
 import { useReducedMotion, useIsMobile, useScrubber, useReveal, Reveal, Decode, Magnetic, MOTION_CSS } from "./motion.jsx";
 import { Landscape, Particles } from "./world.jsx";
 import { Smoke } from "./fluid.jsx";
@@ -13,7 +13,7 @@ import { Mockup } from "./mockups.jsx";
 
 /* ─── CONTENT SPECIFIC TO THIS LAYOUT ─────────────────────── */
 
-// "*word*" renders in the italic; a leading "→" renders the ↳ hook and indent.
+// "*word*" renders in the italic; a leading "→" renders the rule mark and indent.
 const CHAPTERS = [
   { id: "top", name: "Surya J", caption: "Software developer · Android, web & backend", lines: ["*I turn*", "ideas into", "→software people", "actually use"] },
   { id: "about", pill: "About", lines: ["*I* build", "→Android apps,", "web platforms", "& their backends"], mono: "CSE at DSCE Coimbatore, class of 2026. Kotlin on the client, Next.js on the web, Go and Python underneath." },
@@ -35,14 +35,14 @@ const SERVICES = [
   ["Deployment", "Vercel · Render · Docker"],
 ];
 
-const MENU = [["Home", "top"], ["About", "about"], ["What I do", "services"], ["Experience", "experience"], ["Projects", "projects"], ["Credentials", "credentials"], ["Contact", "contact"]];
+const MENU = [["Home", "top"], ["About", "about"], ["What I do", "services"], ["Experience", "experience"], ["Background", "background"], ["Projects", "projects"], ["Credentials", "credentials"], ["Contact", "contact"]];
 
 /* ─── CSS ─────────────────────────────────────────────────── */
 const CSS = `
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:clip}
-  body{background:#f7faff;color:${T.ink};font-family:${FONT.sans};overflow-x:clip}
-  ::selection{background:${T.blue};color:#fff}
+  body{background:${T.bg};color:${T.ink};font-family:${FONT.sans};overflow-x:clip}
+  ::selection{background:${T.blue};color:${T.surface}}
   a{color:inherit;text-decoration:none}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   img{max-width:100%;display:block}
@@ -57,10 +57,13 @@ const CSS = `
   .mono{font-family:${FONT.mono};text-transform:uppercase;letter-spacing:.04em}
   .cap{font-family:${FONT.mono};font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:${T.muted}}
 
-  /* display: narrow serif caps with an italic lead-in */
-  .disp{font-family:${FONT.serif};font-weight:400;text-transform:uppercase;line-height:.9;letter-spacing:-.005em;color:${T.ink}}
-  .disp em{font-style:italic;text-transform:none;color:${T.blue}}
-  .hook{font-family:${FONT.sans};font-size:.4em;font-style:normal;color:${T.blue};margin-right:.7em;vertical-align:.45em;display:inline-block}
+  /* display: condensed caps, with a serif italic lead-in for contrast.
+     Two voices, deliberately unlike each other — that pairing is the whole
+     idea, and the condensed face keeps its weight on a dark ground. */
+  .disp{font-family:${FONT.display};font-weight:600;text-transform:uppercase;line-height:.84;letter-spacing:.004em;color:${T.ink}}
+  .disp em{font-family:${FONT.serif};font-weight:400;font-style:italic;text-transform:none;letter-spacing:-.01em;color:${T.blue}}
+  .hook{display:inline-block;width:.42em;height:.082em;min-height:2px;margin:0 .34em .17em 0;border-radius:.04em;background:${T.blue};vertical-align:middle}
+  .hook-row{width:1.1em;height:.1em;margin-right:.5em}
 
   /* the world */
   .chapter{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end}
@@ -94,7 +97,7 @@ const CSS = `
 
   /* project cards */
   .pcard{text-align:left;display:block;width:100%}
-  .pcard-art{position:relative;border-radius:18px;background:#fff;border:1px solid ${T.line};overflow:hidden;aspect-ratio:10/8;display:grid;place-items:center;padding:8%;transition:border-color .3s ease}
+  .pcard-art{position:relative;border-radius:18px;background:${T.surface};border:1px solid ${T.line};overflow:hidden;aspect-ratio:10/8;display:grid;place-items:center;padding:8%;transition:border-color .3s ease}
   .pcard-art .wipe-art{width:100%}
   .pcard-scan{position:absolute;left:-30%;top:0;bottom:0;width:30%;background:linear-gradient(90deg,transparent,${blueA(0.12)},transparent);transform:translate3d(0,0,0);transition:transform .9s ${EASE.out};pointer-events:none}
   .pcard:hover .pcard-art{border-color:${T.ice}}
@@ -104,29 +107,51 @@ const CSS = `
   .pcard-name{transition:color .3s ease}
   .pcard:hover .pcard-name{color:${T.blue}}
 
-  .chip{font-family:${FONT.mono};font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:.5rem .85rem;border-radius:999px;border:1px solid ${T.line2};color:${T.body};background:#fff;transition:background-color .3s ease,color .3s ease,border-color .3s ease}
+  .chip{font-family:${FONT.mono};font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;padding:.5rem .85rem;border-radius:999px;border:1px solid ${T.line2};color:${T.body};background:${T.surface};transition:background-color .3s ease,color .3s ease,border-color .3s ease}
   .chip:hover{border-color:${T.blue};color:${T.blue}}
   .chip.on{background:${T.blue};border-color:${T.blue};color:#fff}
 
-  .tag{display:inline-flex;font-family:${FONT.mono};font-size:.7rem;padding:.28rem .55rem;border-radius:6px;border:1px solid ${T.line};color:${T.body};background:#fff;white-space:nowrap}
+  .bar{display:block;height:2px;background:${T.line};border-radius:2px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,${T.navy},${T.blue});transform:scaleX(var(--v,1));transform-origin:left center;transition:transform 1.1s ${EASE.out}}
+  .rv:not(.in) .bar i{transform:scaleX(0)}
+  .tag{display:inline-flex;font-family:${FONT.mono};font-size:.7rem;padding:.28rem .55rem;border-radius:6px;border:1px solid ${T.line};color:${T.body};background:${T.surface};white-space:nowrap}
 
-  .ghost-btn{display:inline-flex;align-items:center;gap:.6rem;font-weight:500;padding:.85rem 1.3rem;border-radius:999px;border:1px solid ${T.ice};color:${T.navy};background:linear-gradient(180deg,#fff,${T.tint});transition:border-color .3s ease,color .3s ease}
+  .ghost-btn{display:inline-flex;align-items:center;gap:.6rem;font-weight:500;padding:.85rem 1.3rem;border-radius:999px;border:1px solid ${T.ice};color:${T.navy};background:linear-gradient(180deg,${T.surface},${T.tint});transition:border-color .3s ease,color .3s ease}
   .ghost-btn:hover{border-color:${T.blue};color:${T.blue}}
   .ghost-btn .arr{transition:transform .5s ${EASE.out}}
   .ghost-btn:hover .arr{transform:translate3d(3px,-3px,0)}
 
-  /* bottom pill navigation */
-  .dock{position:fixed;left:50%;bottom:clamp(.9rem,2.4vh,1.6rem);z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:min(380px,calc(100vw - 2rem));height:62px;padding:0 .55rem 0 1.1rem;border-radius:999px;background:linear-gradient(100deg,${T.navy} 0%,${T.blueDeep} 45%,${T.blue} 100%);box-shadow:0 18px 40px -18px rgba(15,34,86,.7),inset 0 1px 0 rgba(255,255,255,.22);transform:translate3d(-50%,0,0)}
-  .dock-menu{width:34px;height:34px;display:grid;place-items:center}
-  .dock-menu i{display:block;width:22px;height:1.6px;background:#fff;border-radius:2px;transition:transform .5s ${EASE.out}}
-  .dock-menu i+i{margin-top:6px}
-  .dock-menu.x i:first-child{transform:translate3d(0,3.8px,0) rotate(45deg)}
-  .dock-menu.x i:last-child{transform:translate3d(0,-3.8px,0) rotate(-45deg)}
-  .orb{position:relative;width:46px;height:46px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 34% 30%,#fff 0%,#dbe6ff 26%,${T.sky} 62%,${T.blueDeep} 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
-  .orb::after{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.55) 60deg,rgba(255,255,255,0) 140deg);animation:spin 5s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
+  /* chrome in the corners - nothing lies across the reading column */
+  .mark{position:fixed;left:clamp(1rem,3vw,2.2rem);top:clamp(.9rem,2.2vh,1.4rem);z-index:1002;font-family:${FONT.name};font-weight:360;font-size:1.5rem;text-transform:uppercase;letter-spacing:.06em;line-height:1;color:${T.ink};opacity:.9;transition:opacity .3s ease,color .3s ease}
+  .mark span{color:${T.blue};margin-left:.18em}
+  .mark:hover{opacity:1}
+  .mark.hid{opacity:0;pointer-events:none}
 
-  .menu{position:fixed;inset:0;z-index:999;background:#f7faff;display:flex;flex-direction:column;transform:translate3d(0,102%,0);transition:transform .8s ${EASE.inOut};overflow:auto}
+  .chrome{position:fixed;right:clamp(1rem,3vw,2.2rem);top:clamp(.75rem,1.9vh,1.2rem);z-index:1002;display:flex;align-items:center;gap:.5rem}
+  .chip-btn{display:inline-flex;align-items:center;gap:.45rem;height:36px;padding:0 .95rem;border-radius:999px;border:1px solid ${T.line2};background:${T.surface};color:${T.ink};font-size:.82rem;font-weight:500;box-shadow:${SHADOW.card};transition:border-color .3s ease,color .3s ease,transform .3s ${EASE.out}}
+  .chip-btn:hover{border-color:${T.blue};color:${T.blue};transform:translate3d(0,-1px,0)}
+  .theme-btn{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid ${T.line2};background:${T.surface};color:${T.ink};box-shadow:${SHADOW.card};transition:border-color .3s ease,color .3s ease}
+  .theme-btn:hover{border-color:${T.blue};color:${T.blue}}
+  .burger{display:grid;place-content:center;gap:5px;width:36px;height:36px;border-radius:50%;border:1px solid ${T.line2};background:${T.surface};box-shadow:${SHADOW.card};transition:border-color .3s ease}
+  .burger:hover{border-color:${T.blue}}
+  .burger i{display:block;width:15px;height:1.5px;background:${T.ink};border-radius:2px;transition:transform .45s ${EASE.out},background-color .3s ease}
+  .burger.x i:first-child{transform:translate3d(0,3.2px,0) rotate(45deg)}
+  .burger.x i:last-child{transform:translate3d(0,-3.2px,0) rotate(-45deg)}
+
+  /* the rail: where you are, and a way to jump */
+  .rail{position:fixed;right:clamp(.7rem,1.6vw,1.4rem);top:50%;z-index:1001;display:flex;flex-direction:column;align-items:flex-end;gap:.15rem;transform:translate3d(0,-50%,0)}
+  .rail-i{display:flex;align-items:center;justify-content:flex-end;gap:.6rem;height:26px;padding-right:2px;color:${T.muted};transition:color .3s ease}
+  .rail-l{font-family:${FONT.mono};font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;opacity:0;transform:translate3d(6px,0,0);transition:opacity .35s ease,transform .45s ${EASE.out};white-space:nowrap}
+  .rail-d{position:relative;display:block;width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.42;transition:opacity .3s ease,transform .45s ${EASE.spring}}
+  .rail-i:hover{color:${T.blue}}
+  .rail-i:hover .rail-l{opacity:1;transform:none}
+  .rail-i:hover .rail-d{opacity:1;transform:scale(1.25)}
+  .rail-i.on{color:${T.blue}}
+  .rail-i.on .rail-d{opacity:1;transform:scale(1.5)}
+  .rail-i.on .rail-l{opacity:.75;transform:none}
+  @media (max-width:860px){.rail{display:none}}
+
+  .menu{position:fixed;inset:0;z-index:999;background:${T.bg};display:flex;flex-direction:column;transform:translate3d(0,102%,0);transition:transform .8s ${EASE.inOut};overflow:auto}
   .menu.open{transform:none}
   .menu>.wrap{margin-block:auto;padding-top:5rem}
   .menu-link{display:flex;align-items:baseline;gap:1rem;padding:.2rem 0;opacity:0;transform:translate3d(0,40px,0);transition:opacity .6s ${EASE.out},transform .8s ${EASE.out},color .3s ease}
@@ -134,16 +159,17 @@ const CSS = `
   .menu-link:hover{color:${T.blue}}
 
   .modal-bg{position:fixed;inset:0;z-index:1100;background:rgba(10,20,50,.38);animation:fade .35s ease both}
-  .modal{position:fixed;left:50%;top:50%;z-index:1101;width:min(1040px,calc(100vw - 2rem));max-height:calc(100svh - 3rem);overflow:auto;background:#fff;border-radius:22px;box-shadow:0 40px 120px -40px rgba(10,20,50,.6);transform:translate3d(-50%,-50%,0);animation:rise .6s ${EASE.out} both}
+  .modal{position:fixed;left:50%;top:50%;z-index:1101;width:min(1040px,calc(100vw - 2rem));max-height:calc(100svh - 3rem);overflow:auto;background:${T.surface};border-radius:22px;box-shadow:0 40px 120px -40px rgba(10,20,50,.6);transform:translate3d(-50%,-50%,0);animation:rise .6s ${EASE.out} both}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   @keyframes rise{from{opacity:0;transform:translate3d(-50%,-46%,0)}to{opacity:1;transform:translate3d(-50%,-50%,0)}}
 
-  .loader{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#c7d9ff 0%,#eef4ff 60%,#f7faff 100%);transition:transform 1s ${EASE.inOut}}
+  .loader{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,${T.wash} 0%,${T.tint} 60%,${T.bg} 100%);transition:transform 1s ${EASE.inOut}}
   .loader.out{transform:translate3d(0,-101%,0)}
 
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
     .petal,.orb::after{animation:none!important}
+    .bar i{transition:none!important}
     .menu,.menu-link{transition:none!important}
   }
 `;
@@ -167,7 +193,7 @@ function DispText({ text }) {
   const parts = body.split(/(\*[^*]+\*)/g).filter(Boolean);
   return (
     <>
-      {hook && <span className="hook">↳</span>}
+      {hook && <span className="hook" aria-hidden="true" />}
       {parts.map((p, i) => (p.startsWith("*") ? <em key={i}>{p.slice(1, -1)}</em> : <span key={i}>{p}</span>))}
     </>
   );
@@ -244,19 +270,145 @@ function Loader({ onDone, reduced }) {
   );
 }
 
-/* ─── DOCK + MENU ─────────────────────────────────────────── */
-function Dock({ open, setOpen, go }) {
+/* ─── THEME ───────────────────────────────────────────────
+   The palette lives in CSS variables, so switching themes is one
+   attribute write on <html> — no React re-render, no repaint of
+   anything that is not actually coloured differently. */
+function useTheme() {
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === "undefined") return "light";
+    try {
+      const saved = localStorage.getItem("theme");
+      if (saved === "light" || saved === "dark") return saved;
+    } catch { /* private mode */ }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", RAW[theme].bg);
+    try { localStorage.setItem("theme", theme); } catch { /* private mode */ }
+  }, [theme]);
+
+  // follow the system until the visitor states a preference
+  useEffect(() => {
+    let stated = false;
+    try { stated = !!localStorage.getItem("theme"); } catch { /* private mode */ }
+    if (stated) return undefined;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const on = (e) => setTheme(e.matches ? "dark" : "light");
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+
+  const toggle = useCallback(() => setTheme((t) => (t === "dark" ? "light" : "dark")), []);
+  return [theme, toggle];
+}
+
+function ThemeToggle({ theme, toggle }) {
+  const dark = theme === "dark";
   return (
-    <nav className="dock" aria-label="Primary">
-      <button className={`dock-menu${open ? " x" : ""}`} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Close menu" : "Open menu"}>
-        <span><i /><i /></span>
+    <button
+      className="theme-btn"
+      onClick={toggle}
+      aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+      title={dark ? "Light" : "Dark"}
+    >
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        {dark ? (
+          <>
+            <circle cx="12" cy="12" r="4.2" />
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+              <line key={a} x1="12" y1="2.6" x2="12" y2="5" transform={`rotate(${a} 12 12)`} />
+            ))}
+          </>
+        ) : (
+          <path d="M20 14.2A8.4 8.4 0 1 1 9.8 4a6.8 6.8 0 0 0 10.2 10.2Z" />
+        )}
+      </svg>
+    </button>
+  );
+}
+
+/* ─── DOCK + MENU ─────────────────────────────────────────── */
+/* The chrome sits in the corners instead of across the bottom: a bar there
+   covers the thing you are reading, which it was doing over the Experience
+   copy. The rail on the right doubles as a position indicator. */
+function TopBar({ open, setOpen, go, theme, toggleTheme }) {
+  const mark = useRef(null);
+
+  // the wordmark would otherwise sit on top of whatever you scrolled to
+  useEffect(() => {
+    const el = mark.current;
+    if (!el) return undefined;
+    const on = () => el.classList.toggle("hid", window.scrollY > window.innerHeight * 0.75);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+
+  return (
+    <>
+      <button ref={mark} className="mark" onClick={() => go("top")} aria-label="Back to top">
+        Surya<span>J</span>
       </button>
-      <button onClick={() => go("top")} style={{ fontFamily: FONT.serif, fontSize: "1.45rem", color: "#fff", letterSpacing: "-.01em" }} aria-label="Back to top">
-        Surya <em style={{ color: "#c3d2f7" }}>J</em>
-      </button>
-      <button className="orb" onClick={() => go("contact")} aria-label="Get in touch" title="Get in touch" />
+      <nav className="chrome" aria-label="Primary">
+        <a className="chip-btn" href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer">
+          Résumé <Arrow up size={12} />
+        </a>
+        <ThemeToggle theme={theme} toggle={toggleTheme} />
+        <button className={`burger${open ? " x" : ""}`} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Close menu" : "Open menu"}>
+          <i /><i />
+        </button>
+      </nav>
+    </>
+  );
+}
+
+/** Chapter rail - a dot per section, the label on hover, the active one lit. */
+function Rail({ go, active }) {
+  return (
+    <nav className="rail" aria-label="Sections">
+      {MENU.map(([label, id]) => (
+        <button
+          key={id}
+          className={`rail-i${active === id ? " on" : ""}`}
+          onClick={() => go(id)}
+          aria-label={label}
+          aria-current={active === id ? "true" : undefined}
+        >
+          <span className="rail-l">{label}</span>
+          <span className="rail-d" />
+        </button>
+      ))}
     </nav>
   );
+}
+
+/** Tracks which section the viewport is looking at, for the rail. */
+function useActiveSection() {
+  const [active, setActive] = useState("top");
+  useEffect(() => {
+    const ids = MENU.map(([, id]) => id);
+    const seen = new Map();
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) seen.set(e.target.id, e.intersectionRatio);
+      let best = null;
+      let ratio = 0;
+      for (const id of ids) {
+        const r = seen.get(id) || 0;
+        if (r > ratio) { ratio = r; best = id; }
+      }
+      if (best) setActive(best);
+    }, { threshold: [0, 0.25, 0.5, 0.75], rootMargin: "-20% 0px -40% 0px" });
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    }
+    return () => io.disconnect();
+  }, []);
+  return active;
 }
 
 function Menu({ open, go, mobile }) {
@@ -290,7 +442,7 @@ function Menu({ open, go, mobile }) {
    A sticky scene the five chapters scroll over. The scrubber turns
    progress through the section into the particle morph (0→4) and a
    camera drift across the landscape layers. */
-function World({ mobile, motion, reduced, ready }) {
+function World({ mobile, motion, reduced, ready, theme }) {
   const morph = useRef(0);
   const visible = useRef(true);
   const layers = useRef([]);
@@ -322,7 +474,7 @@ function World({ mobile, motion, reduced, ready }) {
     <section ref={ref} style={{ position: "relative" }}>
       <div ref={frame} style={{ position: "sticky", top: 0, height: "100svh", overflow: "clip", zIndex: 0 }}>
         <Landscape layers={layers} />
-        <Particles morphRef={morph} visibleRef={visible} mobile={mobile} reduced={reduced} />
+        <Particles morphRef={morph} visibleRef={visible} mobile={mobile} reduced={reduced} theme={theme} />
       </div>
 
       <div style={{ position: "relative", zIndex: 1, marginTop: "-100svh" }}>
@@ -332,7 +484,7 @@ function World({ mobile, motion, reduced, ready }) {
               <div style={{ maxWidth: mobile ? "100%" : "58%" }}>
                 {/* the name: tall, slim stencil capitals */}
                 {c.name && ready && (
-                  <Reveal dir="up" enabled={motion} delay={0.05} style={{ marginBottom: "1rem" }}>
+                  <Reveal dir="up" enabled={motion} delay={0.05} style={{ marginBottom: ".2rem" }}>
                     <span className="name-mark" style={{ fontSize: mobile ? "clamp(4rem,19vw,5.4rem)" : "clamp(5rem,8.4vw,8.6rem)" }}>{c.name}</span>
                   </Reveal>
                 )}
@@ -391,7 +543,7 @@ function Services({ mobile, motion }) {
       const d = String(Math.min(3, Math.abs(i - active)));
       if (el.dataset.d !== d) el.dataset.d = d;
       const idx = el.firstChild;
-      if (idx) idx.textContent = i === active ? "↳" : `(${String(i + 1).padStart(3, "0")})`;
+      if (idx) idx.textContent = i === active ? "—" : `(${String(i + 1).padStart(3, "0")})`;
     });
   }, { mode: "through", enabled: motion });
 
@@ -406,15 +558,15 @@ function Services({ mobile, motion }) {
   }, [ref]);
 
   return (
-    <section id="services" className="sec" style={{ background: "linear-gradient(180deg,#f7faff 0%,#ffffff 30%)" }}>
+    <section id="services" className="sec" style={{ background: `linear-gradient(180deg,${T.bg} 0%,${T.surface} 30%)` }}>
       <div className="wrap">
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1.3fr", gap: mobile ? "2.4rem" : "4rem", alignItems: "start" }}>
           <div style={{ position: mobile ? "static" : "sticky", top: "18vh" }}>
             <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">What I do</span></Reveal>
             <Lines lines={["Software,", "→*end to end*"]} motion={motion} style={{ fontSize: mobile ? "3rem" : "clamp(3.4rem,5.6vw,5.6rem)", marginBottom: "1.6rem" }} />
             <Reveal dir="up" delay={0.15} enabled={motion}>
-              <p style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.35rem" : "1.65rem", lineHeight: 1.3, color: T.text, maxWidth: "30ch" }}>
-                <span className="hook" style={{ fontSize: ".7em" }}>↳</span>
+              <p style={{ fontFamily: FONT.sans, fontWeight: 500, fontSize: mobile ? "1.3rem" : "1.55rem", lineHeight: 1.4, color: T.text, maxWidth: "34ch", letterSpacing: "-.01em" }}>
+                <span className="hook hook-row" aria-hidden="true" />
                 From the Android app in someone's pocket to the service tracking a fleet in real time — designed, built and shipped.
               </p>
             </Reveal>
@@ -423,7 +575,7 @@ function Services({ mobile, motion }) {
           <div ref={ref}>
             {SERVICES.map(([name, stack], i) => (
               <div key={name} ref={(el) => { rows.current[i] = el; }} className="svc" data-d={motion ? String(Math.min(3, i)) : "0"} style={{ borderTop: `1px solid ${T.line}` }}>
-                <span className="svc-i">{i === 0 ? "↳" : `(${String(i + 1).padStart(3, "0")})`}</span>
+                <span className="svc-i">{i === 0 ? "—" : `(${String(i + 1).padStart(3, "0")})`}</span>
                 <span className="svc-n">
                   <span style={{ display: "block", fontSize: mobile ? "1.5rem" : "clamp(1.8rem,2.8vw,2.7rem)", color: T.ink }}>{name}</span>
                   <span className="mono" style={{ display: "block", fontSize: ".68rem", color: T.muted, marginTop: ".2rem" }}>{stack}</span>
@@ -442,7 +594,7 @@ function Services({ mobile, motion }) {
 function Experience({ mobile, motion }) {
   const [open, setOpen] = useState(0);
   return (
-    <section id="experience" className="sec" style={{ background: "#fff" }}>
+    <section id="experience" className="sec" style={{ background: T.surface }}>
       <div className="wrap">
         <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Experience</span></Reveal>
         <Lines lines={["Where *I've*", "→worked"]} motion={motion} style={{ fontSize: mobile ? "3rem" : "clamp(3.6rem,6.4vw,6.4rem)", marginBottom: mobile ? "2.4rem" : "3.6rem" }} />
@@ -454,7 +606,7 @@ function Experience({ mobile, motion }) {
               <Reveal key={job.company} dir="up" delay={i * 0.06} enabled={motion} className="row">
                 <button className="row-btn" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen} style={{ gridTemplateColumns: mobile ? "1fr auto" : "9rem 1fr 1fr auto" }}>
                   {!mobile && <span className="mono" style={{ fontSize: ".72rem", color: job.current ? T.blue : T.muted }}>{job.current ? (job.contract ? "Contract" : "Current") : job.period}</span>}
-                  <span className="row-t" style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.9rem" : "clamp(2rem,3.2vw,3rem)", lineHeight: 1.05, color: T.ink }}>
+                  <span className="row-t" style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".01em", fontSize: mobile ? "2.1rem" : "clamp(2.2rem,3.6vw,3.3rem)", lineHeight: 1, color: T.ink }}>
                     {job.company}
                     {mobile && <span className="mono" style={{ display: "block", fontSize: ".68rem", color: T.blue, marginTop: ".4rem" }}>{job.current ? (job.contract ? "Contract" : "Current") : job.period} · {job.role}</span>}
                   </span>
@@ -475,7 +627,7 @@ function Experience({ mobile, motion }) {
                             </li>
                           ))}
                         </ol>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem" }}>
                           {job.stack.map((s) => <span key={s} className="tag">{s}</span>)}
                         </div>
                       </div>
@@ -513,7 +665,7 @@ function ProjectModal({ project, onClose, mobile }) {
     <>
       <div className="modal-bg" onClick={onClose} />
       <div className="modal" role="dialog" aria-modal="true" aria-label={project.name}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", padding: mobile ? "1.2rem" : "1.6rem 2rem", borderBottom: `1px solid ${T.line}`, position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", padding: mobile ? "1.2rem" : "1.6rem 2rem", borderBottom: `1px solid ${T.line}`, position: "sticky", top: 0, background: T.surface, zIndex: 1 }}>
           <span className="mono" style={{ fontSize: ".72rem", color: T.blue }}>{project.id} · {project.cat}</span>
           <button ref={closeBtn} onClick={onClose} aria-label="Close" style={{ width: 40, height: 40, borderRadius: "50%", border: `1px solid ${T.line2}`, fontSize: "1.2rem", color: T.ink }}>×</button>
         </div>
@@ -528,7 +680,18 @@ function ProjectModal({ project, onClose, mobile }) {
           </div>
           <div>
             <h3 className="disp" style={{ fontSize: mobile ? "2.6rem" : "3.4rem", marginBottom: ".4rem" }}>{project.name}</h3>
-            <p style={{ color: T.muted, marginBottom: "1.6rem" }}>{project.tag}</p>
+            <p style={{ color: T.muted, marginBottom: project.org ? "1.1rem" : "1.6rem" }}>{project.tag}</p>
+            {project.org && ORGS[project.org] && (
+              <div style={{ display: "flex", gap: ".7rem", alignItems: "flex-start", padding: ".9rem 1rem", marginBottom: "1.6rem", borderRadius: 12, background: T.tint }}>
+                <span className="pill" style={{ flexShrink: 0 }}>{ORGS[project.org].relation}</span>
+                <span>
+                  <span style={{ fontWeight: 600, color: T.ink }}>{project.org}</span>
+                  <span style={{ display: "block", fontSize: ".88rem", lineHeight: 1.55, color: T.body, marginTop: ".15rem" }}>
+                    {ORGS[project.org].blurb}
+                  </span>
+                </span>
+              </div>
+            )}
             {[["The problem", project.problem], ["The design", project.highlight], ["The outcome", project.power]].map(([k, v]) => (
               <div key={k} style={{ borderTop: `1px solid ${T.line}`, padding: "1rem 0" }}>
                 <div className="cap" style={{ color: T.blue, marginBottom: ".4rem" }}>{k}</div>
@@ -555,7 +718,7 @@ function Projects({ mobile, motion }) {
   const cols = mobile ? 1 : 3;
 
   return (
-    <section id="projects" className="sec" style={{ background: "#f7faff" }}>
+    <section id="projects" className="sec" style={{ background: T.bg }}>
       <div className="wrap">
         {/* "SOME   of my / PROJECTS" — the split-line heading */}
         <div className="disp" style={{ fontSize: mobile ? "3.2rem" : "clamp(4rem,8vw,8.4rem)", marginBottom: mobile ? "1.6rem" : "2rem" }}>
@@ -565,7 +728,7 @@ function Projects({ mobile, motion }) {
             <Lines lines={["*of my own*"]} motion={motion} as="div" delay={0.2} />
           </div>
         </div>
-        <Decode text="A selection of fifteen: client platforms, products and experiments. Open any one for the problem, the design decision and a schematic." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "58ch", marginBottom: "2.4rem" }} />
+        <Decode text={`A selection of ${PROJECTS.length}: client platforms, products and experiments. Open any one for the problem, the design decision and a schematic.`} enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "58ch", marginBottom: "2.4rem" }} />
 
         <Reveal dir="up" enabled={motion} style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", marginBottom: "2.6rem" }}>
           {PROJECT_FILTERS.map((f) => {
@@ -586,7 +749,10 @@ function Projects({ mobile, motion }) {
                   </div>
                 </FXArt>
                 <div className="mono" style={{ fontSize: ".68rem", color: T.muted, marginTop: "1rem" }}>{p.stack.slice(0, 2).join(" / ")}</div>
-                <div className="pcard-name" style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.8rem" : "2rem", lineHeight: 1.1, color: T.ink, marginTop: ".3rem" }}>{p.name}</div>
+                <div className="pcard-name" style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".012em", fontSize: mobile ? "1.9rem" : "2.1rem", lineHeight: 1.02, color: T.ink, marginTop: ".4rem" }}>{p.name}</div>
+                <div className="mono pcard-for" style={{ fontSize: ".66rem", color: p.org ? T.blue : T.faint, marginTop: ".35rem" }}>
+                  {p.org ? `For ${p.org}` : "Personal project"}
+                </div>
               </button>
             </Reveal>
           ))}
@@ -597,11 +763,112 @@ function Projects({ mobile, motion }) {
   );
 }
 
+/* ─── BACKGROUND — education, stack, principles ───────────── */
+function Background({ mobile, motion }) {
+  const groups = useMemo(() => {
+    const by = new Map();
+    for (const s of SKILL_BARS) {
+      if (!by.has(s.cat)) by.set(s.cat, []);
+      by.get(s.cat).push(s);
+    }
+    return [...by.entries()];
+  }, []);
+
+  return (
+    <section id="background" className="sec" style={{ background: T.surface }}>
+      <div className="wrap">
+        <Lines lines={["Education *&*", "→the stack"]} motion={motion} style={{ fontSize: mobile ? "2.8rem" : "clamp(3.4rem,6.6vw,6.6rem)", marginBottom: "1.4rem" }} />
+        <Decode text="Where I studied, what I build with, and the rules I hold myself to." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "3rem" }} />
+
+        {/* education */}
+        {EDUCATION.map((e) => (
+          <Reveal key={e.degree} dir="up" enabled={motion} style={{ borderTop: `1px solid ${T.ink}`, paddingTop: "1.4rem", marginBottom: "3.4rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1.4fr 1fr", gap: mobile ? "1rem" : "2rem", alignItems: "start" }}>
+              <div>
+                <h3 style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", fontSize: mobile ? "2rem" : "2.7rem", lineHeight: 1, color: T.ink, letterSpacing: ".008em" }}>{e.degree}</h3>
+                <p style={{ ...TYPE.body, marginTop: ".5rem" }}>{e.school} · {e.place}</p>
+                <p style={{ ...TYPE.body, marginTop: ".8rem", maxWidth: "52ch" }}>{e.note}</p>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: mobile ? "flex-start" : "flex-end" }}>
+                <span className="pill pill-soft">{e.when}</span>
+                <span className="pill">{e.score}</span>
+              </div>
+            </div>
+          </Reveal>
+        ))}
+
+        {/* the stack, by group, with a bar that draws in */}
+        <Reveal dir="up" enabled={motion} style={{ display: "flex", alignItems: "baseline", gap: ".5rem", borderTop: `1px solid ${T.ink}`, paddingTop: "1rem", marginBottom: "1.6rem" }}>
+          <span style={{ fontWeight: 600, letterSpacing: ".02em" }}>STACK</span>
+          <span className="mono" style={{ fontSize: ".7rem", color: T.muted }}>[{String(SKILL_BARS.length).padStart(2, "0")}]</span>
+        </Reveal>
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(3, minmax(0,1fr))", gap: mobile ? "1.8rem" : "2rem 3rem", marginBottom: "3.4rem" }}>
+          {groups.map(([cat, list], gi) => (
+            <Reveal key={cat} dir="up" delay={(gi % 3) * 0.06} enabled={motion}>
+              <p className="cap" style={{ marginBottom: ".9rem" }}>{cat}</p>
+              {list.map((s) => (
+                <div key={s.name} style={{ marginBottom: ".85rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", marginBottom: ".3rem" }}>
+                    <span style={{ fontSize: ".95rem", color: T.text }}>{s.name}</span>
+                    <span className="mono" style={{ fontSize: ".66rem", color: T.faint }}>{s.level}</span>
+                  </div>
+                  <span className="bar"><i style={{ "--v": s.level / 100 }} /></span>
+                </div>
+              ))}
+            </Reveal>
+          ))}
+        </div>
+
+        {/* principles and what's next, side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? "2.6rem" : "3rem" }}>
+          <div>
+            <Reveal dir="up" enabled={motion} style={{ display: "flex", alignItems: "baseline", gap: ".5rem", borderTop: `1px solid ${T.ink}`, paddingTop: "1rem", marginBottom: "1.4rem" }}>
+              <span style={{ fontWeight: 600, letterSpacing: ".02em" }}>PRINCIPLES</span>
+              <span className="mono" style={{ fontSize: ".7rem", color: T.muted }}>[{String(PHILOSOPHY.length).padStart(2, "0")}]</span>
+            </Reveal>
+            {PHILOSOPHY.map((p, i) => (
+              <Reveal key={p.n} dir="up" delay={i * 0.05} enabled={motion} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "1rem", padding: ".9rem 0", borderTop: `1px solid ${T.line}` }}>
+                <span className="mono" style={{ fontSize: ".7rem", color: T.blue }}>{p.n}</span>
+                <div>
+                  <p style={{ ...TYPE.h3(mobile) }}>{p.t}</p>
+                  <p style={{ ...TYPE.body, fontSize: ".92rem", marginTop: ".3rem" }}>{p.b}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <div>
+            <Reveal dir="up" enabled={motion} style={{ display: "flex", alignItems: "baseline", gap: ".5rem", borderTop: `1px solid ${T.ink}`, paddingTop: "1rem", marginBottom: "1.4rem" }}>
+              <span style={{ fontWeight: 600, letterSpacing: ".02em" }}>WHAT&rsquo;S NEXT</span>
+              <span className="mono" style={{ fontSize: ".7rem", color: T.muted }}>[{String(GOALS.length).padStart(2, "0")}]</span>
+            </Reveal>
+            {GOALS.map((g, i) => (
+              <Reveal key={g.n} dir="up" delay={i * 0.05} enabled={motion} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "1rem", padding: ".9rem 0", borderTop: `1px solid ${T.line}` }}>
+                <span className="mono" style={{ fontSize: ".7rem", color: T.blue }}>{g.n}</span>
+                <div>
+                  <p style={{ ...TYPE.h3(mobile) }}>{g.t}</p>
+                  <p style={{ ...TYPE.body, fontSize: ".92rem", marginTop: ".3rem" }}>{g.b}</p>
+                </div>
+              </Reveal>
+            ))}
+
+            <Reveal dir="up" enabled={motion} style={{ marginTop: "2rem" }}>
+              <p className="cap" style={{ marginBottom: ".8rem" }}>Interests</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem" }}>
+                {INTERESTS.map((t) => <span key={t} className="tag">{t}</span>)}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ─── CREDENTIALS — an awards-style table ─────────────────── */
 function Credentials({ mobile, motion }) {
   const [open, setOpen] = useState(-1);
   return (
-    <section id="credentials" className="sec" style={{ background: "#fff" }}>
+    <section id="credentials" className="sec" style={{ background: T.surface }}>
       <div className="wrap">
         <Lines lines={["Credentials *&*", "recognition"]} motion={motion} style={{ fontSize: mobile ? "2.8rem" : "clamp(3.4rem,6.6vw,6.6rem)", marginBottom: "1.4rem" }} />
         <Decode text="Certified, published and presented — across industry certifications, a conference paper and national hackathons." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "1.6rem" }} />
@@ -616,7 +883,7 @@ function Credentials({ mobile, motion }) {
           return (
             <Reveal key={c.issuer} dir="up" delay={i * 0.05} enabled={motion} className="row">
               <button className="row-btn" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen} style={{ gridTemplateColumns: "1fr auto" }}>
-                <span className="row-t" style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.35rem" : "1.7rem", color: T.ink }}>
+                <span className="row-t" style={{ fontFamily: FONT.sans, fontWeight: 600, fontSize: mobile ? "1.1rem" : "1.25rem", letterSpacing: "-.01em", color: T.ink }}>
                   {c.name} <span style={{ color: T.muted, fontSize: ".72em" }}>— {c.issuer}</span>
                 </span>
                 <span className="mono" style={{ fontSize: ".72rem", color: T.muted }}>{c.date}</span>
@@ -643,7 +910,7 @@ function Credentials({ mobile, motion }) {
         </Reveal>
         {ACHIEVEMENTS.map((a, i) => (
           <Reveal key={a.title} dir="up" delay={i * 0.05} enabled={motion} className="row" style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1.2fr", gap: mobile ? ".3rem" : "2rem", padding: "1.2rem 0", alignItems: "baseline" }}>
-            <span style={{ fontFamily: FONT.serif, fontSize: mobile ? "1.35rem" : "1.7rem", color: T.ink }}>{a.title}</span>
+            <span style={{ fontFamily: FONT.sans, fontWeight: 600, fontSize: mobile ? "1.1rem" : "1.25rem", letterSpacing: "-.01em", color: T.ink }}>{a.title}</span>
             <span style={{ color: T.muted }}>{a.detail}</span>
           </Reveal>
         ))}
@@ -657,7 +924,7 @@ function Credentials({ mobile, motion }) {
 function Contact({ mobile, motion }) {
   const email = CONTACT_LINKS.find((c) => c.label === "Email");
   return (
-    <section id="contact" className="sec" style={{ background: `linear-gradient(180deg,#fff 0%,${T.tint} 100%)`, paddingBottom: "12rem" }}>
+    <section id="contact" className="sec" style={{ background: `linear-gradient(180deg,${T.surface} 0%,${T.tint} 100%)`, paddingBottom: "12rem" }}>
       <div className="wrap">
         <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Contact</span></Reveal>
         <Lines lines={["*Let's*", "build", "→something"]} motion={motion} style={{ fontSize: mobile ? "3.6rem" : "clamp(4.4rem,10vw,10rem)", marginBottom: "2.4rem" }} />
@@ -693,6 +960,8 @@ export default function Portfolio() {
   const motion = !reduced;
   const [ready, setReady] = useState(reduced);
   const [menu, setMenu] = useState(false);
+  const [theme, toggleTheme] = useTheme();
+  const active = useActiveSection();
   const onLoaded = useCallback(() => setReady(true), []);
 
   const go = useCallback((id) => {
@@ -710,32 +979,25 @@ export default function Portfolio() {
 
   return (
     <>
-      <style>{CSS + MOTION_CSS + FX_CSS}</style>
+      <style>{THEME_CSS + CSS + MOTION_CSS + FX_CSS}</style>
       <Loader onDone={onLoaded} reduced={reduced} />
       <ScrollBar />
 
-      {/* résumé always one click away — the first thing a recruiter looks for */}
-      <a
-        href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer"
-        className="ghost-btn"
-        style={{ position: "fixed", top: "1rem", right: "1rem", zIndex: 1000, padding: ".6rem 1rem", fontSize: ".85rem", boxShadow: SHADOW.card }}
-      >
-        Résumé <Arrow up size={13} />
-      </a>
-
       <main>
-        <World mobile={mobile} motion={motion} reduced={reduced} ready={ready} />
+        <World mobile={mobile} motion={motion} reduced={reduced} ready={ready} theme={theme} />
         <Services mobile={mobile} motion={motion} />
         <Experience mobile={mobile} motion={motion} />
+        <Background mobile={mobile} motion={motion} />
         <Projects mobile={mobile} motion={motion} />
         <Credentials mobile={mobile} motion={motion} />
         <Contact mobile={mobile} motion={motion} />
       </main>
 
-      {/* cursor smoke: above the page, below the dock, menu and modals */}
+      {/* cursor smoke: above the page, below the chrome, menu and modals */}
       <Smoke />
       <Menu open={menu} go={go} mobile={mobile} />
-      <Dock open={menu} setOpen={setMenu} go={go} />
+      <TopBar open={menu} setOpen={setMenu} go={go} theme={theme} toggleTheme={toggleTheme} />
+      <Rail go={go} active={active} />
 
       <Analytics />
       <SpeedInsights />

@@ -22,7 +22,7 @@ const whiteA = (a) => inkA(a * 0.72);
 
 const LINE = whiteA(0.16);
 const FAINT = whiteA(0.08);
-const FILL = "#ffffff";
+const FILL = T.panel;
 
 /* ─── shared chrome ──────────────────────────────────────── */
 
@@ -54,7 +54,7 @@ function PhoneFrame({ children }) {
 function TerminalFrame({ children }) {
   return (
     <>
-      <rect x="6" y="12" width="188" height="118" rx="3" fill="#f3f6fd" stroke={LINE} strokeWidth="1" />
+      <rect x="6" y="12" width="188" height="118" rx="3" fill={T.panel2} stroke={LINE} strokeWidth="1" />
       <rect x="6" y="12" width="188" height="12" rx="3" fill={whiteA(0.05)} stroke={LINE} strokeWidth="1" />
       <rect x="12" y="16" width="42" height="4" rx="2" fill={whiteA(0.14)} />
       {children}
@@ -100,7 +100,7 @@ const phoneDialer = (
       />
     ))}
     <circle cx="100" cy="117" r="8" fill={T.blue} />
-    <rect x="96.5" y="113.5" width="7" height="7" rx="1.6" fill="#ffffff" />
+    <rect x="96.5" y="113.5" width="7" height="7" rx="1.6" fill={T.panel} />
     {/* recording indicator */}
     <circle cx="118" cy="30" r="2.2" fill={T.sky} />
   </PhoneFrame>
@@ -287,7 +287,7 @@ const mapView = () => (
     {[[70, 100], [124, 76]].map(([cx, cy], i) => (
       <rect key={i} x={cx - 2.4} y={cy - 2.4} width="4.8" height="4.8" fill={whiteA(0.55)} transform={`rotate(45 ${cx} ${cy})`} />
     ))}
-    <rect x="12" y="31" width="52" height="16" rx="2" fill="#ffffff" stroke={FAINT} strokeWidth="0.6" />
+    <rect x="12" y="31" width="52" height="16" rx="2" fill={T.panel} stroke={FAINT} strokeWidth="0.6" />
     <circle cx="19" cy="39" r="2" fill={T.sky} />
     <rect x="25" y="35" width="32" height="2.4" rx="1.2" fill={whiteA(0.28)} />
     <rect x="25" y="40" width="22" height="2" rx="1" fill={whiteA(0.12)} />
