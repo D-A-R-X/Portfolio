@@ -698,6 +698,20 @@ function ProjectModal({ project, onClose, mobile }) {
                 <p style={{ lineHeight: 1.7, color: T.text }}>{v}</p>
               </div>
             ))}
+            {project.variants && (
+              <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: "1rem" }}>
+                <div className="cap" style={{ color: T.blue, marginBottom: ".8rem" }}>Also deployed as</div>
+                {project.variants.map((v) => (
+                  <div key={v.name} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: ".8rem", alignItems: "start", paddingBottom: ".9rem" }}>
+                    <span className="pill pill-soft" style={{ whiteSpace: "nowrap" }}>{v.org}</span>
+                    <span>
+                      <span style={{ fontWeight: 600, color: T.ink }}>{v.name}</span>
+                      <span style={{ display: "block", lineHeight: 1.65, color: T.body, marginTop: ".2rem" }}>{v.note}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             <div style={{ marginTop: "1rem" }}>
               {project.repo
                 ? <a className="ghost-btn" href={project.repo} target="_blank" rel="noopener noreferrer">{project.repoLabel} <Arrow up size={14} /></a>
@@ -752,6 +766,9 @@ function Projects({ mobile, motion }) {
                 <div className="pcard-name" style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".012em", fontSize: mobile ? "1.9rem" : "2.1rem", lineHeight: 1.02, color: T.ink, marginTop: ".4rem" }}>{p.name}</div>
                 <div className="mono pcard-for" style={{ fontSize: ".66rem", color: p.org ? T.blue : T.faint, marginTop: ".35rem" }}>
                   {p.org ? `For ${p.org}` : "Personal project"}
+                  {p.variants && p.variants.map((v) => (
+                    <span key={v.name} style={{ color: T.muted }}> + {v.org}</span>
+                  ))}
                 </div>
               </button>
             </Reveal>

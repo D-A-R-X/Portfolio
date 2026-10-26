@@ -162,6 +162,13 @@ export const PROJECTS = [
     power: "A dedicated Go service for location ingestion, live tracking, trip sessions and tamper monitoring — scalable apart from the platform it serves.",
     highlight: "HTTP API plus independently scaled workers. PostGIS + TimescaleDB as system of record, Redis for live state, idempotency and event fan-out. Compatibility adapters keep the existing tracking contracts intact.",
     repo: null, repoLabel: "Company Project", org: "Manju Groups",
+    variants: [
+      {
+        name: "Geo Tracking · Aivida",
+        org: "Aivida",
+        note: "The same service for the healthcare brand on its own domain, with separate Nginx, CORS allowlist, compose files and deploy workflows, so trouble on one side cannot reach the other.",
+      },
+    ],
   },
   {
     id: "03", name: "Manju PMS Platform", tag: "Land & Project Operations", cat: "Professional", mock: "dashboard",
@@ -274,6 +281,13 @@ export const PROJECTS = [
     power: "A standalone Go service owning the whole call lifecycle: dialer webhooks, incoming, follow-up and outbound lanes, AI call-result commits, the outcome funnel and dashboard APIs.",
     highlight: "Durable work — retried follow-ups, abandoned callbacks, rollups, daily finalize and outbox delivery — runs on self-hosted Temporal, while the hot path stays a single Postgres transaction.",
     repo: null, repoLabel: "Company Project", org: "Manju Groups",
+    variants: [
+      {
+        name: "Telecaller Core · Aivida",
+        org: "Aivida",
+        note: "A sibling repository with its own git history and migrations, carrying healthcare-specific queue summaries, project-scoped lead lists and carry-forward rules. Core improvements are ported commit by commit and adapted rather than merged wholesale, so neither brand inherits the other's assumptions.",
+      },
+    ],
   },
   {
     id: "17", name: "Airix iOS", tag: "Mconnect for iPhone · SwiftUI", cat: "Professional", mock: "phone-grid",
