@@ -766,8 +766,9 @@ function Projects({ mobile, motion }) {
                 <div className="pcard-name" style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".012em", fontSize: mobile ? "1.9rem" : "2.1rem", lineHeight: 1.02, color: T.ink, marginTop: ".4rem" }}>{p.name}</div>
                 <div className="mono pcard-for" style={{ fontSize: ".66rem", color: p.org ? T.blue : T.faint, marginTop: ".35rem" }}>
                   {p.org ? `For ${p.org}` : "Personal project"}
-                  {p.variants && p.variants.map((v) => (
-                    <span key={v.name} style={{ color: T.muted }}> + {v.org}</span>
+                  {/* two children for the same brand should not say it twice */}
+                  {p.variants && [...new Set(p.variants.map((v) => v.org))].map((o) => (
+                    <span key={o} style={{ color: T.muted }}> + {o}</span>
                   ))}
                 </div>
               </button>
