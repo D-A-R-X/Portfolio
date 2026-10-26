@@ -21,8 +21,8 @@ PROFILE = (
     "App and web developer building production Android and full-stack systems. Software developer at "
     "Kosal Tech Solutions, with a contract engagement at Manju Global — delivering Kotlin/Compose mobile "
     "apps, Next.js platforms, and the Go and Python services behind them. B.E. Computer Science & "
-    "Engineering, 2022–2026. Focused on AI-powered applications and architecture that stays readable "
-    "for whoever maintains it next."
+    "Engineering, 2022–2026. Co-founder of Cruza, an independent software studio. Focused on AI-powered "
+    "applications and architecture that stays readable for whoever maintains it next."
 )
 
 # grouped so a keyword scan finds them, and a person can skim them
@@ -55,25 +55,26 @@ JOBS = [
         "org": "Manju Global",
         "when": "CONTRACT",
         "points": [
-            "Mconnect — Android client for the Manju Groups project-management system: OTP authentication, HR, "
+            "Mconnect — Android client for the group's project-management system: OTP authentication, HR, "
             "attendance, leave and chat. Kotlin + MVVM + Retrofit, AES256-GCM encrypted session storage, and a "
-            "semantic colour-token design system driving light and dark from one source.",
+            "semantic colour-token design system driving light and dark from one source. A SwiftUI iPhone client "
+            "follows the same backend to a written parity roadmap.",
             "Manju PMS platform — Next.js + Convex operations platform covering land procurement, legal and "
             "feasibility gating, channel-partner management, Excel/PDF reporting and an AI sales assistant.",
+            "Telecaller Core — extracted call operations into a standalone Go service: dialer webhooks, "
+            "incoming/follow-up/outbound lanes and the outcome funnel, with retries, callbacks, rollups and outbox "
+            "delivery as durable Temporal workflows while the hot path stays one Postgres transaction.",
             "Airix Geo Tracking — Go service for location ingestion, live tracking, trip sessions and tamper "
             "monitoring on PostgreSQL/PostGIS + TimescaleDB, with Redis for live state and idempotency.",
-            "Telecaller Core — extracted call operations into a standalone Go service: dialer webhooks, "
-            "incoming/follow-up/outbound lanes and the outcome funnel, with retries, callbacks, rollups and "
-            "outbox delivery running as durable Temporal workflows while the hot path stays one Postgres "
-            "transaction.",
             "Travel Desk — Next.js trip allocation and fleet billing: token-scoped driver pages delivered over "
-            "WhatsApp with no driver login, OCR on uploaded odometer evidence, and explicit extra-km, "
-            "cancellation and offline-completion states.",
-            "Airix iOS — SwiftUI counterpart to Mconnect on the same production backend, built to a written "
-            "parity roadmap so behaviour matches the Android client while the interface stays native.",
-            "WhatsApp platform — multi-tenant Next.js + Convex product over the WhatsApp Business Cloud API: "
-            "templates, campaigns, shared inbox, idempotent sends and a server-to-server API other products "
-            "use to send their own notifications.",
+            "WhatsApp with no driver login, OCR on uploaded odometer evidence, and explicit extra-km, cancellation "
+            "and offline-completion states. A multi-tenant WhatsApp Business Cloud API platform — templates, "
+            "campaigns, shared inbox and idempotent sends — backs it and the other products.",
+            "Airix for Aivida — carried the platform into the group's healthcare brand across web, Android and "
+            "iOS: telecaller lanes, field visits and lead onboarding for doctors and clinics, sharing attendance, "
+            "HR, chat and geo-tracking with the property build. Added subscriptions — plan catalogue, seat "
+            "assignment with role minimums, Razorpay recurring mandates with server-side verification, trials and "
+            "invoices — so it could be sold to clinics on a schedule.",
         ],
     },
     {

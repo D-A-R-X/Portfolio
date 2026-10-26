@@ -121,6 +121,10 @@ export const ORGS = {
     relation: "Client \u00b7 on contract",
     blurb: "Property development group \u2014 land, sales and operations. Engaged through Manju Global.",
   },
+  Aivida: {
+    relation: "Group brand · healthcare",
+    blurb: "The group's healthcare brand. Airix runs its field outreach — telecallers working doctors, clinics, hospitals and pharmacies, with field visits and onboarding behind them.",
+  },
   "Kosal Tech Solutions": {
     relation: "Employer",
     blurb: "Software services company. Internal tooling and client-facing web work.",
@@ -212,7 +216,7 @@ export const PROJECTS = [
     problem: "Signal channels advertise near-perfect win rates by quietly never posting their losses. There is no way to judge one without independently recording every call they make.",
     stack: ["Python", "Telegram API", "Next.js", "Convex", "Pine Script", "SQLite"],
     power: "Listens to a signal channel, parses every call, and logs what would have happened — measuring true win rate without placing a single real trade.",
-    highlight: "Deliberately paper-only by design. Companion SentinelX Pine Script strategies (scalper, intraday, fusion) for independent chart-side validation on TradingView, plus an Indian-market build on Zerodha Kite Connect for MCX gold futures — virtual broker fills, expiry and rollover rules, and hard risk caps, with live trading still gated off.",
+    highlight: "Deliberately paper-only by design. Companion SentinelX Pine Script strategies (scalper, intraday, fusion) for independent chart-side validation on TradingView.",
     repo: null, repoLabel: "Private Build",
   },
   {
@@ -302,6 +306,38 @@ export const PROJECTS = [
     power: "A multiplayer arena where a twelve-second coin auction decides who takes the tower as sniper while everyone else runs the open field.",
     highlight: "The sniper wins only by clearing the field; runners win on the clock. Shields, scoped weapons, saved progression and Studio dev-tools round it out.",
     repo: null, repoLabel: "Prototype",
+  },
+  {
+    id: "21", name: "Aivida Airix", tag: "Healthcare Outreach Platform", cat: "Professional", mock: "ops-board",
+    problem: "The group's healthcare brand needed the same operations backbone as the property side, but outreach to doctors and clinics has no bookings, projects or land modules — carrying those over would have buried the work that matters.",
+    stack: ["Next.js", "Convex", "TypeScript", "Tailwind"],
+    power: "Airix rebuilt around healthcare field outreach: telecaller lanes for incoming, follow-up and outbound calls, field visits and online meets, and onboarding for the leads that convert.",
+    highlight: "Attendance, HR, tasks, chat and geo-tracking stay shared with the property build, so one codebase lineage serves two very different businesses.",
+    repo: null, repoLabel: "Company Project", org: "Aivida",
+  },
+  {
+    id: "22", name: "Aivida Airix Mobile", tag: "Field Apps · Android & iOS", cat: "Mobile", mock: "phone-grid",
+    problem: "Telecallers and field staff work from a phone all day. A desktop console is no use standing in a hospital corridor.",
+    stack: ["Kotlin", "Jetpack Compose", "Swift", "SwiftUI", "REST"],
+    power: "Both clients for the healthcare build: an Android app that is the source of truth for Aivida behaviour, and a SwiftUI iPhone app derived from the Mconnect iOS client.",
+    highlight: "Attendance, leave, permissions, loans, the task manager, chat and GeoTrack are shared with Mconnect; only the outreach modules diverge, so a fix in the common ground lands for both brands.",
+    repo: null, repoLabel: "Company Project", org: "Aivida",
+  },
+  {
+    id: "23", name: "Airix Subscriptions", tag: "Plans, Seats & Recurring Billing", cat: "Professional", mock: "chart",
+    problem: "Selling Airix to hospitals and clinics meant collecting money on a schedule — and a billing bug is the kind a customer notices before you do.",
+    stack: ["Next.js", "Convex", "Razorpay", "Node"],
+    power: "Subscription purchase end to end: a published plan catalogue, seat assignment that honours role minimums, Razorpay recurring mandates, server-side verification, and a billing tab showing trial countdown, period and invoices.",
+    highlight: "Built against a sandbox portal that plays the buying clinic, so the whole mandate flow could be exercised in Razorpay test mode before the real customer portal existed.",
+    repo: null, repoLabel: "Company Project", org: "Aivida",
+  },
+  {
+    id: "24", name: "Sentinel X India", tag: "Automated MCX Gold Trading", cat: "Products", mock: "gauge",
+    problem: "The original SentinelX read a foreign broker's terminal. Trading Indian commodities meant a different broker, different contracts, and expiry and rollover rules that do not forgive being approximated.",
+    stack: ["Python", "Zerodha Kite Connect", "SQLite", "React"],
+    power: "SentinelX retargeted at MCX Gold Mini futures through Kite Connect, with a virtual broker terminal, paper-exchange fills, and contract, expiry, rollover and charge rules modelled explicitly.",
+    highlight: "Risk caps are structural — at most 1% of capital per trade and 5% in a day — and live trading stays gated off while the paper record is still being judged.",
+    repo: null, repoLabel: "Private Build",
   },
 ];
 

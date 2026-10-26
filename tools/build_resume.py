@@ -24,7 +24,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from resume_content import (
     NAME, TITLE, TAGLINE, CONTACT, PROFILE, SKILLS, JOBS, PROJECTS,
-    EDUCATION, CERTS, RECOGNITION, STUDIO,
+    EDUCATION, CERTS, RECOGNITION,
 )
 
 W, H = A4
@@ -354,8 +354,6 @@ def build(f):
     for a in RECOGNITION:
         f.bullet(a, size=8.2, lead=10.8, gap=1.8)
 
-    f.section("Also")
-    f.para(STUDIO, size=8.2, lead=10.8, gap=0)
 
 
 def main(out_path):
