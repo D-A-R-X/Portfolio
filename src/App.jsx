@@ -122,7 +122,7 @@ const CSS = `
   .ghost-btn:hover .arr{transform:translate3d(3px,-3px,0)}
 
   /* chrome in the corners - nothing lies across the reading column */
-  .mark{position:fixed;left:clamp(1rem,3vw,2.2rem);top:clamp(.9rem,2.2vh,1.4rem);z-index:1002;font-family:${FONT.name};font-weight:360;font-size:1.5rem;text-transform:uppercase;letter-spacing:.06em;line-height:1;color:${T.ink};opacity:.9;transition:opacity .3s ease,color .3s ease}
+  .mark{position:fixed;left:clamp(1rem,3vw,2.2rem);top:clamp(.5rem,1.6vh,1rem);padding:.45rem .2rem .45rem 0;z-index:1002;font-family:${FONT.name};font-weight:360;font-size:1.5rem;text-transform:uppercase;letter-spacing:.06em;line-height:1;color:${T.ink};opacity:.9;transition:opacity .3s ease,color .3s ease}
   .mark span{color:${T.blue};margin-left:.18em}
   .mark:hover{opacity:1}
   .mark.hid{opacity:0;pointer-events:none}
@@ -424,7 +424,7 @@ function Menu({ open, go, mobile }) {
           ))}
         </div>
         <div style={{ display: "grid", gap: "1.2rem" }}>
-          <span className="pill">Get in touch</span>
+          <span className="pill" style={{ justifySelf: "start" }}>Get in touch</span>
           {CONTACT_LINKS.map((c) => (
             <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" tabIndex={open ? 0 : -1} style={{ display: "flex", justifyContent: "space-between", gap: "1rem", borderTop: `1px solid ${T.line2}`, paddingTop: ".8rem" }}>
               <span className="cap">{c.label}</span>
@@ -682,7 +682,7 @@ function ProjectModal({ project, onClose, mobile }) {
             <h3 className="disp" style={{ fontSize: mobile ? "2.6rem" : "3.4rem", marginBottom: ".4rem" }}>{project.name}</h3>
             <p style={{ color: T.muted, marginBottom: project.org ? "1.1rem" : "1.6rem" }}>{project.tag}</p>
             {project.org && ORGS[project.org] && (
-              <div style={{ display: "flex", gap: ".7rem", alignItems: "flex-start", padding: ".9rem 1rem", marginBottom: "1.6rem", borderRadius: 12, background: T.tint }}>
+              <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: mobile ? ".55rem" : ".7rem", alignItems: "flex-start", padding: ".9rem 1rem", marginBottom: "1.6rem", borderRadius: 12, background: T.tint }}>
                 <span className="pill" style={{ flexShrink: 0 }}>{ORGS[project.org].relation}</span>
                 <span>
                   <span style={{ fontWeight: 600, color: T.ink }}>{project.org}</span>
@@ -702,7 +702,7 @@ function ProjectModal({ project, onClose, mobile }) {
               <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: "1rem" }}>
                 <div className="cap" style={{ color: T.blue, marginBottom: ".8rem" }}>Also deployed as</div>
                 {project.variants.map((v) => (
-                  <div key={v.name} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: ".8rem", alignItems: "start", paddingBottom: ".9rem" }}>
+                  <div key={v.name} style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "auto 1fr", gap: mobile ? ".45rem" : ".8rem", alignItems: "start", paddingBottom: ".9rem" }}>
                     <span className="pill pill-soft" style={{ whiteSpace: "nowrap" }}>{v.org}</span>
                     <span>
                       <span style={{ fontWeight: 600, color: T.ink }}>{v.name}</span>

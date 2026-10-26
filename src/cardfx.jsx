@@ -273,6 +273,15 @@ function layerFor(grid) {
   return cv ? createLayer(grid, cv) : null;
 }
 
+/* A card's art is baked into a texture with the palette that was live at
+   the time, so a theme switch invalidates every one of them. */
+const dropTexture = new Set();
+
+if (typeof window !== "undefined") {
+  new MutationObserver(() => { for (const fn of dropTexture) fn(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+}
+
 /* ─── the loop ───────────────────────────────────────────── */
 
 let running = false, lastY = 0, vel = 0, t0 = 0;
@@ -480,12 +489,22 @@ function mountCard(layer, wrap, art, fine) {
   wrap.addEventListener("pointerenter", enter);
   wrap.addEventListener("pointermove", move);
   wrap.addEventListener("pointerleave", leave);
+  const forget = () => {
+    if (st.tex && layer.ok) { gl.deleteTexture(st.tex); st.tex = null; }
+    st.ready = false;
+    wrap.classList.remove("ok");
+    card.off();
+    if (st.inView) load();
+  };
+  dropTexture.add(forget);
+
   layer.cards.add(card);
   if (new URLSearchParams(window.location.search).has("perf")) {
     (window.__cardProbe = window.__cardProbe || []).push(card.probe);
   }
 
   return () => {
+    dropTexture.delete(forget);
     layer.cards.delete(card);
     io.disconnect();
     ro.disconnect();
@@ -527,7 +546,9 @@ export function FXArt({ children }) {
     if (!art || reduced) return undefined;
     const layer = layerFor(w.closest(".fx-grid"));
     if (!layer || !layer.ok) return undefined;
+    // the effect exists to answer a pointer; without one it is cost for nothing
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!fine) return undefined;
     return mountCard(layer, w, art, fine);
   }, []);
   return <div ref={wrap} className="fx">{children}</div>;
