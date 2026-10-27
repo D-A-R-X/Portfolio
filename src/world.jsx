@@ -38,9 +38,10 @@ const S = 260;           // sampling canvas, px
 const FIELD_DEPTH = 7.0; // how far the field runs before it wraps
 const DEPTH = 0.3;       // z spread given to a flat drawing
 
-function sample(draw, n, seed, { depth = DEPTH, height = 2.3 } = {}) {
+function sample(draw, n, seed, { depth = DEPTH, height = 2.3, w = S, h = S } = {}) {
   const c = document.createElement("canvas");
-  c.width = c.height = S;
+  c.width = w;
+  c.height = h;
   const x = c.getContext("2d", { willReadFrequently: true });
   x.fillStyle = "#000";
   x.strokeStyle = "#000";
@@ -48,12 +49,12 @@ function sample(draw, n, seed, { depth = DEPTH, height = 2.3 } = {}) {
   x.lineCap = "round";
   draw(x);
 
-  const data = x.getImageData(0, 0, S, S).data;
+  const data = x.getImageData(0, 0, w, h).data;
   const px = [];
-  let minX = S, maxX = 0, minY = S, maxY = 0;
-  for (let y = 0; y < S; y += 2) {
-    for (let xx = 0; xx < S; xx += 2) {
-      if (data[(y * S + xx) * 4 + 3] > 140) {
+  let minX = w, maxX = 0, minY = h, maxY = 0;
+  for (let y = 0; y < h; y += 2) {
+    for (let xx = 0; xx < w; xx += 2) {
+      if (data[(y * w + xx) * 4 + 3] > 140) {
         px.push(xx, y);
         if (xx < minX) minX = xx; if (xx > maxX) maxX = xx;
         if (y < minY) minY = y; if (y > maxY) maxY = y;
@@ -87,7 +88,31 @@ function roundRect(x, a, b, w, h, r) {
   x.closePath();
 }
 
-/** The monogram — Surya at the top, Cruza at the studio chapter. */
+/** The name, full width — the first thing the particles spell out. */
+function wordmark(text, n, font, seed, stacked) {
+  // one line is right for a landscape screen; a portrait one gets the name
+  // stacked, because a single wide line would run off both edges
+  const rows = stacked ? text.split(" ") : [text];
+  const W = stacked ? 620 : 1100;
+  const H = stacked ? 460 : 260;
+  const size = stacked ? 230 : 200;
+  return sample((x) => {
+    x.textAlign = "center";
+    x.textBaseline = "middle";
+    x.font = `360 ${size}px ${font}`;
+    x.letterSpacing = stacked ? "10px" : "14px";
+    x.lineWidth = 3;
+    const step = size * 0.92;
+    const top = H / 2 - (step * (rows.length - 1)) / 2;
+    rows.forEach((row, i) => {
+      // the stencil face is slim; a light stroke gives the particles a body
+      x.fillText(row, W / 2, top + i * step);
+      x.strokeText(row, W / 2, top + i * step);
+    });
+  }, n, seed, { depth: 0.2, height: stacked ? 1.5 : 0.78, w: W, h: H });
+}
+
+/** The monogram — Cruza at the studio chapter. */
 function glyph(char, n, font, seed) {
   return sample((x) => {
     x.textAlign = "center";
@@ -239,13 +264,13 @@ varying float vA;
 varying float vT;
 varying float vG;
 uniform float uFade;
-uniform vec3 uDeep, uMid, uLite;
+uniform vec3 uDeep, uMid, uLite, uHot;
 void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d = dot(c, c);
   if (d > 0.25) discard;
   vec3 col = vT < 0.5 ? mix(uDeep, uMid, vT * 2.0) : mix(uMid, uLite, (vT - 0.5) * 2.0);
-  if (vT > 0.94) col = vec3(1.0);
+  if (vT > 0.94) col = uHot;
 
   // at rest: a solid dot. Disturbed: a white-hot core inside a soft blue
   // halo, so a spray of particles reads as light rather than as grit
@@ -456,6 +481,7 @@ export async function createParticles(canvas, { mobile }) {
 
   const n = mobile ? 4200 : 9000;
   let font = "Georgia, serif";
+  let stencil = "'Arial Narrow', sans-serif";
   try {
     if (document.fonts) {
       await Promise.race([
@@ -463,10 +489,17 @@ export async function createParticles(canvas, { mobile }) {
         new Promise((r) => setTimeout(r, 1500)),
       ]);
       if (document.fonts.check("italic 210px 'Instrument Serif'")) font = "'Instrument Serif', Georgia, serif";
+      await Promise.race([
+        document.fonts.load("360 200px 'Big Shoulders Stencil Variable'"),
+        new Promise((r) => setTimeout(r, 1200)),
+      ]);
+      if (document.fonts.check("360 200px 'Big Shoulders Stencil Variable'")) {
+        stencil = "'Big Shoulders Stencil Variable', 'Arial Narrow', sans-serif";
+      }
     }
   } catch { /* fall back to Georgia */ }
 
-  const shapes = [glyph("S", n, font, 11), phone(n, 23), browser(n, 37), server(n, 41), glyph("C", n, font, 53)];
+  const shapes = [wordmark("SURYA J", n, stencil, 11, mobile), phone(n, 23), browser(n, 37), server(n, 41), glyph("C", n, font, 53)];
 
   const r = rng(97);
   const rnd = new Float32Array(n * 4);
@@ -540,7 +573,7 @@ export async function createParticles(canvas, { mobile }) {
   }
 
   const U = {};
-  for (const u of ["uMorph", "uTime", "uAspect", "uDpr", "uSize", "uScale", "uTilt", "uOffset", "uFade", "uDeep", "uMid", "uLite"]) {
+  for (const u of ["uMorph", "uTime", "uAspect", "uDpr", "uSize", "uScale", "uTilt", "uOffset", "uFade", "uDeep", "uMid", "uLite", "uHot"]) {
     U[u] = gl.getUniformLocation(prog, u);
   }
 
@@ -566,11 +599,15 @@ export async function createParticles(canvas, { mobile }) {
     // desktop: the shape sits right of centre so the left-aligned copy stays
     // clear. Phones: there is no free column, so it floats higher, smaller
     // and softer, and the copy it passes behind stays readable
+    // chapter one is the name, which owns the middle of the screen; by the
+    // second chapter the subject has moved aside to make room for the copy
+    const aside = Math.min(1, Math.max(0, morph));
+    const lerp = (a, b) => a + (b - a) * aside;
     return {
       morph, time, tx, ty, aspect, small,
-      scale: small ? 0.5 : 0.58,
-      ox: small ? 0.08 : 0.34,
-      oy: small ? 0.44 : 0.12,
+      scale: lerp(small ? 0.55 : 0.86, small ? 0.5 : 0.58),
+      ox: lerp(0, small ? 0.08 : 0.34),
+      oy: lerp(small ? 0.42 : 0.56, small ? 0.44 : 0.12),
     };
   };
 
@@ -626,6 +663,7 @@ export async function createParticles(canvas, { mobile }) {
     gl.uniform3fv(U.uDeep, ramp.deep);
     gl.uniform3fv(U.uMid, ramp.mid);
     gl.uniform3fv(U.uLite, ramp.lite);
+    gl.uniform3fv(U.uHot, ramp.hot);
     gl.drawArrays(gl.POINTS, 0, n);
   };
 

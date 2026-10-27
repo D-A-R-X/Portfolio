@@ -214,8 +214,10 @@ export const TYPE = {
    else that needs a number rather than a var() reference. */
 /* the particle ramp, as numbers — WebGL cannot read a CSS variable */
 export const PARTICLE = {
-  light: { deep: [0.09, 0.26, 0.80], mid: [0.20, 0.43, 0.96], lite: [0.60, 0.74, 1.0], hot: [1, 1, 1] },
-  dark:  { deep: [0.24, 0.42, 0.95], mid: [0.44, 0.64, 1.0],  lite: [0.74, 0.86, 1.0], hot: [1, 1, 1] },
+  // on white the ramp has to stay dark, and the hot end becomes near-black
+  // rather than white, which would simply vanish
+  light: { deep: [0.04, 0.13, 0.52], mid: [0.12, 0.31, 0.84], lite: [0.33, 0.52, 0.95], hot: [0.03, 0.08, 0.28] },
+  dark:  { deep: [0.24, 0.42, 0.95], mid: [0.44, 0.64, 1.0],  lite: [0.74, 0.86, 1.0],  hot: [1, 1, 1] },
 };
 
 export const raw = (name, theme) => (RAW[theme] || RAW.light)[name];

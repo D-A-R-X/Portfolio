@@ -51,6 +51,16 @@ const CSS = `
   .wrap{max-width:1320px;margin:0 auto;padding:0 clamp(1.25rem,4vw,3.5rem);position:relative}
   .sec{position:relative;padding:clamp(5.5rem,11vw,10rem) 0;overflow:clip}
 
+  /* the opening chapter is centred on its own axis; everything after it
+     stays flush left, where long lines are easier to read */
+  .ch-open .hook{display:none}
+  .ch-open .sw-w{justify-content:center}
+  .ch-open .mono{margin-inline:auto}
+
+  /* the name the particles draw; shown only when the scene cannot run */
+  .name-alt{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+  .no-scene .name-alt{position:static;width:auto;height:auto;margin:0 auto .4rem;clip-path:none;display:block;font-family:${FONT.name};font-weight:360;font-size:clamp(3.4rem,13vw,7rem);text-transform:uppercase;letter-spacing:.05em;line-height:.9;color:${T.ink}}
+
   .name-mark{display:inline-block;font-family:${FONT.name};font-weight:340;text-transform:uppercase;line-height:.82;letter-spacing:.03em;background:linear-gradient(100deg,${T.navy} 5%,${T.blue} 60%,${T.sky});-webkit-background-clip:text;background-clip:text;color:transparent;padding:.04em 0}
   .pill{display:inline-flex;align-items:center;gap:.4rem;font-family:${FONT.mono};font-weight:500;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:.36rem .72rem;border-radius:999px;background:${T.blue};color:#fff}
   .pill-soft{background:${T.tint};color:${T.blueDeep}}
@@ -481,25 +491,27 @@ function World({ mobile, motion, reduced, ready, theme }) {
         {CHAPTERS.map((c, i) => (
           <div key={c.id} id={c.id} className="chapter">
             <div className="wrap" style={{ width: "100%", paddingBottom: mobile ? "20svh" : "22svh" }}>
-              <div style={{ maxWidth: mobile ? "100%" : "58%" }}>
-                {/* the name: tall, slim stencil capitals */}
-                {c.name && ready && (
-                  <Reveal dir="up" enabled={motion} delay={0.05} style={{ marginBottom: ".2rem" }}>
-                    <span className="name-mark" style={{ fontSize: mobile ? "clamp(4rem,19vw,5.4rem)" : "clamp(5rem,8.4vw,8.6rem)" }}>{c.name}</span>
-                  </Reveal>
-                )}
-                {c.caption && (i > 0 || ready) && (
-                  <Decode as="p" text={c.caption} enabled={motion} className="mono" style={{ fontSize: ".74rem", color: T.navy, marginBottom: "1.3rem", maxWidth: "40ch" }} />
-                )}
+              <div
+                className={i === 0 ? "ch-open" : undefined}
+                style={i === 0
+                  ? { maxWidth: mobile ? "100%" : "min(100%, 54rem)", marginInline: "auto", textAlign: "center" }
+                  : { maxWidth: mobile ? "100%" : "58%" }}
+              >
+                {/* the particles spell the name; this stays for screen readers
+                    and for anyone whose browser cannot run the scene */}
+                {c.name && <h1 className="name-alt">{c.name}</h1>}
                 {c.pill && <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.3rem" }}><span className="pill">{c.pill}</span></Reveal>}
                 {(i > 0 || ready) && (
                   <Lines
-                    as={i === 0 ? "h1" : "h2"}
+                    as="h2"
                     lines={c.lines}
                     motion={motion}
                     delay={i === 0 ? 0.05 : 0}
                     style={{ fontSize: mobile ? "clamp(2.9rem,13vw,4.2rem)" : "clamp(3.6rem,7.2vw,7.4rem)" }}
                   />
+                )}
+                {c.caption && (i > 0 || ready) && (
+                  <Decode as="p" text={c.caption} enabled={motion} className="mono" style={{ fontSize: ".74rem", color: T.navy, marginTop: "1.4rem", maxWidth: "40ch" }} />
                 )}
                 {c.mono && (
                   <Decode text={c.mono} enabled={motion} delay={0.25} className="mono" style={{ fontSize: mobile ? ".74rem" : ".8rem", lineHeight: 1.6, color: T.navy, marginTop: "1.6rem", maxWidth: "46ch" }} />
