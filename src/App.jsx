@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -8,6 +9,7 @@ import { CONTACT_LINKS, EXPERIENCE, EDUCATION, SKILL_BARS, PROJECTS, PROJECT_FIL
 import { useReducedMotion, useIsMobile, useScrubber, useReveal, Reveal, Decode, Magnetic, MOTION_CSS } from "./motion.jsx";
 import { Landscape, Particles } from "./world.jsx";
 import { Smoke } from "./fluid.jsx";
+import { CarScene, CAR_CSS } from "./car.jsx";
 import { FXArt, FXGrid, FX_CSS } from "./cardfx.jsx";
 import { Mockup } from "./mockups.jsx";
 
@@ -20,6 +22,7 @@ const CHAPTERS = [
   { id: "now", pill: "Now", lines: ["*Currently*", "shipping at", "→Kosal Tech", "& Manju Global"], mono: "Software developer at Kosal Tech Solutions. On contract with Manju Global: an Android app, an operations ERP and a Go tracking service." },
   { id: "approach", pill: "Approach", lines: ["Simple *by*", "→design, built", "to last"], mono: "Understand the problem before writing code. Keep the architecture small enough for the next engineer to read." },
   { id: "studio", pill: "Studio", lines: ["*Co-founder of*", "→Cruza, an", "independent", "studio"], mono: "Building intelligent systems that solve real problems. Flagship: Mentorix, a live career-intelligence system.", link: { href: "https://cruza.vercel.app", label: "Visit Cruza" } },
+  { id: "drive", pill: "Off the clock", lines: ["*Away from*", "the keyboard,", "it's cars"], mono: "An M5 CS, in the browser. Open the doors, lift the bonnet, let it run." },
 ];
 
 const SERVICES = [
@@ -37,11 +40,17 @@ const SERVICES = [
 
 const MENU = [["Home", "top"], ["About", "about"], ["What I do", "services"], ["Experience", "experience"], ["Background", "background"], ["Projects", "projects"], ["Credentials", "credentials"], ["Contact", "contact"]];
 
+/* The car lies under the whole page and the scroll is its camera, so the
+   sections that carry a colour let a little of it through rather than
+   sealing it off. Enough to read over, not enough to hide behind. */
+const veil = (c) => `color-mix(in srgb, ${c} 42%, transparent)`;
+const COLUMN = 1000;   // the width at which content moves into its own column
+
 /* ─── CSS ─────────────────────────────────────────────────── */
 const CSS = `
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:clip}
-  body{background:${T.bg};color:${T.ink};font-family:${FONT.sans};overflow-x:clip}
+  html{background:#05080f;scroll-behavior:smooth;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:clip}
+  body{background:#05080f;color:${T.ink};font-family:${FONT.sans};overflow-x:clip}
   ::selection{background:${T.blue};color:${T.surface}}
   a{color:inherit;text-decoration:none}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -49,7 +58,23 @@ const CSS = `
   :focus-visible{outline:2px solid ${T.blue};outline-offset:3px;border-radius:6px}
 
   .wrap{max-width:1320px;margin:0 auto;padding:0 clamp(1.25rem,4vw,3.5rem);position:relative}
-  .sec{position:relative;padding:clamp(7rem,14vw,13rem) 0;overflow:clip}
+  .sec{position:relative;padding:clamp(2.6rem,5vw,4.2rem) 0;overflow:clip;background:transparent}
+  /* thin glass, not a slab: enough to read over, little enough that the
+     shed and the car stay legible straight through it */
+  .sec > .wrap{background:${veil(T.surface)};border:1px solid color-mix(in srgb,#38bdf8 22%,transparent);
+    border-radius:18px;padding-block:clamp(1.8rem,3.4vw,3rem);
+    box-shadow:0 20px 60px -30px rgba(0,0,0,.75);
+    backdrop-filter:blur(22px) saturate(1.15);-webkit-backdrop-filter:blur(22px) saturate(1.15)}
+
+  /* Above COLUMN the page becomes a rail of content down one side and the
+     shed keeps the rest of the window, which is the only way the camera
+     work is ever actually seen. */
+  @media (min-width:${COLUMN}px){
+    main{width:min(34rem,38vw);margin-left:clamp(1.5rem,4vw,4rem)}
+    .hero-shed{height:100svh}
+    .sec > .wrap{padding-inline:clamp(1.4rem,2vw,2rem)}
+    .plate{left:auto;right:0;width:min(34rem,38vw)}
+  }
 
   /* the opening chapter is centred on its own axis; everything after it
      stays flush left, where long lines are easier to read */
@@ -76,6 +101,8 @@ const CSS = `
   .hook-row{width:1.1em;height:.1em;margin-right:.5em}
 
   /* the world */
+  .parts{position:absolute;inset:0;opacity:0;transition:opacity 1.2s ease .2s}
+  .parts.in{opacity:1}
   .chapter{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end}
   .petal{position:absolute;border-radius:70% 30% 70% 30%;animation:petal linear infinite;will-change:transform}
   @keyframes petal{
@@ -146,18 +173,8 @@ const CSS = `
   .burger.x i:first-child{transform:translate3d(0,3.2px,0) rotate(45deg)}
   .burger.x i:last-child{transform:translate3d(0,-3.2px,0) rotate(-45deg)}
 
-  /* the rail: where you are, and a way to jump */
-  .rail{position:fixed;right:clamp(.7rem,1.6vw,1.4rem);top:50%;z-index:1001;display:flex;flex-direction:column;align-items:flex-end;gap:.15rem;transform:translate3d(0,-50%,0)}
-  .rail-i{display:flex;align-items:center;justify-content:flex-end;gap:.6rem;height:26px;padding-right:2px;color:${T.muted};transition:color .3s ease}
-  .rail-l{font-family:${FONT.mono};font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;opacity:0;transform:translate3d(6px,0,0);transition:opacity .35s ease,transform .45s ${EASE.out};white-space:nowrap}
-  .rail-d{position:relative;display:block;width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.42;transition:opacity .3s ease,transform .45s ${EASE.spring}}
-  .rail-i:hover{color:${T.blue}}
-  .rail-i:hover .rail-l{opacity:1;transform:none}
-  .rail-i:hover .rail-d{opacity:1;transform:scale(1.25)}
-  .rail-i.on{color:${T.blue}}
-  .rail-i.on .rail-d{opacity:1;transform:scale(1.5)}
-  .rail-i.on .rail-l{opacity:.75;transform:none}
-  @media (max-width:860px){.rail{display:none}}
+
+
 
   .menu{position:fixed;inset:0;z-index:999;background:${T.bg};display:flex;flex-direction:column;transform:translate3d(0,102%,0);transition:transform .8s ${EASE.inOut};overflow:auto}
   .menu.open{transform:none}
@@ -166,13 +183,23 @@ const CSS = `
   .menu.open .menu-link{opacity:1;transform:none}
   .menu-link:hover{color:${T.blue}}
 
-  .modal-bg{position:fixed;inset:0;z-index:1100;background:rgba(10,20,50,.38);animation:fade .35s ease both}
-  .modal{position:fixed;left:50%;top:50%;z-index:1101;width:min(1040px,calc(100vw - 2rem));max-height:calc(100svh - 3rem);overflow:auto;background:${T.surface};border-radius:22px;box-shadow:0 40px 120px -40px rgba(10,20,50,.6);transform:translate3d(-50%,-50%,0);animation:rise .6s ${EASE.out} both}
   @keyframes fade{from{opacity:0}to{opacity:1}}
   @keyframes rise{from{opacity:0;transform:translate3d(-50%,-46%,0)}to{opacity:1;transform:translate3d(-50%,-50%,0)}}
 
-  .loader{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,${T.wash} 0%,${T.tint} 60%,${T.bg} 100%);transition:transform 1s ${EASE.inOut}}
+  .loader-veil{position:absolute;inset:0;background:#05080f;opacity:.34}
+  .loader{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:transparent;transition:transform 1s ${EASE.inOut}}
   .loader.out{transform:translate3d(0,-101%,0)}
+  /* the hero text rises as the camera comes in through the haze */
+  .loader-sub{font-size:.68rem;letter-spacing:.17em;text-transform:uppercase;color:#9fc6e8;
+    margin-top:1rem;text-align:center;animation:loaderRise 1.1s ${EASE.out} .25s both}
+  .loader-bio{max-width:40rem;margin:1.6rem auto 0;padding:0 1.5rem;text-align:center;
+    font-size:clamp(.82rem,1.5vw,.95rem);line-height:1.7;color:#b9ccdf;
+    animation:loaderRise 1.2s ${EASE.out} .5s both}
+  .loader-bar{width:min(220px,50vw);height:1px;margin-top:2.4rem;overflow:hidden;
+    background:rgba(146,180,224,.22);animation:loaderRise 1s ${EASE.out} .8s both}
+  .loader-bar i{display:block;height:100%;background:#38bdf8;transform-origin:left;
+    box-shadow:0 0 10px rgba(56,189,248,.9)}
+  @keyframes loaderRise{from{opacity:0;transform:translate3d(0,16px,0)}to{opacity:1;transform:none}}
 
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
@@ -239,12 +266,14 @@ function ScrollBar() {
 
 /* ─── LOADER ──────────────────────────────────────────────────
    Finishes on its own — a recruiter never has to click to get in. */
-function Loader({ onDone, reduced }) {
+function Loader({ onDone, reduced, hold }) {
   const [n, setN] = useState(0);
   const [out, setOut] = useState(false);
   const [gone, setGone] = useState(reduced);
   const done = useRef(onDone);
   done.current = onDone;
+  const held = useRef(hold);
+  held.current = hold;
 
   useEffect(() => {
     if (reduced) { done.current(); return; }
@@ -257,23 +286,40 @@ function Loader({ onDone, reduced }) {
       if (p < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    // timers, not rAF, own the exit — it must happen even if frames stall
-    const a = setTimeout(() => { setN(100); setOut(true); done.current(); }, DUR + 150);
-    const b = setTimeout(() => setGone(true), DUR + 1250);
+    // timers, not rAF, own the exit — it must happen even if frames stall.
+    // The car's entrance plays behind this panel, so the exit waits for it,
+    // but never longer than CAP: a model that fails to load must not strand
+    // anyone on a loading screen.
+    const CAP = 9000;
+    let a = 0, b = 0;
+    const finish = () => {
+      setN(100);
+      setOut(true);
+      done.current();
+      b = setTimeout(() => setGone(true), 1100);
+    };
+    const waitForCar = (started) => {
+      if (!held.current || performance.now() - started > CAP) { finish(); return; }
+      a = setTimeout(() => waitForCar(started), 120);
+    };
+    a = setTimeout(() => waitForCar(performance.now()), DUR + 150);
     return () => { cancelAnimationFrame(raf); clearTimeout(a); clearTimeout(b); };
   }, [reduced]);
 
   if (gone) return null;
   return (
     <div className={`loader${out ? " out" : ""}`} aria-hidden="true">
-      <div style={{ fontFamily: FONT.serif, fontSize: "clamp(2.6rem,6vw,4rem)", color: T.ink, letterSpacing: "-.01em" }}>
+      <span className="loader-veil" />
+      <div style={{ fontFamily: FONT.serif, fontSize: "clamp(2.6rem,6vw,4rem)", color: "#eaf4ff", letterSpacing: "-.01em", textShadow: "0 0 26px rgba(56,189,248,.45)" }}>
         Surya <em style={{ color: T.blue }}>J</em>
       </div>
-      <div className="mono" style={{ fontSize: ".72rem", color: T.navy, marginTop: ".8rem", textAlign: "center" }}>Software developer · Android, web &amp; backend</div>
-      <div style={{ width: "min(260px,60vw)", height: 1, background: T.ice, marginTop: "2.2rem", overflow: "hidden" }}>
-        <div style={{ height: "100%", background: T.blue, transform: `scaleX(${n / 100})`, transformOrigin: "left" }} />
-      </div>
-      <div className="mono" style={{ fontSize: ".72rem", color: T.muted, marginTop: ".8rem" }}>{String(n).padStart(3, "0")}</div>
+      <div className="mono loader-sub">Software developer &amp; hardcore car enthusiast</div>
+      <p className="loader-bio">
+        Software developer by profession, hardcore car enthusiast by obsession. I build
+        high-performance web and mobile systems with the same precision, speed and
+        architecture tuning that goes into an M-Power V8.
+      </p>
+      <div className="loader-bar"><i style={{ transform: `scaleX(${n / 100})` }} /></div>
     </div>
   );
 }
@@ -374,26 +420,6 @@ function TopBar({ open, setOpen, go, theme, toggleTheme }) {
   );
 }
 
-/** Chapter rail - a dot per section, the label on hover, the active one lit. */
-function Rail({ go, active }) {
-  return (
-    <nav className="rail" aria-label="Sections">
-      {MENU.map(([label, id]) => (
-        <button
-          key={id}
-          className={`rail-i${active === id ? " on" : ""}`}
-          onClick={() => go(id)}
-          aria-label={label}
-          aria-current={active === id ? "true" : undefined}
-        >
-          <span className="rail-l">{label}</span>
-          <span className="rail-d" />
-        </button>
-      ))}
-    </nav>
-  );
-}
-
 /** Tracks which section the viewport is looking at, for the rail. */
 function useActiveSection() {
   const [active, setActive] = useState("top");
@@ -482,7 +508,7 @@ function World({ mobile, motion, reduced, ready, theme }) {
     <section ref={ref} style={{ position: "relative" }}>
       <div ref={frame} style={{ position: "sticky", top: 0, height: "100svh", overflow: "clip", zIndex: 0 }}>
         <Landscape layers={layers} />
-        <Particles morphRef={morph} visibleRef={visible} mobile={mobile} reduced={reduced} theme={theme} />
+        <div className={`parts${ready ? " in" : ""}`}><Particles morphRef={morph} visibleRef={visible} mobile={mobile} reduced={reduced} theme={theme} /></div>
       </div>
 
       <div style={{ position: "relative", zIndex: 1, marginTop: "-100svh" }}>
@@ -535,40 +561,52 @@ function World({ mobile, motion, reduced, ready, theme }) {
 function Services({ mobile, motion }) {
   const rows = useRef([]);
   const last = useRef(-1);
-  const listH = useRef(1);
-  const n = SERVICES.length;
 
-  // "through" progress runs from the list entering at the bottom to leaving at
-  // the top, which is not where you are reading. Convert it back to "which row
-  // is at mid-screen" using the list height — cached on resize, never read per frame.
-  const ref = useScrubber((p) => {
-    const vh = window.innerHeight;
-    const H = listH.current;
-    const atMiddle = p * (H + vh) - vh / 2; // px from the list top to mid-screen
-    const active = Math.min(n - 1, Math.max(0, Math.floor(atMiddle / (H / n))));
-    if (active === last.current) return;
-    last.current = active;
-    rows.current.forEach((el, i) => {
-      if (!el) return;
-      const d = String(Math.min(3, Math.abs(i - active)));
-      if (el.dataset.d !== d) el.dataset.d = d;
-      const idx = el.firstChild;
-      if (idx) idx.textContent = i === active ? "—" : `(${String(i + 1).padStart(3, "0")})`;
-    });
-  }, { mode: "through", enabled: motion });
-
+  // The row in focus is the one nearest the middle of whatever is scrolling
+  // it: the dossier now, not the window, which never moves. Rows are read
+  // once per scroll frame and only rows whose distance bucket changed are
+  // written.
+  const ref = useRef(null);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const measure = () => { listH.current = Math.max(1, el.offsetHeight); };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [ref]);
+    const list = ref.current;
+    if (!list || !motion) return undefined;
+    const body = list.closest(".panel-body");
+    const source = body || window;
+    let raf = 0;
+    const step = () => {
+      raf = 0;
+      const box = body ? body.getBoundingClientRect() : { top: 0, height: window.innerHeight };
+      const mid = box.top + box.height * 0.45;
+      let active = 0, best = Infinity;
+      rows.current.forEach((el, i) => {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const d = Math.abs(r.top + r.height / 2 - mid);
+        if (d < best) { best = d; active = i; }
+      });
+      if (active === last.current) return;
+      last.current = active;
+      rows.current.forEach((el, i) => {
+        if (!el) return;
+        const d = String(Math.min(3, Math.abs(i - active)));
+        if (el.dataset.d !== d) el.dataset.d = d;
+        const idx = el.firstChild;
+        if (idx) idx.textContent = i === active ? "—" : `(${String(i + 1).padStart(3, "0")})`;
+      });
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(step); };
+    source.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    step();
+    return () => {
+      source.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, [motion]);
 
   return (
-    <section id="services" className="sec" style={{ background: `linear-gradient(180deg,${T.bg} 0%,${T.surface} 30%)` }}>
+    <section id="services" className="sec">
       <div className="wrap">
         <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1.3fr", gap: mobile ? "2.4rem" : "4rem", alignItems: "start" }}>
           <div style={{ position: mobile ? "static" : "sticky", top: "18vh" }}>
@@ -604,7 +642,7 @@ function Services({ mobile, motion }) {
 function Experience({ mobile, motion }) {
   const [open, setOpen] = useState(0);
   return (
-    <section id="experience" className="sec" style={{ background: T.surface }}>
+    <section id="experience" className="sec">
       <div className="wrap">
         <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Experience</span></Reveal>
         <Lines lines={["Where *I've*", "→worked"]} motion={motion} style={{ fontSize: mobile ? "3rem" : "clamp(3.6rem,6.4vw,6.4rem)", marginBottom: mobile ? "2.4rem" : "3.6rem" }} />
@@ -653,87 +691,109 @@ function Experience({ mobile, motion }) {
   );
 }
 
-/* ─── PROJECTS ────────────────────────────────────────────── */
-function ProjectModal({ project, onClose, mobile }) {
-  const closeBtn = useRef(null);
+/* ─── PROJECT DRILLDOWN ─────────────────────────────────────
+   A project opens inside the dock, not over the page: the list slides out
+   to the left and the project slides in, in the same glass, so the car on
+   the right is never covered. The list stays where it was underneath, so
+   the camera does not move and Back lands on the same card. */
+const LINK_LABEL = { GitHub: "View source repo", "Play Store": "Open on Play Store" };
+
+function ProjectDrill({ project, onClose, total }) {
+  const back = useRef(null);
+  const pane = useRef(null);
+  // the last project stays rendered through the exit slide
+  const [shown, setShown] = useState(project);
+  useEffect(() => { if (project) setShown(project); }, [project]);
+  const host = typeof document !== "undefined" ? document.querySelector(".panel") : null;
+
   useEffect(() => {
-    if (!project) return;
+    if (!host) return undefined;
+    host.classList.toggle("drill", !!project);
+    if (!project) return undefined;
     const prev = document.activeElement;
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
-    document.documentElement.style.overflow = "hidden";
-    closeBtn.current && closeBtn.current.focus();
+    window.addEventListener("drill:close", onClose);
+    if (pane.current) pane.current.scrollTop = 0;
+    // a frame later: the button is only focusable once the slide has made it visible
+    const f = requestAnimationFrame(() => { if (back.current) back.current.focus({ preventScroll: true }); });
     return () => {
+      cancelAnimationFrame(f);
       document.removeEventListener("keydown", onKey);
-      document.documentElement.style.overflow = "";
-      if (prev && prev.focus) prev.focus();
+      window.removeEventListener("drill:close", onClose);
+      if (prev && prev.focus) prev.focus({ preventScroll: true });
     };
-  }, [project, onClose]);
+  }, [project, onClose, host]);
+  useEffect(() => () => { if (host) host.classList.remove("drill"); }, [host]);
 
-  if (!project) return null;
-  return (
-    <>
-      <div className="modal-bg" onClick={onClose} />
-      <div className="modal" role="dialog" aria-modal="true" aria-label={project.name}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", padding: mobile ? "1.2rem" : "1.6rem 2rem", borderBottom: `1px solid ${T.line}`, position: "sticky", top: 0, background: T.surface, zIndex: 1 }}>
-          <span className="mono" style={{ fontSize: ".72rem", color: T.blue }}>{project.id} · {project.cat}</span>
-          <button ref={closeBtn} onClick={onClose} aria-label="Close" style={{ width: 40, height: 40, borderRadius: "50%", border: `1px solid ${T.line2}`, fontSize: "1.2rem", color: T.ink }}>×</button>
+  if (!host || !shown) return null;
+  const p = shown;
+  const index = String(PROJECTS.indexOf(p) + 1).padStart(2, "0");
+  const orgs = p.org ? [p.org, ...new Set((p.variants || []).map((v) => v.org).filter((o) => o !== p.org))] : [];
+  const rows = [
+    ["01", "The problem", p.problem],
+    ["02", "Design decision", p.highlight],
+    ["03", "Architecture & outcome", p.power],
+  ];
+
+  return createPortal(
+    <div className="pdetail" ref={pane} role="region" aria-label={`${p.name}, project details`}>
+      <div className="pd-col">
+        <div className="pd-bar">
+          <button ref={back} className="pd-back mono" onClick={onClose}>
+            <i aria-hidden="true">&larr;</i> Back to {total} projects
+          </button>
+          <span className="pd-meta mono">
+            <span className="pd-index">{index} / {String(PROJECTS.length).padStart(2, "0")}</span>
+            <span className="pd-client">{orgs.length ? `For ${orgs.join(" + ")}` : "Personal project"}</span>
+          </span>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: mobile ? "1.6rem" : "2.6rem", padding: mobile ? "1.4rem" : "2.2rem 2rem 2.6rem" }}>
+
+        <div className="pd-head">
           <div>
-            <div style={{ borderRadius: 16, background: T.paper, border: `1px solid ${T.line}`, padding: "7%" }}>
-              <Mockup kind={project.mock} width="100%" draw />
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem", marginTop: "1rem" }}>
-              {project.stack.map((s) => <span key={s} className="tag">{s}</span>)}
+            <h3 className="pd-title">{p.name}</h3>
+            <p className="pd-tag">{p.tag}</p>
+            <div className="pd-stack">
+              {p.stack.map((t) => <span key={t} className="mono">{t}</span>)}
             </div>
           </div>
-          <div>
-            <h3 className="disp" style={{ fontSize: mobile ? "2.6rem" : "3.4rem", marginBottom: ".4rem" }}>{project.name}</h3>
-            <p style={{ color: T.muted, marginBottom: project.org ? "1.1rem" : "1.6rem" }}>{project.tag}</p>
-            {project.org && ORGS[project.org] && (
-              <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", gap: mobile ? ".55rem" : ".7rem", alignItems: "flex-start", padding: ".9rem 1rem", marginBottom: "1.6rem", borderRadius: 12, background: T.tint }}>
-                <span className="pill" style={{ flexShrink: 0 }}>{ORGS[project.org].relation}</span>
-                <span>
-                  <span style={{ fontWeight: 600, color: T.ink }}>{project.org}</span>
-                  <span style={{ display: "block", fontSize: ".88rem", lineHeight: 1.55, color: T.body, marginTop: ".15rem" }}>
-                    {ORGS[project.org].blurb}
-                  </span>
-                </span>
-              </div>
-            )}
-            {[["The problem", project.problem], ["The design", project.highlight], ["The outcome", project.power]].map(([k, v]) => (
-              <div key={k} style={{ borderTop: `1px solid ${T.line}`, padding: "1rem 0" }}>
-                <div className="cap" style={{ color: T.blue, marginBottom: ".4rem" }}>{k}</div>
-                <p style={{ lineHeight: 1.7, color: T.text }}>{v}</p>
-              </div>
+          <div className="pd-schem" aria-hidden="true"><Mockup kind={p.mock} width="100%" draw /></div>
+        </div>
+
+        {rows.map(([n, k, v]) => (
+          <div key={n} className="pd-row">
+            <div className="pd-label mono">[ {n} // {k} ]</div>
+            <p>{v}</p>
+          </div>
+        ))}
+
+        {p.org && ORGS[p.org] && (
+          <div className="pd-row">
+            <div className="pd-label mono">[ {ORGS[p.org].relation} ]</div>
+            <p><strong>{p.org}</strong> &mdash; {ORGS[p.org].blurb}</p>
+          </div>
+        )}
+        {p.variants && (
+          <div className="pd-row">
+            <div className="pd-label mono">[ Also deployed as ]</div>
+            {p.variants.map((v) => (
+              <p key={v.name} className="pd-variant"><strong>{v.name}</strong> <span className="mono">{v.org}</span><br />{v.note}</p>
             ))}
-            {project.variants && (
-              <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: "1rem" }}>
-                <div className="cap" style={{ color: T.blue, marginBottom: ".8rem" }}>Also deployed as</div>
-                {project.variants.map((v) => (
-                  <div key={v.name} style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "auto 1fr", gap: mobile ? ".45rem" : ".8rem", alignItems: "start", paddingBottom: ".9rem" }}>
-                    <span className="pill pill-soft" style={{ whiteSpace: "nowrap" }}>{v.org}</span>
-                    <span>
-                      <span style={{ fontWeight: 600, color: T.ink }}>{v.name}</span>
-                      <span style={{ display: "block", lineHeight: 1.65, color: T.body, marginTop: ".2rem" }}>{v.note}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ marginTop: "1rem" }}>
-              {project.repo
-                ? <a className="ghost-btn" href={project.repo} target="_blank" rel="noopener noreferrer">{project.repoLabel} <Arrow up size={14} /></a>
-                : <span className="pill pill-soft">{project.org ? `${project.repoLabel} · ${project.org}` : project.repoLabel}</span>}
-            </div>
           </div>
+        )}
+
+        <div className="pd-foot">
+          {p.repo
+            ? <a className="pd-cta mono" href={p.repo} target="_blank" rel="noopener noreferrer">{LINK_LABEL[p.repoLabel] || p.repoLabel} <span aria-hidden="true">&#8599;</span></a>
+            : <span className="pd-private mono">Private &middot; {p.repoLabel}{p.org ? ` · ${p.org}` : ""}</span>}
         </div>
       </div>
-    </>
+    </div>,
+    host,
   );
 }
 
+/* ─── PROJECTS ────────────────────────────────────────────── */
 function Projects({ mobile, motion }) {
   const [filter, setFilter] = useState("All");
   const [active, setActive] = useState(null);
@@ -742,7 +802,7 @@ function Projects({ mobile, motion }) {
   const cols = mobile ? 1 : 3;
 
   return (
-    <section id="projects" className="sec" style={{ background: T.bg }}>
+    <section id="projects" className="sec">
       <div className="wrap">
         {/* "SOME   of my / PROJECTS" — the split-line heading */}
         <div className="disp" style={{ fontSize: mobile ? "3.2rem" : "clamp(4rem,8vw,8.4rem)", marginBottom: mobile ? "1.6rem" : "2rem" }}>
@@ -785,7 +845,7 @@ function Projects({ mobile, motion }) {
           ))}
         </FXGrid>
       </div>
-      <ProjectModal project={active} onClose={close} mobile={mobile} />
+      <ProjectDrill project={active} onClose={close} total={list.length} />
     </section>
   );
 }
@@ -802,7 +862,7 @@ function Background({ mobile, motion }) {
   }, []);
 
   return (
-    <section id="background" className="sec" style={{ background: T.surface }}>
+    <section id="background" className="sec">
       <div className="wrap">
         <Lines lines={["Education *&*", "→the stack"]} motion={motion} style={{ fontSize: mobile ? "2.8rem" : "clamp(3.4rem,6.6vw,6.6rem)", marginBottom: "1.4rem" }} />
         <Decode text="Where I studied, what I build with, and the rules I hold myself to." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "3rem" }} />
@@ -895,7 +955,7 @@ function Background({ mobile, motion }) {
 function Credentials({ mobile, motion }) {
   const [open, setOpen] = useState(-1);
   return (
-    <section id="credentials" className="sec" style={{ background: T.surface }}>
+    <section id="credentials" className="sec">
       <div className="wrap">
         <Lines lines={["Credentials *&*", "recognition"]} motion={motion} style={{ fontSize: mobile ? "2.8rem" : "clamp(3.4rem,6.6vw,6.6rem)", marginBottom: "1.4rem" }} />
         <Decode text="Certified, published and presented — across industry certifications, a conference paper and national hackathons." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "1.6rem" }} />
@@ -951,7 +1011,7 @@ function Credentials({ mobile, motion }) {
 function Contact({ mobile, motion }) {
   const email = CONTACT_LINKS.find((c) => c.label === "Email");
   return (
-    <section id="contact" className="sec" style={{ background: `linear-gradient(180deg,${T.surface} 0%,${T.tint} 100%)`, paddingBottom: "12rem" }}>
+    <section id="contact" className="sec" style={{ paddingBottom: "2.5rem" }}>
       <div className="wrap">
         <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Contact</span></Reveal>
         <Lines lines={["*Let's*", "build", "→something"]} motion={motion} style={{ fontSize: mobile ? "3.6rem" : "clamp(4.4rem,10vw,10rem)", marginBottom: "2.4rem" }} />
@@ -973,7 +1033,7 @@ function Contact({ mobile, motion }) {
 
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", marginTop: "7rem", paddingTop: "1.4rem", borderTop: `1px solid ${T.line2}` }}>
           <span className="cap">© 2026 Surya J</span>
-          <span className="cap">Coimbatore, India</span>
+          <span className="cap">Chennai, India</span>
         </div>
       </div>
     </section>
@@ -981,21 +1041,558 @@ function Contact({ mobile, motion }) {
 }
 
 /* ─── PAGE ────────────────────────────────────────────────── */
+
+/* ─── THE GARAGE SHELL ────────────────────────────────────────
+   The car is the navigation. A part of it opens a drawer holding the
+   section that part stands for — the same components the scrolling site
+   used, so none of the writing or the layout work is lost. */
+const SECTIONS = {
+  services: "What I do",
+  experience: "Experience",
+  background: "Background",
+  projects: "Projects",
+  credentials: "Credentials",
+  contact: "Contact",
+};
+
+/* What the overview says, since the car cannot introduce itself. */
+function Plate({ shown }) {
+  return (
+    <div className={`plate${shown ? " in" : ""}`} aria-hidden={!shown}>
+      <h1 className="plate-name">SURYA J</h1>
+      <p className="plate-role mono">SOFTWARE DEVELOPER · ANDROID, WEB &amp; BACKEND</p>
+      <p className="plate-hint mono">Scroll to drive · tap a pin to open it</p>
+    </div>
+  );
+}
+
+/* The panel. The pins carry a line each; this is where the actual work is
+   written up. Same section components the scrolling site used, so nothing
+   written has been lost along the way. */
+/* The dossier. Permanently open: the left of the window is what you read,
+   the right is the car, and this panel's own scroll is what drives the tour
+   round it. */
+function Panel({ mobile, motion, progressRef, shown }) {
+  const body = useRef(null);
+  const rail = useRef(null);
+
+  // One rAF per scroll burst, writing straight to the DOM and to a ref the
+  // render loop reads. A React state update per scroll pixel is what makes
+  // a page like this stutter.
+  useEffect(() => {
+    const el = body.current;
+    if (!el) return undefined;
+    let raf = 0;
+    let queued = false;
+    const root = document.documentElement;
+    // the runway is one dossier-height: the content starts just out of sight
+    let runway = el.clientHeight;
+    const measure = () => {
+      runway = el.clientHeight;
+      el.style.setProperty("--runway", `${runway}px`);
+    };
+    measure();
+
+    // --k follows the scroll through the runway, eased toward it each frame
+    // so a wheel's 100px steps glide instead of jumping
+    let kNow = 0, kWant = 0, kRaf = 0, kLast = 0;
+    const glide = (t) => {
+      const dt = kLast ? Math.min(0.05, (t - kLast) / 1000) : 0.016;
+      kLast = t;
+      kNow += (kWant - kNow) * Math.min(1, dt * 9);
+      if (Math.abs(kWant - kNow) < 0.0008) kNow = kWant;
+      root.style.setProperty("--k", kNow.toFixed(4));
+      if (kNow > 0.5) root.classList.add("lifted");
+      else if (kNow < 0.4) root.classList.remove("lifted");
+      kRaf = kNow === kWant ? 0 : requestAnimationFrame(glide);
+      if (!kRaf) kLast = 0;
+    };
+
+    const draw = () => {
+      queued = false;
+      // the tour starts once the dossier has arrived, not while it is rising
+      const run = el.scrollHeight - el.clientHeight - runway;
+      const at = run > 4 ? Math.min(1, Math.max(0, (el.scrollTop - runway) / run)) : 0;
+      if (progressRef) progressRef.current = at;
+      document.documentElement.classList.toggle("scrolled", el.scrollTop > runway * 0.5);
+      kWant = Math.min(1, Math.max(0, el.scrollTop / (runway * 0.85)));
+      if (!kRaf) kRaf = requestAnimationFrame(glide);
+      if (rail.current) rail.current.style.transform = `scaleY(${Math.max(0.06, at).toFixed(3)})`;
+    };
+    window.addEventListener("resize", measure, { passive: true });
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      raf = requestAnimationFrame(draw);
+    };
+
+    // The window itself does not scroll, so a wheel over the car reached
+    // nothing and the tour looked frozen. Anything outside the dossier is
+    // forwarded into it, which is what a split screen should do.
+    const onWheel = (ev) => {
+      if (!shown) { ev.preventDefault(); return; }
+      if (ev.target.closest && ev.target.closest(".panel")) return;
+      if (ev.ctrlKey) return;                       // leave pinch-zoom alone
+      // while a project is open, the wheel scrolls the project, not the list
+      const dock = el.parentElement;
+      const into = dock && dock.classList.contains("drill") ? dock.querySelector(".pdetail") || el : el;
+      into.scrollTop += ev.deltaY;
+      ev.preventDefault();
+    };
+    window.addEventListener("wheel", onWheel, { passive: false });
+
+    // On a phone the dossier starts below the screen, so a swipe over the
+    // car has nothing under it to scroll. Same forwarding, for fingers.
+    let lastY = null;
+    const onTouchStart = (ev) => {
+      lastY = ev.target.closest && ev.target.closest(".panel") ? null : ev.touches[0].clientY;
+    };
+    const onTouchMove = (ev) => {
+      if (lastY === null || !shown || ev.touches.length > 1) return;
+      const y = ev.touches[0].clientY;
+      const dock = el.parentElement;
+      const into = dock && dock.classList.contains("drill") ? dock.querySelector(".pdetail") || el : el;
+      into.scrollTop += lastY - y;
+      lastY = y;
+      ev.preventDefault();
+    };
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+
+    el.scrollTop = 0;
+    draw();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", measure);
+      cancelAnimationFrame(kRaf);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      cancelAnimationFrame(raf);
+    };
+  }, [progressRef, shown]);
+
+  return (
+    <aside className={`panel${shown ? " open" : ""}`} aria-label="Portfolio">
+      <span className="panel-rail" aria-hidden="true"><i ref={rail} /></span>
+      <div className="panel-body" ref={body}>
+        <div className="runway" aria-hidden="true" />
+        <header className="dossier">
+          <span className="dossier-m" aria-hidden="true"><i /><i /><i /></span>
+          <h1 className="dossier-name sr-only">Surya J</h1>
+          <p className="dossier-role mono">Software developer &middot; Android, web &amp; backend</p>
+          <p className="dossier-line">
+            Software developer by profession, <em className="carlove">hardcore car enthusiast</em> by obsession. I build
+            high-performance web and mobile systems with the same precision, speed and
+            architecture tuning that goes into an M-Power V8.
+          </p>
+          <p className="dossier-hint mono">Scroll &mdash; the car follows</p>
+        </header>
+        <Services mobile motion={motion} />
+        <Experience mobile motion={motion} />
+        <Background mobile motion={motion} />
+        <Projects mobile motion={motion} />
+        <Credentials mobile motion={motion} />
+        <Contact mobile motion={motion} />
+      </div>
+    </aside>
+  );
+}
+
+/* The name. One element, two places: big in the opening titles, small in
+   the top-left corner once the dossier is up, and it travels between them
+   rather than fading out in one spot and in at another. The corner mark and
+   the title name stay in the layout, invisible, purely to say where those
+   two places are on this screen. */
+function HeroName() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => {
+      const from = document.querySelector(".introhud-name");
+      const to = document.querySelector(".mark");
+      if (!from || !to) return;
+      const hud = from.offsetParent;
+      const b = to.getBoundingClientRect();
+      // measured from layout, not from the screen: the titles are often
+      // mid-move (rising in, or riding up with the dossier) when this runs
+      let ax = from.getBoundingClientRect().left;
+      let ay = from.getBoundingClientRect().top;
+      if (hud) {
+        const h = hud.getBoundingClientRect();
+        const t = new DOMMatrix(getComputedStyle(hud).transform);
+        ax = h.left - t.m41 + from.offsetLeft;
+        ay = h.top - t.m42 + from.offsetTop;
+      }
+      const big = parseFloat(getComputedStyle(from).fontSize) || 1;
+      const small = parseFloat(getComputedStyle(el).fontSize) || 1;
+      const scale = big / small;
+      const pad = parseFloat(getComputedStyle(el).paddingTop) || 0;
+      el.style.setProperty("--ax", `${ax}px`);
+      el.style.setProperty("--ay", `${ay - pad * scale}px`);
+      el.style.setProperty("--as", scale.toFixed(4));
+      el.style.setProperty("--bx", `${b.left}px`);
+      el.style.setProperty("--by", `${b.top}px`);
+      el.classList.add("ready");
+    };
+    measure();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    const again = setTimeout(measure, 1600);
+    window.addEventListener("resize", measure, { passive: true });
+    return () => {
+      clearTimeout(again);
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  // in the corner it is a way home: back to the top of the dossier
+  const home = () => {
+    const body = document.querySelector(".panel-body");
+    if (body) body.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <button ref={ref} className="heroname" onClick={home} aria-label="Surya J — back to the top">
+      SURYA <span>J</span>
+    </button>
+  );
+}
+
+/* The opening titles. Not a splash card over the canvas — a HUD in the
+   corner, so the push-in plays in full behind it from the first frame. */
+function IntroHud() {
+  return (
+    <div className="introhud">
+      <span className="introhud-m"><i /><i /><i /></span>
+      <h1 className="introhud-name">SURYA J</h1>
+      <p className="introhud-role mono">Software developer</p>
+      <p className="introhud-bio">
+        Software developer by profession, <em className="carlove">hardcore car enthusiast</em> by obsession. I build
+        high-performance web and mobile systems with the same precision, speed and
+        architecture tuning that goes into an M-Power V8.
+      </p>
+    </div>
+  );
+}
+
+const GARAGE_CSS = `
+  /* the garage is a dark room whatever the page theme is, so everything
+     that sits straight on it is light */
+  /* the shed is the hero: one screen of it, then the sections scroll over */
+  .hero-shed{position:relative;height:100svh;pointer-events:none}
+
+  .plate{position:absolute;left:0;right:0;bottom:clamp(1.6rem,5vh,3.4rem);z-index:40;display:flex;flex-direction:column;align-items:center;gap:.5rem;
+    pointer-events:none;opacity:0;transform:translate3d(0,14px,0);transition:opacity .7s ease,transform .9s ${EASE.out}}
+  .plate.in{opacity:1;transform:none}
+  .plate-name{font-family:${FONT.name};font-weight:340;font-size:clamp(2.6rem,7vw,4.6rem);line-height:.9;letter-spacing:.05em;color:#eef4ff;text-shadow:0 2px 30px rgba(0,0,0,.65)}
+  .plate-role{font-size:.64rem;letter-spacing:.14em;color:#9fb6d4}
+  .plate-parts{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin-top:1rem;pointer-events:auto}
+  .plate-part{display:flex;flex-direction:column;align-items:flex-start;gap:.1rem;padding:.5rem .85rem;border-radius:10px;
+    border:1px solid rgba(146,180,224,.26);background:rgba(10,16,28,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    color:#dce8fa;transition:border-color .3s ease,background-color .3s ease,transform .35s ${EASE.out}}
+  .plate-part:hover{border-color:#38bdf8;background:rgba(14,26,44,.78);transform:translateY(-2px)}
+  .plate-part .mono{font-family:${FONT.mono};font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#38bdf8}
+  .plate-opens{font-size:.82rem;font-weight:500}
+  .plate-hint{margin-top:.7rem;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:#6f88a8}
+
+  /* a panel down one side, not a full screen: the point of zooming the
+     camera to a part is that you can still see the part */
+  /* the scroll rail: height and nothing else, so the tour has a scrubber */
+  .rail{height:620svh;pointer-events:none}
+
+  /* The panel sits down the left so the car keeps the right of the frame,
+     where most of the pins are. On a phone it takes the screen, because a
+     42% column of text on a 390px screen is unreadable. */
+  /* A dock floating in the room, not a wall glued to the window: a strip
+     of the shed shows round every edge, which is what makes it read as part
+     of the scene rather than a second browser tab. */
+  /* No card. The dossier is a wash that thickens towards the left edge of
+     the window and dissolves into the shed on its right, so the type and
+     the car read as one surface rather than a box pasted over a render.
+     The mask is what removes the edge; a border would put it straight back. */
+  /* The feather lives on its own layer. Masking an element that also
+     carries a backdrop-filter makes Chromium composite it twice and apply
+     the mask to one copy — which painted the whole dossier a second time,
+     offset and clipped. Background and blur are masked here; the type sits
+     above it, untouched and crisp. */
+  .panel{position:fixed;top:0;left:0;bottom:0;width:min(760px,56vw);z-index:1050;
+    border:0;border-radius:0;box-shadow:none;background:transparent;
+    display:flex;flex-direction:column;isolation:isolate;
+    pointer-events:auto}
+  /* nothing to touch until the car has parked */
+  .panel:not(.open){visibility:hidden;pointer-events:none}
+  /* A screen's height of empty runway above the dossier: at the top of the
+     scroll the content sits just below the bottom edge, and it comes up
+     exactly as far as you scroll, no further and no faster. */
+  .panel .runway{height:var(--runway,100vh);flex:none}
+  /* A gradient and nothing else. mask-image and backdrop-filter on a
+     fixed layer above a scrolling container both make Chromium keep stale
+     tiles, which is what painted the dossier a second time, offset and
+     clipped. The gradient alone gives the same soft edge with none of that. */
+  .panel::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:linear-gradient(90deg,
+      color-mix(in srgb,${T.bg} 97%, transparent) 0%,
+      color-mix(in srgb,${T.bg} 95%, transparent) 46%,
+      color-mix(in srgb,${T.bg} 80%, transparent) 68%,
+      color-mix(in srgb,${T.bg} 42%, transparent) 86%,
+      transparent 100%);
+    opacity:var(--k,0)}
+  /* --k runs 0 to 1 over the runway, smoothed, and drives everything that
+     hands over from the hero to the dossier: the backing above fades in,
+     the titles fade and rise, the name flies to its corner */
+  /* the words stay well inside the feather, so nothing readable fades out */
+  .panel .dossier{max-width:31rem}
+
+  /* the scroll position, as a hairline on the glass */
+  .panel-rail{z-index:2;position:absolute;left:0;top:4.6rem;bottom:1.2rem;width:2px;border-radius:2px;
+    background:rgba(146,180,224,.12);overflow:hidden;pointer-events:none;z-index:3}
+  .panel-rail i{display:block;width:100%;height:100%;transform-origin:50% 0;transform:scaleY(.06);
+    background:linear-gradient(180deg,#38bdf8,#2563eb);box-shadow:0 0 8px rgba(56,189,248,.8)}
+  /* the dossier's own masthead: who this is, and why there is a car here */
+  .dossier{padding:clamp(1.6rem,4vw,2.4rem) clamp(1.1rem,3vw,1.6rem) 0}
+  .dossier-m{display:flex;gap:3px;margin-bottom:.9rem}
+  .dossier-m i{display:block;width:16px;height:3px}
+  .dossier-m i:nth-child(1){background:#0066B1}
+  .dossier-m i:nth-child(2){background:#003399}
+  .dossier-m i:nth-child(3){background:#E30613}
+  .dossier-name{font-family:${FONT.name};font-weight:340;font-size:clamp(2.4rem,6vw,3.4rem);line-height:.9;
+    letter-spacing:.05em;color:${T.ink}}
+  .dossier-role{margin-top:.5rem;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:#38bdf8}
+  .dossier-line{margin-top:1.1rem;font-size:.86rem;line-height:1.65;color:${T.body};max-width:42ch}
+  .dossier-hint{margin-top:1.2rem;padding-top:1.1rem;border-top:1px solid ${T.line};
+    font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:${T.muted}}
+
+  /* the name: same box as the corner mark, so in the corner it is exactly
+     the mark; in the titles it is the same element scaled up */
+  .heroname{position:fixed;left:0;top:0;z-index:1201;margin:0;background:none;border:0;cursor:pointer;
+    padding:.45rem .2rem .45rem 0;font-family:${FONT.name};font-weight:360;font-size:1.5rem;
+    text-transform:uppercase;letter-spacing:.06em;line-height:1;color:#eef4ff;white-space:nowrap;
+    text-shadow:0 2px 30px rgba(0,0,0,.7);transform-origin:0 0;pointer-events:none;opacity:0;
+    transform:translate3d(calc(var(--ax,0px) + (var(--bx,0px) - var(--ax,0px)) * var(--k,0)),
+      calc(var(--ay,0px) + (var(--by,0px) - var(--ay,0px)) * var(--k,0)),0)
+      scale(calc(var(--as,1) + (1 - var(--as,1)) * var(--k,0)));
+    transition:opacity .7s ease .25s}
+  .heroname span{color:${T.blue}}
+  .heroname.ready{opacity:1}
+  :root.lifted .heroname{pointer-events:auto}
+  .heroname:focus-visible{outline:2px solid ${T.blue};outline-offset:3px}
+  /* placeholders: they keep their place in the layout so the name can be
+     measured against them, and are never seen */
+  .mark,.introhud-name{visibility:hidden}
+  .introhud-name{animation:none}
+
+  /* the titles sit low and left, out of the car's way */
+  /* left of frame: the lens is shifted so the car holds the right, which
+     leaves this side clear for the titles instead of writing over the nose */
+  /* bottom left, and narrow enough that the bio wraps well short of the
+     car — the lens holds the car on the right, so the left half is ours */
+  .introhud{position:fixed;left:clamp(1.6rem,5vw,4.5rem);bottom:clamp(2.6rem,9vh,5.5rem);z-index:1200;
+    width:min(26rem,calc(46vw - 4rem));
+    display:flex;flex-direction:column;align-items:flex-start;text-align:left;pointer-events:none;
+    opacity:calc(1 - var(--k,0) * 4.5);transform:translate3d(0,calc(var(--k,0) * -90px),0)}
+  .introhud-m{display:flex;gap:3px;margin-bottom:1rem;animation:introRise .9s ${EASE.out} .1s both}
+  .introhud-m i{display:block;width:18px;height:3px}
+  .introhud-m i:nth-child(1){background:#0066B1}
+  .introhud-m i:nth-child(2){background:#003399}
+  .introhud-m i:nth-child(3){background:#E30613}
+  .introhud-name{font-family:${FONT.name};font-weight:340;font-size:clamp(3rem,8vw,5.6rem);line-height:1;
+    letter-spacing:.06em;color:#eef4ff;text-shadow:0 2px 40px rgba(0,0,0,.8);
+    animation:introRise 1.1s ${EASE.out} .25s both}
+  .introhud-role{margin-top:1rem;font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:#38bdf8;
+    animation:introRise 1.1s ${EASE.out} .45s both}
+  /* the one thing in the bio that is not about software: picked out in
+     white with the M tricolour running under it */
+  .carlove{font-style:normal;font-weight:600;color:#f4f8ff;white-space:nowrap;padding-bottom:2px;
+    background:linear-gradient(90deg,#0066B1 0 33.3%,#003399 33.3% 66.6%,#E30613 66.6% 100%) left bottom/100% 2px no-repeat}
+  .introhud-bio{margin-top:1.3rem;font-size:clamp(.8rem,1.4vw,.92rem);line-height:1.7;color:#b4c8dd;
+    text-shadow:0 1px 20px rgba(0,0,0,.9);animation:introRise 1.2s ${EASE.out} .65s both}
+  @keyframes introRise{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:none}}
+  @media (max-width:900px){.introhud{width:auto;right:clamp(1.6rem,5vw,4.5rem);bottom:clamp(2rem,6vh,3rem)}}
+
+  .panel-top{flex:none;display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    padding:.9rem clamp(1.1rem,3vw,1.6rem);border-bottom:1px solid ${T.line}}
+  .panel-tag{font-family:${FONT.mono};font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:#38bdf8}
+  .panel-x{display:flex;align-items:center;gap:.45rem;color:${T.navy}}
+  .panel-x .mono{font-family:${FONT.mono};font-size:.6rem;letter-spacing:.16em;text-transform:uppercase}
+  .panel-x::after{content:"";width:13px;height:1.5px;background:currentColor}
+  .panel-x:hover{color:${T.blue}}
+  .panel .panel-body p,.panel .panel-body li{font-size:.97rem !important;line-height:1.7 !important}
+  .panel .panel-body .mono{font-size:.75rem !important;letter-spacing:.1em}
+  .panel .panel-body .cap{font-size:.71rem !important}
+  .panel .panel-body .tag,.panel .panel-body .chip{font-size:.76rem !important}
+  .panel .dossier-line{font-size:.97rem;line-height:1.7}
+  .panel .dossier-role,.panel .dossier-hint{font-size:.7rem}
+
+  /* the scroll area starts below the corner name, so text never runs
+     underneath it on its way up */
+  @media (min-width:901px){.panel-body{margin-top:4.6rem}}
+  .sr-only{position:absolute !important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;border:0}
+
+  /* text dissolves as it reaches the top of the dossier instead of being
+     sliced off by the edge of the scroll area, and eases out at the foot */
+  .panel-body{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 3.2rem,#000 calc(100% - 2.4rem),transparent 100%);
+    mask-image:linear-gradient(180deg,transparent 0,#000 3.2rem,#000 calc(100% - 2.4rem),transparent 100%)}
+  .panel-body{position:relative;z-index:1;flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+  .panel-body::-webkit-scrollbar{display:none;width:0;height:0}
+
+  /* ── project drilldown: the list slides out left, the project slides in,
+     inside the same dock ── */
+  .panel-body{transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1)}
+  .panel.drill .panel-body{opacity:0;transform:translate3d(-20px,0,0);pointer-events:none;visibility:hidden;
+    transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1),visibility 0s linear .4s}
+  .pdetail{position:absolute;left:0;right:0;bottom:0;top:0;z-index:2;overflow-y:auto;overflow-x:hidden;
+    overscroll-behavior:contain;scrollbar-width:none;opacity:0;transform:translate3d(20px,0,0);
+    visibility:hidden;pointer-events:none;
+    transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1),visibility 0s linear .4s}
+  .pdetail::-webkit-scrollbar{display:none}
+  .panel.drill .pdetail{opacity:1;transform:none;visibility:visible;pointer-events:auto;
+    transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1),visibility 0s}
+  @media (min-width:901px){.pdetail{top:4.6rem}}
+  .pd-col{max-width:31rem;padding:0 clamp(1.1rem,3vw,1.6rem) 3rem}
+  .pd-bar{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:.8rem;
+    flex-wrap:wrap;padding:1rem 0 .9rem;border-bottom:1px solid rgba(255,255,255,.08);isolation:isolate}
+  /* the bar's backing feathers out to the right and below, like the dock
+     itself, instead of ending in a box edge over the car */
+  .pd-bar::before{content:"";position:absolute;z-index:-1;inset:-1rem -40% -1.6rem calc(-1 * clamp(1.1rem,3vw,1.6rem));pointer-events:none;
+    background:linear-gradient(90deg,${T.bg} 0%,${T.bg} 58%,transparent 100%);
+    -webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
+  .pd-back{display:inline-flex;align-items:center;gap:.5rem;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:#dbeefe;padding:.5rem .85rem;border-radius:999px;border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.05);
+    transition:border-color .25s ease,background-color .25s ease}
+  .pd-back i{font-style:normal;display:inline-block;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+  .pd-back:hover{border-color:rgba(56,189,248,.7);background:rgba(56,189,248,.1)}
+  .pd-back:hover i{transform:translate3d(-4px,0,0)}
+  .pd-back:focus-visible{outline:2px solid #38bdf8;outline-offset:3px}
+  .pd-meta{display:flex;align-items:center;gap:.6rem;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase}
+  .pd-index{color:#0b1220;background:#38bdf8;padding:.18rem .45rem;border-radius:4px;font-weight:600}
+  .pd-client{color:#7f97b5}
+  .pd-head{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:1.1rem;align-items:start;margin-top:1.4rem}
+  .pd-title{font-family:${FONT.sans};font-weight:650;font-size:22px;line-height:1.25;letter-spacing:-.01em;color:#fff;margin:0}
+  .pd-tag{margin:.35rem 0 .9rem;font-size:.86rem !important;color:#8ea6c2}
+  .pd-stack{display:flex;flex-wrap:wrap;gap:.35rem}
+  .pd-stack span{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#38bdf8;
+    padding:.24rem .5rem;border-radius:5px;border:1px solid rgba(56,189,248,.3);background:rgba(56,189,248,.05)}
+  .pd-schem{height:100px;border:1px solid rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;background:linear-gradient(160deg,rgba(56,189,248,.06),rgba(2,6,23,.2))}
+  .pd-schem svg{height:84px !important;width:auto !important;max-width:100%}
+  .pd-row{border-top:1px solid rgba(255,255,255,.08);padding:1.05rem 0;margin-top:1.1rem}
+  .pd-row + .pd-row{margin-top:0}
+  .pd-label{font-size:.66rem !important;letter-spacing:.14em;text-transform:uppercase;color:#38bdf8;margin-bottom:.5rem}
+  .pd-row p{margin:0;color:#c3d3e6}
+  .pd-row strong{color:#f1f6ff;font-weight:600}
+  .pd-variant + .pd-variant{margin-top:.8rem !important}
+  .pd-variant .mono{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#7f97b5}
+  .pd-foot{border-top:1px solid rgba(255,255,255,.08);padding-top:1.3rem;margin-top:.2rem}
+  .pd-cta{position:relative;display:inline-flex;align-items:center;gap:.6rem;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+    color:#e6f6ff;padding:.85rem 1.2rem .85rem 1.6rem;border-radius:8px;border:1px solid #38bdf8;background:rgba(56,189,248,.07);
+    box-shadow:0 0 0 1px rgba(56,189,248,.12),0 0 26px -8px rgba(56,189,248,.6);transition:box-shadow .3s ease,background-color .3s ease}
+  /* the M tricolour, down the leading edge */
+  .pd-cta::before{content:"";position:absolute;left:.6rem;top:.7rem;bottom:.7rem;width:4px;border-radius:2px;
+    background:linear-gradient(180deg,#0066B1 0 33.3%,#003399 33.3% 66.6%,#E30613 66.6% 100%)}
+  .pd-cta:hover{background:rgba(56,189,248,.14);box-shadow:0 0 0 1px rgba(56,189,248,.3),0 0 34px -6px rgba(56,189,248,.8)}
+  .pd-private{display:inline-block;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:#7f97b5;
+    padding:.6rem .9rem;border-radius:8px;border:1px solid rgba(255,255,255,.1)}
+  .panel .sec{padding:1.4rem 0}
+  .panel .sec > .wrap{background:transparent;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none;
+    box-shadow:none;padding-block:0;padding-inline:clamp(1.1rem,3vw,1.6rem);
+    max-width:31rem;margin-inline:0}
+  /* The cards were drawn for a full-width page: at 560px each mockup ran
+     nearly 400px tall, so twenty-one of them made thirteen screens of
+     scrolling with no way to scan. In the column the art is a thumbnail and
+     the words lead. */
+  /* In the dossier the thumbnails are smoked glass. The mockups draw their
+     fills in the theme blue, which at this size reads as solid placeholder
+     blocks; redefining the blues here turns them into muted steel accents
+     without touching the full-size art anywhere else. */
+  .panel .pcard-art{height:132px;aspect-ratio:auto;padding:3.5%;border-radius:14px;
+    --blue:#2f6f9a;--blueDeep:#1f4c6e;--sky:#5aa4cf;--blue-rgb:56 189 248;
+    background:linear-gradient(160deg,rgba(15,23,42,.72),rgba(2,6,23,.56));
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 8px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);
+    transition:border-color .3s ease,transform .45s cubic-bezier(.16,1,.3,1),box-shadow .45s ease}
+  .panel .pcard:hover .pcard-art{border-color:rgba(56,189,248,.42);transform:translate3d(0,-2px,0);
+    box-shadow:0 14px 36px rgba(0,0,0,.55),0 0 26px rgba(56,189,248,.12)}
+  .panel .pcard-mock{filter:saturate(.8)}
+
+  .panel #projects .wrap > div[style*="grid"]{gap:.65rem !important}
+  .panel .pcard{display:flex;flex-direction:column;gap:.38rem;padding:.95rem 1.05rem;border-radius:12px;
+    border:1px solid rgba(255,255,255,.08);background:transparent;
+    transition:border-color .3s ease,transform .45s cubic-bezier(.16,1,.3,1),background-color .3s ease}
+  .panel .pcard:hover{border-color:rgba(56,189,248,.42);transform:translate3d(0,-2px,0);
+    background:rgba(56,189,248,.04)}
+  .panel .pcard .pcard-art{display:none}
+  .panel .pcard-name{order:1;margin-top:0 !important;font-size:1.08rem !important;color:#f1f6ff !important}
+  .panel .pcard-for{order:2;margin-top:0 !important;font-size:.66rem !important;letter-spacing:.12em;
+    text-transform:uppercase;color:#7f97b5 !important}
+  .panel .pcard > .mono:not(.pcard-for){order:3;margin-top:.15rem !important;font-size:.66rem !important;
+    letter-spacing:.12em;text-transform:uppercase;color:#38bdf8 !important}
+  .panel .pcard:hover .pcard-name{color:#bae6fd !important}
+  /* solid blue pills and active filters become M-telemetry tags */
+  .panel .pill{background:rgba(56,189,248,.1);color:#7dd3fc;border:1px solid rgba(56,189,248,.35)}
+  .panel .chip{background:rgba(15,23,42,.6);border-color:rgba(255,255,255,.08)}
+  .panel .chip.on{background:rgba(56,189,248,.14);border-color:rgba(56,189,248,.55);color:#bae6fd}
+  .panel .tag{background:rgba(15,23,42,.6);border-color:rgba(255,255,255,.08);color:#b9cce4}
+  .panel #projects .wrap > div[style*="grid"]{gap:1.25rem !important}
+  .panel .sec h2{font-size:clamp(1.8rem,5vw,2.6rem) !important}
+  @media (max-width:900px){
+    .panel{left:0;right:0;width:100%;top:auto;height:64svh}
+    .panel::before{background:linear-gradient(180deg,
+        transparent 0%,
+        color-mix(in srgb,${T.bg} 70%, transparent) 8%,
+        color-mix(in srgb,${T.bg} 95%, transparent) 24%,
+        color-mix(in srgb,${T.bg} 98%, transparent) 100%)}
+    .panel .sec > .wrap,.panel .dossier{max-width:none}
+    .panel-rail{display:none}
+  }
+
+  @media (max-width:640px){.plate-parts{gap:.35rem}.plate-part{padding:.42rem .6rem}}
+`;
+
 export default function Portfolio() {
   const mobile = useIsMobile();
   const reduced = useReducedMotion();
   const motion = !reduced;
-  const [ready, setReady] = useState(reduced);
   const [menu, setMenu] = useState(false);
   const [theme, toggleTheme] = useTheme();
-  const active = useActiveSection();
-  const onLoaded = useCallback(() => setReady(true), []);
+  // the car's entrance has two moments: the page is uncovered part way
+  // through the wipe, and the scroll is handed over only once it parks
+  const [carShown, setCarShown] = useState(reduced);
+  const [carParked, setCarParked] = useState(reduced);
+  const dockAt = useRef(0);
+
+  // clicking a part of the car scrolls the dossier to what it stands for
+  const jump = useCallback((id) => {
+    window.dispatchEvent(new Event("drill:close"));
+    const el = id && document.getElementById(id);
+    const body = el && el.closest(".panel-body");
+    if (el && body) body.scrollTo({ top: el.offsetTop - 12, behavior: "smooth" });
+  }, []);
+
+  // a reload restores the old scroll position, which would start the tour
+  // half way round the car. Nothing scrolls until the lights are up.
+  useEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    if (!carParked) window.scrollTo(0, 0);
+    const root = document.documentElement;
+    // While a card is open it owns the wheel. If the page scrolled instead,
+    // that scroll released the pin and shut the card the moment you tried to
+    // read it.
+    // the window never scrolls: the dossier does
+    root.style.overflow = "hidden";
+    return () => { root.style.overflow = ""; };
+  }, [carParked]);
+
+  const onCarShown = useCallback(() => setCarShown(true), []);
+  const onCarParked = useCallback(() => setCarParked(true), []);
 
   const go = useCallback((id) => {
     setMenu(false);
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
-  }, [reduced]);
+    jump(id);
+  }, [jump]);
 
   useEffect(() => {
     if (!menu) return;
@@ -1006,25 +1603,24 @@ export default function Portfolio() {
 
   return (
     <>
-      <style>{THEME_CSS + CSS + MOTION_CSS + FX_CSS}</style>
-      <Loader onDone={onLoaded} reduced={reduced} />
+      <style>{THEME_CSS + CSS + MOTION_CSS + FX_CSS + CAR_CSS + GARAGE_CSS}</style>
+      <IntroHud />
+      <HeroName />
       <ScrollBar />
 
-      <main>
-        <World mobile={mobile} motion={motion} reduced={reduced} ready={ready} theme={theme} />
-        <Services mobile={mobile} motion={motion} />
-        <Experience mobile={mobile} motion={motion} />
-        <Background mobile={mobile} motion={motion} />
-        <Projects mobile={mobile} motion={motion} />
-        <Credentials mobile={mobile} motion={motion} />
-        <Contact mobile={mobile} motion={motion} />
-      </main>
+      {/* the garage is the whole site: the car is the navigation, and each
+          part of it opens a drawer of the portfolio over the top */}
+      <CarScene reduced={reduced} onReveal={onCarShown} onDone={onCarParked} onPart={jump} progressRef={dockAt} />
+
+      {/* the dossier is always there: the left is what you read, the right
+          is the car, and scrolling one drives the other */}
+      <Panel shown={carParked} mobile={mobile} motion={motion} progressRef={dockAt} />
+
 
       {/* cursor smoke: above the page, below the chrome, menu and modals */}
       <Smoke />
       <Menu open={menu} go={go} mobile={mobile} />
       <TopBar open={menu} setOpen={setMenu} go={go} theme={theme} toggleTheme={toggleTheme} />
-      <Rail go={go} active={active} />
 
       <Analytics />
       <SpeedInsights />

@@ -12,7 +12,7 @@ TAGLINE = "Android  ·  Full-stack  ·  AI systems"
 # order matters: a parser reads this line left to right
 CONTACT = [
     "surya777dbs@gmail.com",
-    "Coimbatore, Tamil Nadu, India",
+    "Chennai, Tamil Nadu, India",
     "github.com/D-A-R-X",
     "linkedin.com/in/surya-j-194910306",
 ]

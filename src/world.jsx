@@ -92,15 +92,18 @@ function roundRect(x, a, b, w, h, r) {
 function wordmark(text, n, font, seed, stacked) {
   // one line is right for a landscape screen; a portrait one gets the name
   // stacked, because a single wide line would run off both edges
-  const rows = stacked ? text.split(" ") : [text];
-  const W = stacked ? 620 : 1100;
-  const H = stacked ? 460 : 260;
-  const size = stacked ? 230 : 200;
+  // the mark is one word now, so the stacked layout only kicks in if there
+  // is actually something to stack
+  const rows = text.split(" ");
+  const multi = stacked && rows.length > 1;
+  const W = multi ? 620 : 1100;
+  const H = multi ? 460 : 260;
+  const size = multi ? 230 : 200;
   return sample((x) => {
     x.textAlign = "center";
     x.textBaseline = "middle";
     x.font = `360 ${size}px ${font}`;
-    x.letterSpacing = stacked ? "10px" : "14px";
+    x.letterSpacing = multi ? "10px" : "14px";
     x.lineWidth = 3;
     const step = size * 0.92;
     const top = H / 2 - (step * (rows.length - 1)) / 2;
@@ -109,7 +112,7 @@ function wordmark(text, n, font, seed, stacked) {
       x.fillText(row, W / 2, top + i * step);
       x.strokeText(row, W / 2, top + i * step);
     });
-  }, n, seed, { depth: 0.2, height: stacked ? 1.5 : 0.78, w: W, h: H });
+  }, n, seed, { depth: 0.2, height: multi ? 1.5 : 0.78, w: W, h: H });
 }
 
 /** The monogram — Cruza at the studio chapter. */
@@ -499,7 +502,7 @@ export async function createParticles(canvas, { mobile }) {
     }
   } catch { /* fall back to Georgia */ }
 
-  const shapes = [wordmark("SURYA J", n, stencil, 11, mobile), phone(n, 23), browser(n, 37), server(n, 41), glyph("C", n, font, 53)];
+  const shapes = [wordmark("SURYA", n, stencil, 11, mobile), phone(n, 23), browser(n, 37), server(n, 41), glyph("C", n, font, 53)];
 
   const r = rng(97);
   const rnd = new Float32Array(n * 4);
@@ -696,7 +699,9 @@ export function Landscape({ layers }) {
         position: "absolute",
         inset: 0,
         overflow: "hidden",
-        background: `linear-gradient(180deg, ${T.sky0} 0%, ${T.sky1} 46%, ${T.sky2} 78%, ${T.sky3} 100%)`,
+        // the car is a layer underneath this one, so the wash keeps the sky
+        // and the ground and opens in the middle, where the car stands
+        background: `linear-gradient(180deg, ${T.sky0} 0%, ${T.sky1} 24%, transparent 46%, transparent 74%, ${T.sky3} 100%)`,
         transition: "background .6s ease",
       }}
     >
