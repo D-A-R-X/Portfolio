@@ -33,7 +33,7 @@ small captions that decode in letter by letter.
   with the problem, the approach and the stack
 - **Liquid cards** — hovering a project ripples its art around the cursor with
   RGB-split fringes while the card's edge bulges toward it; a fast scroll
-  bends the cards and glitches them into shifted pixel bands
+  bends the cards a little, the way a sheet would
 - **Credentials** — an awards-style list; certifications expand to show the
   certificate
 - **Dock** — a bottom pill: menu, name (back to top) and an orb to contact.
@@ -77,7 +77,7 @@ React 18 · Vite 5 · no CSS framework (inline styles off a shared token file).
 | `src/motion.jsx` | Scroll engine, scrubbers, parallax, reveals, text decode |
 | `src/world.jsx` | WebGL particle morph, pointer physics, the SVG landscape |
 | `src/fluid.jsx` | The cursor smoke — a small stable-fluids solver |
-| `src/cardfx.jsx` | Liquid / RGB-split / glitch shader for the project cards |
+| `src/cardfx.jsx` | Liquid ripple and RGB-split shader for the project cards |
 | `src/mockups.jsx` | Schematic project mockups |
 | `src/App.jsx` | Page composition and global CSS |
 | `src/assets.js` | Paths to the certificate images in `public/img/` |

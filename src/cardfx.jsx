@@ -5,8 +5,7 @@ import { useEffect, useRef } from "react";
 
    Hover: the art ripples around the pointer, splits into RGB
    fringes, zooms a touch and the card's edge bulges toward the
-   cursor. Fast scroll: the cards bend with the scroll and, when
-   it is really moving, glitch into shifted pixel bands.
+   cursor. Scrolling bends them a little, the way a sheet would.
 
    How it stays cheap and locked to the page:
    - One WebGL canvas lives inside the projects grid, covering
@@ -42,7 +41,6 @@ uniform float uMargin, uRadius;
 uniform vec2 uMouse;      // card uv, y up
 uniform float uHover;     // 0..1
 uniform float uBend;      // signed scroll velocity, ~-1..1
-uniform float uGlitch;    // 0..1
 uniform float uTime;
 uniform vec3 uBorder;
 
@@ -90,19 +88,9 @@ void main() {
   // hover zoom
   uv = (uv - 0.5) / (1.0 + 0.045 * uHover) + 0.5;
 
-  // glitch: bands of the image jump sideways and pixelate
-  if (uGlitch > 0.001) {
-    float band = floor(uv.y * 14.0);
-    float seed = floor(uTime * 18.0);
-    float h = hash(vec2(band, seed));
-    if (h < uGlitch * 0.35) {
-      uv.x += (hash(vec2(seed, band)) - 0.5) * 0.05 * uGlitch;
-    }
-  }
-
   // RGB split: channels ride the distortion at different strengths
   vec2 dir = normalize(disp + vec2(0.0001, 0.0)) ;
-  float ca = uHover * near * 0.005 + abs(uBend) * 0.004 + uGlitch * 0.012;
+  float ca = uHover * near * 0.005 + abs(uBend) * 0.004;
   vec2 c = clamp(uv + disp, 0.0, 1.0);
   float r = texture2D(uTex, clamp(uv + disp * 1.25 + dir * ca, 0.0, 1.0)).r;
   float g = texture2D(uTex, c).g;
@@ -199,7 +187,7 @@ function createLayer(grid, cv) {
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.clearColor(0, 0, 0, 0);
       u = {};
-      for (const k of ["uTex", "uSize", "uMargin", "uRadius", "uMouse", "uHover", "uBend", "uGlitch", "uTime", "uBorder"]) u[k] = gl.getUniformLocation(prog, k);
+      for (const k of ["uTex", "uSize", "uMargin", "uRadius", "uMouse", "uHover", "uBend", "uTime", "uBorder"]) u[k] = gl.getUniformLocation(prog, k);
       gl.uniform1i(u.uTex, 0);
     }
   } catch {
@@ -288,7 +276,7 @@ let running = false, lastY = 0, vel = 0, t0 = 0;
 
 function frame(now) {
   const y = window.scrollY;
-  // px per frame, smoothed; cards bend with it and glitch when it's fast
+  // px per frame, smoothed; the cards bend with it
   vel += ((y - lastY) - vel) * 0.25;
   lastY = y;
   const time = (now - t0) / 1000;
@@ -345,7 +333,7 @@ function mountCard(layer, wrap, art, fine) {
   const st = {
     tex: null, loading: false, ready: false, inView: false, on: false,
     hover: 0, hoverTo: 0, mx: 0.5, my: 0.5, tmx: 0.5, tmy: 0.5,
-    bend: 0, glitch: 0,
+    bend: 0,
   };
 
   // the card's reveal (wipe + scale) must have finished before we stand in for it
@@ -395,10 +383,8 @@ function mountCard(layer, wrap, art, fine) {
       st.my += (st.tmy - st.my) * 0.12;
       const bendTo = st.inView ? Math.max(-1, Math.min(1, v / 45)) : 0;
       st.bend += (bendTo - st.bend) * 0.2;
-      const gTo = st.inView ? Math.min(1, Math.max(0, (Math.abs(v) - 28) / 50)) : 0;
-      st.glitch += (gTo - st.glitch) * 0.3;
-      const live = st.hover > 0.002 || Math.abs(st.bend) > 0.004 || st.glitch > 0.004 || st.hoverTo > 0;
-      if (!live) { st.hover = 0; st.bend = 0; st.glitch = 0; return 0; }
+      const live = st.hover > 0.002 || Math.abs(st.bend) > 0.004 || st.hoverTo > 0;
+      if (!live) { st.hover = 0; st.bend = 0; return 0; }
       return st.inView ? 2 : 1;
     },
     sync(drawn) {
@@ -413,7 +399,6 @@ function mountCard(layer, wrap, art, fine) {
       g.uniform2f(u.uMouse, st.mx, st.my);
       g.uniform1f(u.uHover, st.hover);
       g.uniform1f(u.uBend, st.bend);
-      g.uniform1f(u.uGlitch, st.glitch);
       g.uniform1f(u.uTime, time);
       // the DOM card's own border colour, read live so it tracks the theme
       const k = st.hover;
@@ -421,12 +406,12 @@ function mountCard(layer, wrap, art, fine) {
       g.uniform3f(u.uBorder, b[0] + (b[3] - b[0]) * k, b[1] + (b[4] - b[1]) * k, b[2] + (b[5] - b[2]) * k);
     },
     // ?perf: load, set a state, draw one frame synchronously, read it back
-    async probe({ hover = 0, mx = 0.5, my = 0.5, bend = 0, glitch = 0 } = {}) {
+    async probe({ hover = 0, mx = 0.5, my = 0.5, bend = 0 } = {}) {
       st.ready = true;
       st.inView = true;
       if (!st.tex) await load();
       if (!st.tex) return { error: "no texture" };
-      Object.assign(st, { hover, mx, my, bend, glitch });
+      Object.assign(st, { hover, mx, my, bend });
       layer.size();
       const a = performance.now();
       layer.draw([card], 1.3);
@@ -450,7 +435,7 @@ function mountCard(layer, wrap, art, fine) {
           if (Math.max(R, G, B) - Math.min(R, G, B) > 60 && R > B) fringe += 1;
         }
       }
-      st.hover = 0; st.bend = 0; st.glitch = 0;
+      st.hover = 0; st.bend = 0;
       layer.hide();
       return { ms: +ms.toFixed(2), region: [w, h], lit, bulge, fringe };
     },
