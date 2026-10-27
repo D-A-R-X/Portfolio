@@ -49,7 +49,7 @@ const CSS = `
   :focus-visible{outline:2px solid ${T.blue};outline-offset:3px;border-radius:6px}
 
   .wrap{max-width:1320px;margin:0 auto;padding:0 clamp(1.25rem,4vw,3.5rem);position:relative}
-  .sec{position:relative;padding:clamp(5.5rem,11vw,10rem) 0;overflow:clip}
+  .sec{position:relative;padding:clamp(7rem,14vw,13rem) 0;overflow:clip}
 
   /* the opening chapter is centred on its own axis; everything after it
      stays flush left, where long lines are easier to read */
@@ -107,11 +107,9 @@ const CSS = `
 
   /* project cards */
   .pcard{text-align:left;display:block;width:100%}
-  .pcard-art{position:relative;border-radius:18px;background:${T.surface};border:1px solid ${T.line};overflow:hidden;aspect-ratio:10/8;display:grid;place-items:center;padding:8%;transition:border-color .3s ease}
+  .pcard-art{position:relative;border-radius:18px;background:${T.surface};border:1px solid ${T.line};overflow:hidden;aspect-ratio:10/8;display:grid;place-items:center;padding:11%;transition:border-color .3s ease}
   .pcard-art .wipe-art{width:100%}
-  .pcard-scan{position:absolute;left:-30%;top:0;bottom:0;width:30%;background:linear-gradient(90deg,transparent,${blueA(0.12)},transparent);transform:translate3d(0,0,0);transition:transform .9s ${EASE.out};pointer-events:none}
   .pcard:hover .pcard-art{border-color:${T.ice}}
-  .pcard:hover .pcard-scan{transform:translate3d(470%,0,0)}
   .pcard-mock{transition:transform .8s ${EASE.out}}
   .pcard:hover .pcard-mock{transform:scale(1.045)}
   .pcard-name{transition:color .3s ease}
@@ -618,7 +616,7 @@ function Experience({ mobile, motion }) {
               <Reveal key={job.company} dir="up" delay={i * 0.06} enabled={motion} className="row">
                 <button className="row-btn" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen} style={{ gridTemplateColumns: mobile ? "1fr auto" : "9rem 1fr 1fr auto" }}>
                   {!mobile && <span className="mono" style={{ fontSize: ".72rem", color: job.current ? T.blue : T.muted }}>{job.current ? (job.contract ? "Contract" : "Current") : job.period}</span>}
-                  <span className="row-t" style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".01em", fontSize: mobile ? "2.1rem" : "clamp(2.2rem,3.6vw,3.3rem)", lineHeight: 1, color: T.ink }}>
+                  <span className="row-t" style={{ fontFamily: FONT.sans, fontWeight: 600, letterSpacing: "-.015em", fontSize: mobile ? "1.5rem" : "clamp(1.6rem,2.4vw,2.1rem)", lineHeight: 1.15, color: T.ink }}>
                     {job.company}
                     {mobile && <span className="mono" style={{ display: "block", fontSize: ".68rem", color: T.blue, marginTop: ".4rem" }}>{job.current ? (job.contract ? "Contract" : "Current") : job.period} · {job.role}</span>}
                   </span>
@@ -770,12 +768,11 @@ function Projects({ mobile, motion }) {
                 <FXArt>
                   <div className="pcard-art wipe" style={{ "--d": `${(i % cols) * 0.08 + 0.1}s` }}>
                     <i className="wipe-cover" />
-                    <span className="pcard-scan" aria-hidden="true" />
                     <div className="wipe-art"><div className="pcard-mock"><Mockup kind={p.mock} width="100%" draw /></div></div>
                   </div>
                 </FXArt>
                 <div className="mono" style={{ fontSize: ".68rem", color: T.muted, marginTop: "1rem" }}>{p.stack.slice(0, 2).join(" / ")}</div>
-                <div className="pcard-name" style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".012em", fontSize: mobile ? "1.9rem" : "2.1rem", lineHeight: 1.02, color: T.ink, marginTop: ".4rem" }}>{p.name}</div>
+                <div className="pcard-name" style={{ fontFamily: FONT.sans, fontWeight: 600, letterSpacing: "-.015em", fontSize: mobile ? "1.3rem" : "1.4rem", lineHeight: 1.25, color: T.ink, marginTop: ".55rem" }}>{p.name}</div>
                 <div className="mono pcard-for" style={{ fontSize: ".66rem", color: p.org ? T.blue : T.faint, marginTop: ".35rem" }}>
                   {p.org ? `For ${p.org}` : "Personal project"}
                   {/* two children for the same brand should not say it twice */}
@@ -815,7 +812,7 @@ function Background({ mobile, motion }) {
           <Reveal key={e.degree} dir="up" enabled={motion} style={{ borderTop: `1px solid ${T.ink}`, paddingTop: "1.4rem", marginBottom: "3.4rem" }}>
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1.4fr 1fr", gap: mobile ? "1rem" : "2rem", alignItems: "start" }}>
               <div>
-                <h3 style={{ fontFamily: FONT.display, fontWeight: 600, textTransform: "uppercase", fontSize: mobile ? "2rem" : "2.7rem", lineHeight: 1, color: T.ink, letterSpacing: ".008em" }}>{e.degree}</h3>
+                <h3 style={{ fontFamily: FONT.sans, fontWeight: 600, fontSize: mobile ? "1.5rem" : "1.9rem", lineHeight: 1.2, color: T.ink, letterSpacing: "-.015em" }}>{e.degree}</h3>
                 <p style={{ ...TYPE.body, marginTop: ".5rem" }}>{e.school} · {e.place}</p>
                 <p style={{ ...TYPE.body, marginTop: ".8rem", maxWidth: "52ch" }}>{e.note}</p>
               </div>

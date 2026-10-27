@@ -10,9 +10,9 @@ import { T, PARTICLE } from "./theme.js";
       the vertex shader blends between them, so morphing ~9,000
       particles costs the CPU a few uniform writes a frame. The
       pointer adds real physics on top (see createPhysics).
-   2. A landscape in SVG layers — sky, cloud banks, far range,
-      rocks, a lake with their reflection, a near hill — moved at
-      different depths as you scroll. Transform-only.
+   2. A quiet ground: a sky wash, one soft light and a single
+      horizon hairline, moved at different depths as you scroll.
+      Transform-only.
    ───────────────────────────────────────────────────────── */
 
 /* ─── shape builders — each returns Float32Array(n * 3) ─── */
@@ -686,108 +686,46 @@ export async function createParticles(canvas, { mobile }) {
 
 /* ─── landscape ──────────────────────────────────────────── */
 
-function ridge({ seed, base, amp, n, sharp = false, W = 1600, H = 520 }) {
-  const r = rng(seed);
-  let d = `M0 ${H} L0 ${base}`;
-  for (let i = 0; i <= n; i += 1) {
-    const x = (i / n) * W;
-    if (sharp) {
-      // pillar-like rocks: a flat valley, then a narrow jagged peak
-      const peak = base - (0.35 + r() * 0.65) * amp;
-      d += ` L${(x - W / n * 0.34).toFixed(1)} ${(base - r() * amp * 0.12).toFixed(1)}`;
-      d += ` L${(x - W / n * 0.14).toFixed(1)} ${(peak + r() * 16).toFixed(1)}`;
-      d += ` L${(x + W / n * 0.06).toFixed(1)} ${peak.toFixed(1)}`;
-      d += ` L${(x + W / n * 0.2).toFixed(1)} ${(base - r() * amp * 0.1).toFixed(1)}`;
-    } else {
-      d += ` L${x.toFixed(1)} ${(base - r() * amp).toFixed(1)}`;
-    }
-  }
-  return `${d} L${W} ${H} Z`;
-}
-
-function hill({ seed, base, amp, W = 1600, H = 520, tufts = 0 }) {
-  const r = rng(seed);
-  const pts = [];
-  for (let i = 0; i <= 8; i += 1) pts.push([(i / 8) * W, base - r() * amp]);
-  let d = `M0 ${H} L${pts[0][0]} ${pts[0][1]}`;
-  for (let i = 1; i < pts.length; i += 1) {
-    const [px, py] = pts[i - 1];
-    const [x, y] = pts[i];
-    d += ` Q${px + (x - px) / 2} ${py} ${(px + x) / 2} ${(py + y) / 2} T${x} ${y}`;
-  }
-  d += ` L${W} ${H} Z`;
-  // grass: small blades along the top edge
-  let g = "";
-  for (let i = 0; i < tufts; i += 1) {
-    const x = r() * W;
-    const seg = Math.min(pts.length - 2, Math.floor((x / W) * 8));
-    const [x0, y0] = pts[seg], [x1, y1] = pts[seg + 1];
-    const y = y0 + ((x - x0) / (x1 - x0)) * (y1 - y0) + 4;
-    const hgt = 8 + r() * 18;
-    g += `M${x.toFixed(1)} ${y.toFixed(1)} L${(x + 2.5).toFixed(1)} ${(y - hgt).toFixed(1)} L${(x + 5).toFixed(1)} ${y.toFixed(1)} Z `;
-  }
-  return { d, g };
-}
-
-const FAR = ridge({ seed: 3, base: 300, amp: 70, n: 16 });
-const ROCKS = ridge({ seed: 7, base: 330, amp: 150, n: 11, sharp: true });
-const NEAR = hill({ seed: 13, base: 420, amp: 70, tufts: 220 });
 
 export function Landscape({ layers }) {
   const L = (i) => (el) => { layers.current[i] = el; };
-  const svg = { position: "absolute", left: "-5%", width: "110%", bottom: 0, height: "62%", display: "block" };
   return (
-    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", background: `linear-gradient(180deg, ${T.sky0} 0%, ${T.sky1} 38%, ${T.sky2} 62%, ${T.sky3} 100%)`, transition: "background .6s ease" }}>
-      {/* sun glow */}
-      <div ref={L(0)} style={{ position: "absolute", left: "50%", top: "14%", width: "70vmax", height: "70vmax", marginLeft: "-35vmax", borderRadius: "50%", background: `radial-gradient(circle, ${T.glow} 0%, transparent 58%)` }} />
-      {/* cloud banks */}
-      <div ref={L(1)} style={{ position: "absolute", inset: 0 }}>
-        {[["-8%", "8%", 46, 16], ["58%", "3%", 52, 14], ["26%", "30%", 40, 10], ["72%", "34%", 34, 9]].map(([x, y, w, hh], i) => (
-          <div key={i} style={{ position: "absolute", left: x, top: y, width: `${w}vw`, height: `${hh}vw`, borderRadius: "50%", background: `radial-gradient(ellipse at 50% 60%, ${T.cloud} 0%, ${T.cloud2} 40%, transparent 70%)` }} />
-        ))}
-      </div>
-      {/* far range */}
-      <svg ref={L(2)} viewBox="0 0 1600 520" preserveAspectRatio="xMidYMax slice" style={svg}>
-        <path d={FAR} fill={T.far} />
-      </svg>
-      {/* rocks + lake + reflection */}
-      <svg ref={L(3)} viewBox="0 0 1600 520" preserveAspectRatio="xMidYMax slice" style={svg}>
-        <defs>
-          <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={T.lake0} />
-            <stop offset="1" stopColor={T.lake1} />
-          </linearGradient>
-        </defs>
-        <path d={ROCKS} fill={T.rocks} />
-        <rect x="0" y="330" width="1600" height="190" fill="url(#lake)" />
-        <path d={ROCKS} fill={T.rocks} opacity=".28" transform="translate(0 660) scale(1 -1)" />
-        {[0, 1, 2, 3].map((i) => (
-          <rect key={i} x={120 + i * 380} y={352 + i * 22} width={220 - i * 30} height="1.5" fill={T.spark} opacity=".7" />
-        ))}
-      </svg>
-      {/* near hill with grass */}
-      <svg ref={L(4)} viewBox="0 0 1600 520" preserveAspectRatio="xMidYMax slice" style={{ ...svg, height: "58%" }}>
-        <path d={NEAR.d} fill={T.near} />
-        <path d={NEAR.g} fill={T.near} />
-      </svg>
-      {/* petals drifting across the whole frame */}
-      <div ref={L(5)} style={{ position: "absolute", inset: 0 }}>
-        {Array.from({ length: 14 }, (_, i) => (
-          <span
-            key={i}
-            className="petal"
-            style={{
-              left: `${(i * 37) % 100}%`,
-              top: `${(i * 23) % 60}%`,
-              width: 6 + (i % 4) * 2,
-              height: 4 + (i % 3) * 2,
-              background: i % 3 ? T.spark : T.petal,
-              animationDuration: `${14 + (i % 5) * 3}s`,
-              animationDelay: `${-i * 1.7}s`,
-            }}
-          />
-        ))}
-      </div>
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        background: `linear-gradient(180deg, ${T.sky0} 0%, ${T.sky1} 46%, ${T.sky2} 78%, ${T.sky3} 100%)`,
+        transition: "background .6s ease",
+      }}
+    >
+      {/* one soft light behind the subject, and nothing else */}
+      <div
+        ref={L(0)}
+        style={{
+          position: "absolute", left: "50%", top: "22%",
+          width: "78vmax", height: "78vmax", marginLeft: "-39vmax",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${T.glow} 0%, transparent 62%)`,
+        }}
+      />
+      {/* a single horizon, drawn as a hairline rather than a picture */}
+      <div
+        ref={L(1)}
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: "26%",
+          height: 1, background: `linear-gradient(90deg, transparent, ${T.line2}, transparent)`,
+          opacity: 0.8,
+        }}
+      />
+      <div
+        ref={L(2)}
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, height: "26%",
+          background: `linear-gradient(180deg, transparent, ${T.sky3})`,
+        }}
+      />
     </div>
   );
 }

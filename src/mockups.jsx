@@ -420,20 +420,6 @@ export function Mockup({ kind, width = 200, draw = true, style = {} }) {
       }}
     >
       <svg viewBox="0 0 200 140" width="100%" height="100%" aria-hidden="true" style={{ display: "block", overflow: "visible" }}>
-        {/* ruled ground so the frame sits on something */}
-        <defs>
-          <pattern id="mockGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M10 0 L0 0 0 10" fill="none" stroke={whiteA(0.035)} strokeWidth="0.5" />
-          </pattern>
-        </defs>
-        <rect x="0" y="0" width="200" height="140" fill="url(#mockGrid)" />
-        {/* corner ticks */}
-        {[[2, 2, 1, 1], [198, 2, -1, 1], [2, 138, 1, -1], [198, 138, -1, -1]].map(([x, y, dx, dy], i) => (
-          <g key={i} stroke={blueA(0.5)} strokeWidth="0.9">
-            <line x1={x} y1={y} x2={x + dx * 7} y2={y} />
-            <line x1={x} y1={y} x2={x} y2={y + dy * 7} />
-          </g>
-        ))}
         {art}
       </svg>
     </div>
