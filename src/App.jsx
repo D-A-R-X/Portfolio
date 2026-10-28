@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -26,16 +25,16 @@ const CHAPTERS = [
 ];
 
 const SERVICES = [
-  ["Android Applications", "Kotlin · Jetpack Compose"],
-  ["Web Platforms", "Next.js · React · TypeScript"],
-  ["Backend Services", "Go · Python · FastAPI"],
-  ["Realtime Systems", "Convex · Firebase"],
-  ["Geospatial & Live Tracking", "PostGIS · TimescaleDB · Redis"],
-  ["AI & ML Systems", "Generative AI · Prompting · ML"],
-  ["Design Systems", "Tokens · Theming · Components"],
-  ["APIs & Integrations", "REST · Webhooks · WhatsApp"],
-  ["Cross-platform Apps", "Flutter · Firebase"],
-  ["Deployment", "Vercel · Render · Docker"],
+  ["Android Applications", "Kotlin · Jetpack Compose", "Native Kotlin clients on MVVM and Coroutines, with encrypted local storage. Mconnect and the Aivida field apps."],
+  ["Web Platforms", "Next.js · React · TypeScript", "Next.js and TypeScript platforms with live backends and generated reports. Manju PMS and Travel Desk."],
+  ["Backend Services", "Go · Python · FastAPI", "Go and Python services that scale apart from the apps they serve. Airix Geo Tracking and Mentorix."],
+  ["Realtime Systems", "Convex · Firebase", "Live state shared across web and mobile. Manju PMS runs on a real-time Convex backend."],
+  ["Geospatial & Live Tracking", "PostGIS · TimescaleDB · Redis", "Location ingestion, trip sessions and tamper checks on PostGIS and TimescaleDB, with Redis for live state."],
+  ["AI & ML Systems", "Generative AI · Prompting · ML", "RandomForest career prediction in Mentorix and an AI sales assistant inside Manju PMS."],
+  ["Design Systems", "Tokens · Theming · Components", "Semantic colour tokens, so every screen themes light and dark from one source."],
+  ["APIs & Integrations", "REST · Webhooks · WhatsApp", "REST APIs, webhooks and WhatsApp flows, like the token-scoped driver links in Travel Desk."],
+  ["Cross-platform Apps", "Flutter · Firebase", "Flutter with Firebase where one codebase has to cover both Android and iOS."],
+  ["Deployment", "Vercel · Render · Docker", "Vercel, Render and Docker, with separate stacks per brand so one cannot take the other down."],
 ];
 
 const MENU = [["Home", "top"], ["About", "about"], ["What I do", "services"], ["Experience", "experience"], ["Background", "background"], ["Projects", "projects"], ["Credentials", "credentials"], ["Contact", "contact"]];
@@ -162,7 +161,7 @@ const CSS = `
   .mark:hover{opacity:1}
   .mark.hid{opacity:0;pointer-events:none}
 
-  .chrome{position:fixed;right:clamp(1rem,3vw,2.2rem);top:clamp(.75rem,1.9vh,1.2rem);z-index:1002;display:flex;align-items:center;gap:.5rem}
+  .chrome{position:fixed;right:clamp(1rem,3vw,2.2rem);top:clamp(.75rem,1.9vh,1.2rem);z-index:1260;display:flex;align-items:center;gap:.5rem}
   .chip-btn{display:inline-flex;align-items:center;gap:.45rem;height:36px;padding:0 .95rem;border-radius:999px;border:1px solid ${T.line2};background:${T.surface};color:${T.ink};font-size:.82rem;font-weight:500;box-shadow:${SHADOW.card};transition:border-color .3s ease,color .3s ease,transform .3s ${EASE.out}}
   .chip-btn:hover{border-color:${T.blue};color:${T.blue};transform:translate3d(0,-1px,0)}
   .theme-btn{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid ${T.line2};background:${T.surface};color:${T.ink};box-shadow:${SHADOW.card};transition:border-color .3s ease,color .3s ease}
@@ -176,7 +175,7 @@ const CSS = `
 
 
 
-  .menu{position:fixed;inset:0;z-index:999;background:${T.bg};display:flex;flex-direction:column;transform:translate3d(0,102%,0);transition:transform .8s ${EASE.inOut};overflow:auto}
+  .menu{position:fixed;inset:0;z-index:1250;background:${T.bg};display:flex;flex-direction:column;transform:translate3d(0,102%,0);transition:transform .8s ${EASE.inOut};overflow:auto}
   .menu.open{transform:none}
   .menu>.wrap{margin-block:auto;padding-top:5rem}
   .menu-link{display:flex;align-items:baseline;gap:1rem;padding:.2rem 0;opacity:0;transform:translate3d(0,40px,0);transition:opacity .6s ${EASE.out},transform .8s ${EASE.out},color .3s ease}
@@ -590,8 +589,6 @@ function Services({ mobile, motion }) {
         if (!el) return;
         const d = String(Math.min(3, Math.abs(i - active)));
         if (el.dataset.d !== d) el.dataset.d = d;
-        const idx = el.firstChild;
-        if (idx) idx.textContent = i === active ? "—" : `(${String(i + 1).padStart(3, "0")})`;
       });
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(step); };
@@ -615,19 +612,18 @@ function Services({ mobile, motion }) {
             <Reveal dir="up" delay={0.15} enabled={motion}>
               <p style={{ fontFamily: FONT.sans, fontWeight: 500, fontSize: mobile ? "1.3rem" : "1.55rem", lineHeight: 1.4, color: T.text, maxWidth: "34ch", letterSpacing: "-.01em" }}>
                 <span className="hook hook-row" aria-hidden="true" />
-                From the Android app in someone's pocket to the service tracking a fleet in real time — designed, built and shipped.
+                From the Android app in someone's pocket to the service tracking a fleet in real time. Designed, built and shipped.
               </p>
             </Reveal>
           </div>
 
           <div ref={ref}>
-            {SERVICES.map(([name, stack], i) => (
-              <div key={name} ref={(el) => { rows.current[i] = el; }} className="svc" data-d={motion ? String(Math.min(3, i)) : "0"} style={{ borderTop: `1px solid ${T.line}` }}>
-                <span className="svc-i">{i === 0 ? "—" : `(${String(i + 1).padStart(3, "0")})`}</span>
-                <span className="svc-n">
-                  <span style={{ display: "block", fontSize: mobile ? "1.5rem" : "clamp(1.8rem,2.8vw,2.7rem)", color: T.ink }}>{name}</span>
-                  <span className="mono" style={{ display: "block", fontSize: ".68rem", color: T.muted, marginTop: ".2rem" }}>{stack}</span>
-                </span>
+            {SERVICES.map(([name, stack, spec], i) => (
+              <div key={name} ref={(el) => { rows.current[i] = el; }} className="svc" tabIndex={0} data-d={motion ? String(Math.min(3, i)) : "0"}>
+                <span className="svc-i mono">{String(i + 1).padStart(2, "0")}</span>
+                <span className="svc-s">{stack}</span>
+                <span className="svc-n">{name}</span>
+                <span className="svc-x">{spec}</span>
               </div>
             ))}
             <div style={{ borderTop: `1px solid ${T.line}` }} />
@@ -644,9 +640,12 @@ function Experience({ mobile, motion }) {
   return (
     <section id="experience" className="sec">
       <div className="wrap">
+        <div className="sec-head">
         <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Experience</span></Reveal>
         <Lines lines={["Where *I've*", "→worked"]} motion={motion} style={{ fontSize: mobile ? "3rem" : "clamp(3.6rem,6.4vw,6.4rem)", marginBottom: mobile ? "2.4rem" : "3.6rem" }} />
 
+</div>
+        <div className="sec-body">
         <div style={{ borderBottom: `1px solid ${T.line2}` }}>
           {EXPERIENCE.map((job, i) => {
             const isOpen = open === i;
@@ -678,6 +677,11 @@ function Experience({ mobile, motion }) {
                     <div style={{ display: "flex", flexWrap: "wrap", gap: ".4rem" }}>
                           {job.stack.map((s) => <span key={s} className="tag">{s}</span>)}
                         </div>
+                        {job.site && (
+                          <a className="pd-link" href={job.site} target="_blank" rel="noopener noreferrer" style={{ marginTop: "1.2rem" }}>
+                            Visit {new URL(job.site).hostname.replace(/^www\./, "")} <span aria-hidden="true">&#8599;</span>
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -686,128 +690,100 @@ function Experience({ mobile, motion }) {
             );
           })}
         </div>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ─── PROJECT DRILLDOWN ─────────────────────────────────────
-   A project opens inside the dock, not over the page: the list slides out
-   to the left and the project slides in, in the same glass, so the car on
-   the right is never covered. The list stays where it was underneath, so
-   the camera does not move and Back lands on the same card. */
+/* ─── PROJECT DETAIL ─────────────────────────────────────────
+   A project opens in place, in its own row: the row folds open on the
+   problem, the decision and the outcome, with the schematic and the specs
+   beside them. Nothing covers the list or the car. */
 const LINK_LABEL = { GitHub: "View source repo", "Play Store": "Open on Play Store" };
 
-function ProjectDrill({ project, onClose, total }) {
-  const back = useRef(null);
-  const pane = useRef(null);
-  // the last project stays rendered through the exit slide
-  const [shown, setShown] = useState(project);
-  useEffect(() => { if (project) setShown(project); }, [project]);
-  const host = typeof document !== "undefined" ? document.querySelector(".panel") : null;
-
-  useEffect(() => {
-    if (!host) return undefined;
-    host.classList.toggle("drill", !!project);
-    if (!project) return undefined;
-    const prev = document.activeElement;
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("drill:close", onClose);
-    if (pane.current) pane.current.scrollTop = 0;
-    // a frame later: the button is only focusable once the slide has made it visible
-    const f = requestAnimationFrame(() => { if (back.current) back.current.focus({ preventScroll: true }); });
-    return () => {
-      cancelAnimationFrame(f);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("drill:close", onClose);
-      if (prev && prev.focus) prev.focus({ preventScroll: true });
-    };
-  }, [project, onClose, host]);
-  useEffect(() => () => { if (host) host.classList.remove("drill"); }, [host]);
-
-  if (!host || !shown) return null;
-  const p = shown;
-  const index = String(PROJECTS.indexOf(p) + 1).padStart(2, "0");
+function ProjectDetail({ p }) {
   const orgs = p.org ? [p.org, ...new Set((p.variants || []).map((v) => v.org).filter((o) => o !== p.org))] : [];
   const rows = [
-    ["01", "The problem", p.problem],
-    ["02", "Design decision", p.highlight],
+    ["01", "The problem", p.context || p.problem],
+    ["02", "Engineering decision", p.highlight],
     ["03", "Architecture & outcome", p.power],
   ];
+  if (p.org && ORGS[p.org]) rows.push(["04", "Client", ORGS[p.org].blurb]);
+  if (p.variants) rows.push([String(rows.length + 1).padStart(2, "0"), "Also deployed as", p.variants]);
 
-  return createPortal(
-    <div className="pdetail" ref={pane} role="region" aria-label={`${p.name}, project details`}>
-      <div className="pd-col">
-        <div className="pd-bar">
-          <button ref={back} className="pd-back mono" onClick={onClose}>
-            <i aria-hidden="true">&larr;</i> Back to {total} projects
-          </button>
-          <span className="pd-meta mono">
-            <span className="pd-index">{index} / {String(PROJECTS.length).padStart(2, "0")}</span>
-            <span className="pd-client">{orgs.length ? `For ${orgs.join(" + ")}` : "Personal project"}</span>
-          </span>
-        </div>
-
-        <div className="pd-head">
-          <div>
-            <h3 className="pd-title">{p.name}</h3>
-            <p className="pd-tag">{p.tag}</p>
-            <div className="pd-stack">
-              {p.stack.map((t) => <span key={t} className="mono">{t}</span>)}
-            </div>
-          </div>
-          <div className="pd-schem" aria-hidden="true"><Mockup kind={p.mock} width="100%" draw /></div>
-        </div>
-
+  return (
+    <div className="pd-x">
+      <div className="pd-head">
+        <p className="pd-sub">{p.tag}</p>
+        <div className="pd-preview" aria-hidden="true"><Mockup kind={p.mock} width="100%" draw /></div>
+        <dl className="pd-meta">
+          {[
+            ["Client", orgs.length ? orgs.join(" & ") : "Personal project"],
+            ["Type", p.cat],
+            ["Stack", p.stack.join(", ")],
+            ["Source", p.repo ? p.repoLabel : "Private"],
+          ].map(([k, v]) => (
+            <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
+          ))}
+        </dl>
+        {p.repo && (
+          <a className="pd-link" href={p.repo} target="_blank" rel="noopener noreferrer">
+            {LINK_LABEL[p.repoLabel] || p.repoLabel} <span aria-hidden="true">&#8599;</span>
+          </a>
+        )}
+      </div>
+      <div className="pd-body">
         {rows.map(([n, k, v]) => (
           <div key={n} className="pd-row">
-            <div className="pd-label mono">[ {n} // {k} ]</div>
-            <p>{v}</p>
+            <div className="pd-label">{n} &middot; {k}</div>
+            {Array.isArray(v)
+              ? <div>{v.map((x) => <p key={x.name} className="pd-variant"><strong>{x.name}.</strong> {x.note}</p>)}</div>
+              : <p>{v}</p>}
           </div>
         ))}
-
-        {p.org && ORGS[p.org] && (
-          <div className="pd-row">
-            <div className="pd-label mono">[ {ORGS[p.org].relation} ]</div>
-            <p><strong>{p.org}</strong> &mdash; {ORGS[p.org].blurb}</p>
-          </div>
-        )}
-        {p.variants && (
-          <div className="pd-row">
-            <div className="pd-label mono">[ Also deployed as ]</div>
-            {p.variants.map((v) => (
-              <p key={v.name} className="pd-variant"><strong>{v.name}</strong> <span className="mono">{v.org}</span><br />{v.note}</p>
-            ))}
-          </div>
-        )}
-
-        <div className="pd-foot">
-          {p.repo
-            ? <a className="pd-cta mono" href={p.repo} target="_blank" rel="noopener noreferrer">{LINK_LABEL[p.repoLabel] || p.repoLabel} <span aria-hidden="true">&#8599;</span></a>
-            : <span className="pd-private mono">Private &middot; {p.repoLabel}{p.org ? ` · ${p.org}` : ""}</span>}
-        </div>
       </div>
-    </div>,
-    host,
+    </div>
   );
 }
 
 /* ─── PROJECTS ────────────────────────────────────────────── */
 function Projects({ mobile, motion }) {
   const [filter, setFilter] = useState("All");
-  const [active, setActive] = useState(null);
-  const close = useCallback(() => setActive(null), []);
+  // the open row, and the last one opened (kept rendered while it folds shut)
+  const [open, setOpen] = useState(null);
+  const [last, setLast] = useState(null);
+  const toggle = (id) => { setOpen((o) => (o === id ? null : id)); setLast(id); };
+  // each project has its own angle on the car while it is open
+  useEffect(() => {
+    const p = PROJECTS.find((x) => x.id === open);
+    window.dispatchEvent(new CustomEvent("drill:shot", { detail: p ? PROJECTS.indexOf(p) : null }));
+  }, [open]);
+  useEffect(() => () => window.dispatchEvent(new CustomEvent("drill:shot", { detail: null })), []);
+  // Scrolled away from, an open project closes, so its close-up hands the
+  // camera back to the scroll instead of holding one angle over everything.
+  useEffect(() => {
+    if (open === null) return undefined;
+    const row = document.getElementById(`pd-${open}`)?.parentElement;
+    if (!row || !("IntersectionObserver" in window)) return undefined;
+    const io = new IntersectionObserver(([e]) => { if (!e.isIntersecting) setOpen(null); });
+    io.observe(row);
+    return () => io.disconnect();
+  }, [open]);
+  // and the same if the filter hides it
+  useEffect(() => { setOpen(null); }, [filter]);
   const list = useMemo(() => (filter === "All" ? PROJECTS : PROJECTS.filter((p) => p.cat === filter)), [filter]);
-  const cols = mobile ? 1 : 3;
+  const cols = mobile ? 1 : 2;
 
   return (
     <section id="projects" className="sec">
       <div className="wrap">
+        <div className="sec-head">
         {/* "SOME   of my / PROJECTS" — the split-line heading */}
         <div className="disp" style={{ fontSize: mobile ? "3.2rem" : "clamp(4rem,8vw,8.4rem)", marginBottom: mobile ? "1.6rem" : "2rem" }}>
           <Lines lines={["Some"]} motion={motion} as="div" />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
+          {/* "of my own" follows on: spread to the far edge it read as two headings */}
+          <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "baseline", gap: ".35em", flexWrap: "wrap" }}>
             <Lines lines={["→projects"]} motion={motion} as="div" delay={0.1} />
             <Lines lines={["*of my own*"]} motion={motion} as="div" delay={0.2} />
           </div>
@@ -820,19 +796,19 @@ function Projects({ mobile, motion }) {
             return <button key={f} className={`chip${f === filter ? " on" : ""}`} onClick={() => setFilter(f)}>{f} · {n}</button>;
           })}
         </Reveal>
+        </div>
 
+        <div className="sec-body">
         <FXGrid style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`, gap: mobile ? "2.4rem" : "3rem 2rem" }}>
           {list.map((p, i) => (
             <Reveal key={p.id} dir="up" delay={(i % cols) * 0.08} enabled={motion}>
-              <button className="pcard" onClick={() => setActive(p)} aria-label={`${p.name} — open details`}>
-                <FXArt>
-                  <div className="pcard-art wipe" style={{ "--d": `${(i % cols) * 0.08 + 0.1}s` }}>
-                    <i className="wipe-cover" />
-                    <div className="wipe-art"><div className="pcard-mock"><Mockup kind={p.mock} width="100%" draw /></div></div>
-                  </div>
-                </FXArt>
-                <div className="mono" style={{ fontSize: ".68rem", color: T.muted, marginTop: "1rem" }}>{p.stack.slice(0, 2).join(" / ")}</div>
+              <button className="pcard" onClick={() => toggle(p.id)} aria-expanded={open === p.id} aria-controls={`pd-${p.id}`}>
+                <span className="pcard-head mono" aria-hidden="true">
+                  {String(PROJECTS.indexOf(p) + 1).padStart(2, "0")}
+                </span>
+                <div className="pcard-ledger">{p.stack.slice(0, 3).join(", ")}</div>
                 <div className="pcard-name" style={{ fontFamily: FONT.sans, fontWeight: 600, letterSpacing: "-.015em", fontSize: mobile ? "1.3rem" : "1.4rem", lineHeight: 1.25, color: T.ink, marginTop: ".55rem" }}>{p.name}</div>
+                <span className="pcard-tag">{p.tag}</span>
                 <div className="mono pcard-for" style={{ fontSize: ".66rem", color: p.org ? T.blue : T.faint, marginTop: ".35rem" }}>
                   {p.org ? `For ${p.org}` : "Personal project"}
                   {/* two children for the same brand should not say it twice */}
@@ -840,12 +816,16 @@ function Projects({ mobile, motion }) {
                     <span key={o} style={{ color: T.muted }}> + {o}</span>
                   ))}
                 </div>
+                <span className="pcard-open mono" aria-hidden="true">+</span>
               </button>
+              <div id={`pd-${p.id}`} className={`drawer pexp${open === p.id ? " open" : ""}`} role="region" aria-label={`${p.name} details`}>
+                <div>{(open === p.id || last === p.id) && <ProjectDetail p={p} />}</div>
+              </div>
             </Reveal>
           ))}
         </FXGrid>
+        </div>
       </div>
-      <ProjectDrill project={active} onClose={close} total={list.length} />
     </section>
   );
 }
@@ -864,16 +844,23 @@ function Background({ mobile, motion }) {
   return (
     <section id="background" className="sec">
       <div className="wrap">
+        <div className="sec-head">
         <Lines lines={["Education *&*", "→the stack"]} motion={motion} style={{ fontSize: mobile ? "2.8rem" : "clamp(3.4rem,6.6vw,6.6rem)", marginBottom: "1.4rem" }} />
         <Decode text="Where I studied, what I build with, and the rules I hold myself to." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "3rem" }} />
 
+</div>
+        <div className="sec-body">
         {/* education */}
         {EDUCATION.map((e) => (
           <Reveal key={e.degree} dir="up" enabled={motion} style={{ borderTop: `1px solid ${T.ink}`, paddingTop: "1.4rem", marginBottom: "3.4rem" }}>
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1.4fr 1fr", gap: mobile ? "1rem" : "2rem", alignItems: "start" }}>
               <div>
                 <h3 style={{ fontFamily: FONT.sans, fontWeight: 600, fontSize: mobile ? "1.5rem" : "1.9rem", lineHeight: 1.2, color: T.ink, letterSpacing: "-.015em" }}>{e.degree}</h3>
-                <p style={{ ...TYPE.body, marginTop: ".5rem" }}>{e.school} · {e.place}</p>
+                <p style={{ ...TYPE.body, marginTop: ".5rem" }}>
+                  {e.site
+                    ? <a className="pd-link" href={e.site} target="_blank" rel="noopener noreferrer" style={{ fontSize: "inherit" }}>{e.school} <span aria-hidden="true">&#8599;</span></a>
+                    : e.school} · {e.place}
+                </p>
                 <p style={{ ...TYPE.body, marginTop: ".8rem", maxWidth: "52ch" }}>{e.note}</p>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: mobile ? "flex-start" : "flex-end" }}>
@@ -946,6 +933,7 @@ function Background({ mobile, motion }) {
             </Reveal>
           </div>
         </div>
+        </div>
       </div>
     </section>
   );
@@ -957,10 +945,13 @@ function Credentials({ mobile, motion }) {
   return (
     <section id="credentials" className="sec">
       <div className="wrap">
+        <div className="sec-head">
         <Lines lines={["Credentials *&*", "recognition"]} motion={motion} style={{ fontSize: mobile ? "2.8rem" : "clamp(3.4rem,6.6vw,6.6rem)", marginBottom: "1.4rem" }} />
-        <Decode text="Certified, published and presented — across industry certifications, a conference paper and national hackathons." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "1.6rem" }} />
+        <Decode text="Certified, published and presented: industry certifications, a conference paper and national hackathons." enabled={motion} className="mono" style={{ fontSize: ".78rem", lineHeight: 1.6, color: T.navy, maxWidth: "52ch", marginBottom: "1.6rem" }} />
         <Reveal dir="up" enabled={motion} style={{ marginBottom: "3rem" }}><span className="pill">Total: {CERTS.length + ACHIEVEMENTS.length}</span></Reveal>
 
+</div>
+        <div className="sec-body">
         <Reveal dir="up" enabled={motion} style={{ display: "flex", alignItems: "baseline", gap: ".5rem", padding: "1rem 0", borderTop: `1px solid ${T.ink}` }}>
           <span style={{ fontWeight: 600, letterSpacing: ".02em" }}>CERTIFICATIONS</span>
           <span className="mono" style={{ fontSize: ".7rem", color: T.muted }}>[{String(CERTS.length).padStart(2, "0")}]</span>
@@ -971,7 +962,7 @@ function Credentials({ mobile, motion }) {
             <Reveal key={c.issuer} dir="up" delay={i * 0.05} enabled={motion} className="row">
               <button className="row-btn" onClick={() => setOpen(isOpen ? -1 : i)} aria-expanded={isOpen} style={{ gridTemplateColumns: "1fr auto" }}>
                 <span className="row-t" style={{ fontFamily: FONT.sans, fontWeight: 600, fontSize: mobile ? "1.1rem" : "1.25rem", letterSpacing: "-.01em", color: T.ink }}>
-                  {c.name} <span style={{ color: T.muted, fontSize: ".72em" }}>— {c.issuer}</span>
+                  {c.name} <span style={{ color: T.muted, fontSize: ".72em" }}>· {c.issuer}</span>
                 </span>
                 <span className="mono" style={{ fontSize: ".72rem", color: T.muted }}>{c.date}</span>
               </button>
@@ -1002,6 +993,7 @@ function Credentials({ mobile, motion }) {
           </Reveal>
         ))}
         <div style={{ borderTop: `1px solid ${T.line2}` }} />
+        </div>
       </div>
     </section>
   );
@@ -1013,9 +1005,12 @@ function Contact({ mobile, motion }) {
   return (
     <section id="contact" className="sec" style={{ paddingBottom: "2.5rem" }}>
       <div className="wrap">
+        <div className="sec-head">
         <Reveal dir="up" enabled={motion} style={{ marginBottom: "1.4rem" }}><span className="pill">Contact</span></Reveal>
         <Lines lines={["*Let's*", "build", "→something"]} motion={motion} style={{ fontSize: mobile ? "3.6rem" : "clamp(4.4rem,10vw,10rem)", marginBottom: "2.4rem" }} />
 
+</div>
+        <div className="sec-body">
         {email && (
           <Reveal dir="up" delay={0.1} enabled={motion}>
             <Magnetic enabled={motion && !mobile} strength={0.12}>
@@ -1034,6 +1029,7 @@ function Contact({ mobile, motion }) {
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", marginTop: "7rem", paddingTop: "1.4rem", borderTop: `1px solid ${T.line2}` }}>
           <span className="cap">© 2026 Surya J</span>
           <span className="cap">Chennai, India</span>
+        </div>
         </div>
       </div>
     </section>
@@ -1133,10 +1129,7 @@ function Panel({ mobile, motion, progressRef, shown }) {
       if (!shown) { ev.preventDefault(); return; }
       if (ev.target.closest && ev.target.closest(".panel")) return;
       if (ev.ctrlKey) return;                       // leave pinch-zoom alone
-      // while a project is open, the wheel scrolls the project, not the list
-      const dock = el.parentElement;
-      const into = dock && dock.classList.contains("drill") ? dock.querySelector(".pdetail") || el : el;
-      into.scrollTop += ev.deltaY;
+      el.scrollTop += ev.deltaY;
       ev.preventDefault();
     };
     window.addEventListener("wheel", onWheel, { passive: false });
@@ -1150,9 +1143,7 @@ function Panel({ mobile, motion, progressRef, shown }) {
     const onTouchMove = (ev) => {
       if (lastY === null || !shown || ev.touches.length > 1) return;
       const y = ev.touches[0].clientY;
-      const dock = el.parentElement;
-      const into = dock && dock.classList.contains("drill") ? dock.querySelector(".pdetail") || el : el;
-      into.scrollTop += lastY - y;
+      el.scrollTop += lastY - y;
       lastY = y;
       ev.preventDefault();
     };
@@ -1173,30 +1164,78 @@ function Panel({ mobile, motion, progressRef, shown }) {
     };
   }, [progressRef, shown]);
 
+  // Blocks rise into place as they scroll into the dock instead of sitting
+  // there as a flat wall: 18px and a fade, staggered when several arrive
+  // together. Once in, they stay in. Uses `translate`, so it never fights
+  // the transforms the sections already animate.
+  useEffect(() => {
+    const el = body.current;
+    if (!el || !motion || typeof IntersectionObserver === "undefined") return undefined;
+    const targets = el.querySelectorAll(".sec .wrap > *, .pcard, .svc, .row, .row-btn");
+    const io = new IntersectionObserver((entries) => {
+      let n = 0;
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.style.setProperty("--rd", `${Math.min(n, 6) * 60}ms`);
+        e.target.classList.add("dz-seen");
+        io.unobserve(e.target);
+        n += 1;
+      }
+    }, { root: el, rootMargin: "0px 0px -6% 0px", threshold: 0.08 });
+    targets.forEach((t) => { t.classList.add("dz-rv"); io.observe(t); });
+    // a backstop: if the observer is late (a throttled or background tab),
+    // anything already on screen is shown anyway; content must never be
+    // left invisible waiting for an animation
+    const sweep = () => {
+      const top = el.getBoundingClientRect().top, bottom = top + el.clientHeight;
+      el.querySelectorAll(".dz-rv:not(.dz-seen)").forEach((t) => {
+        const r = t.getBoundingClientRect();
+        if (r.bottom > top && r.top < bottom) { t.classList.add("dz-seen"); io.unobserve(t); }
+      });
+    };
+    let lastSweep = 0;
+    const onScroll = () => {
+      const now = performance.now();
+      if (now - lastSweep > 400) { lastSweep = now; setTimeout(sweep, 450); }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => { io.disconnect(); el.removeEventListener("scroll", onScroll); };
+  }, [motion]);
+
   return (
+    <>
+    <div className="frost" aria-hidden="true" />
     <aside className={`panel${shown ? " open" : ""}`} aria-label="Portfolio">
       <span className="panel-rail" aria-hidden="true"><i ref={rail} /></span>
       <div className="panel-body" ref={body}>
         <div className="runway" aria-hidden="true" />
-        <header className="dossier">
-          <span className="dossier-m" aria-hidden="true"><i /><i /><i /></span>
-          <h1 className="dossier-name sr-only">Surya J</h1>
-          <p className="dossier-role mono">Software developer &middot; Android, web &amp; backend</p>
-          <p className="dossier-line">
-            Software developer by profession, <em className="carlove">hardcore car enthusiast</em> by obsession. I build
-            high-performance web and mobile systems with the same precision, speed and
-            architecture tuning that goes into an M-Power V8.
+        <header className="dossier plate">
+          <div className="plate-top mono">
+            <span className="dossier-m" aria-hidden="true"><i /><i /><i /></span>
+            Chassis // SJ-F90-DEV
+          </div>
+          <h1 className="dossier-name sr-only">Surya J, software developer</h1>
+          <p className="plate-say"><b>Precision software.</b><em>M-Power architecture.</em></p>
+          <dl className="plate-grid">
+            <div><dt>Discipline</dt><dd>Android · Web · Backend</dd></div>
+            <div><dt>Obsession</dt><dd>Hardcore automotive tuning</dd></div>
+            <div><dt>Philosophy</dt><dd>Zero-jank, low-latency</dd></div>
+            <div><dt>Status</dt><dd><i className="plate-live" aria-hidden="true" /> Active, shipping ({PROJECTS.length} builds)</dd></div>
+          </dl>
+          <p className="plate-note">
+            Software developer by profession, <em className="carlove">hardcore car enthusiast</em> by obsession.
           </p>
-          <p className="dossier-hint mono">Scroll &mdash; the car follows</p>
+          <p className="dossier-hint mono">Scroll, and the car follows</p>
         </header>
-        <Services mobile motion={motion} />
+        <Services mobile={mobile} motion={motion} />
         <Experience mobile motion={motion} />
         <Background mobile motion={motion} />
-        <Projects mobile motion={motion} />
+        <Projects mobile={mobile} motion={motion} />
         <Credentials mobile motion={motion} />
         <Contact mobile motion={motion} />
       </div>
     </aside>
+    </>
   );
 }
 
@@ -1254,9 +1293,121 @@ function HeroName() {
   };
 
   return (
-    <button ref={ref} className="heroname" onClick={home} aria-label="Surya J — back to the top">
+    <button ref={ref} className="heroname" onClick={home} aria-label="Surya J, back to the top">
       SURYA <span>J</span>
     </button>
+  );
+}
+
+/* Who I am, decoded like an ECU booting. When the car's engine starts,
+   every character of the line cycles through hex and terminal glyphs for a
+   moment, then they lock left to right, each one flashing cyan as it lands,
+   timed so the last one locks as the headlights first flash. A cursor rides
+   the leading edge and pulses once the line is set. After a hold the role
+   decodes to the next one. Every character sits in a cell sized by its
+   final glyph, so the scramble never changes the line's width. */
+const ROLES = ["Software developer", "Prompt engineer", "Car lover", "Gamer"];
+const ROLE_PRE = "I’m a ";
+const GLYPHS = "0123456789ABCDEF#_/\[]<>x";
+
+function RoleDecoder() {
+  const [i, setI] = useState(0);
+  const line = useRef(null);
+  const caret = useRef(null);
+  const booted = useRef(false);
+  const text = ROLE_PRE + ROLES[i];
+
+  useEffect(() => {
+    const el = line.current;
+    const cells = [...el.querySelectorAll(".dc")];
+    const glyph = cells.map((c) => c.querySelector(".dc-g"));
+    const n = cells.length;
+    const from = booted.current ? ROLE_PRE.length : 0;   // the prefix stays locked after the first run
+    const hold = booted.current ? 2600 : 3400;
+    let locked = from - 1, start = 0, B = 0, step = 0, raf = 0, timer = 0, lastScramble = 0, done = false;
+
+    const caretTo = (k) => {
+      const c = cells[Math.max(0, k)];
+      const x = k < 0 ? c.offsetLeft : c.offsetLeft + c.offsetWidth;
+      caret.current.style.transform = `translate3d(${x}px,0,0)`;
+    };
+    const finish = () => {
+      done = true;
+      caret.current.classList.add("idle");
+      timer = setTimeout(() => { booted.current = true; setI((v) => (v + 1) % ROLES.length); }, hold);
+    };
+    const frame = (now) => {
+      const t = now - start;
+      if (now - lastScramble > 55) {
+        lastScramble = now;
+        for (let k = locked + 1; k < n; k += 1) {
+          if (text[k] !== " ") glyph[k].textContent = GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        }
+      }
+      let moved = false;
+      while (locked + 1 < n && t >= B + (locked + 1 - from) * step) {
+        locked += 1;
+        glyph[locked].textContent = "";
+        cells[locked].classList.add("on");
+        moved = true;
+      }
+      if (moved) caretTo(locked);
+      if (locked === n - 1) { finish(); return; }
+      raf = requestAnimationFrame(frame);
+    };
+    const begin = (burst, total) => {
+      if (start) return;
+      start = performance.now();
+      B = burst;
+      step = Math.max(18, (total - burst) / Math.max(1, n - from - 1));
+      caret.current.classList.remove("idle");
+      raf = requestAnimationFrame(frame);
+    };
+    // the headlights are on: whatever is left locks within a beat
+    const onLights = () => {
+      if (!start || done) return;
+      const t = performance.now() - start;
+      step = 160 / Math.max(1, n - 1 - locked);
+      B = t - (locked + 1 - from) * step;
+    };
+
+    caretTo(from - 1);
+    caret.current.classList.add("idle");          // a terminal waiting for the engine
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      cells.forEach((c) => c.classList.add("on"));
+      caretTo(n - 1);
+      finish();
+      return () => clearTimeout(timer);
+    }
+    let wait = 0;
+    const onIgnition = (e) => begin(600, (e.detail && e.detail.lightsIn) || 2900);
+    if (booted.current) begin(280, 280 + (n - from) * 42);
+    else {
+      window.addEventListener("car:ignition", onIgnition);
+      window.addEventListener("car:lights", onLights);
+      // no car (no WebGL, or it is still loading): decode on its own
+      wait = setTimeout(() => begin(600, 600 + (n - from) * 70), 6000);
+    }
+    return () => {
+      cancelAnimationFrame(raf); clearTimeout(timer); clearTimeout(wait);
+      window.removeEventListener("car:ignition", onIgnition);
+      window.removeEventListener("car:lights", onLights);
+    };
+  }, [i, text]);
+
+  return (
+    <p className="introhud-role">
+      <span className="sr-only">{ROLES.join(", ")}</span>
+      <span ref={line} className="dc-line" aria-hidden="true">
+        {[...text].map((ch, k) => (
+          <span key={`${i}-${k}`} className={`dc${k < ROLE_PRE.length ? " pre" : ""}${booted.current && k < ROLE_PRE.length ? " on still" : ""}`}>
+            <span className="dc-f">{ch === " " ? " " : ch}</span>
+            <span className="dc-g" />
+          </span>
+        ))}
+        <span ref={caret} className="dc-caret" />
+      </span>
+    </p>
   );
 }
 
@@ -1267,11 +1418,11 @@ function IntroHud() {
     <div className="introhud">
       <span className="introhud-m"><i /><i /><i /></span>
       <h1 className="introhud-name">SURYA J</h1>
-      <p className="introhud-role mono">Software developer</p>
+      <RoleDecoder />
       <p className="introhud-bio">
-        Software developer by profession, <em className="carlove">hardcore car enthusiast</em> by obsession. I build
-        high-performance web and mobile systems with the same precision, speed and
-        architecture tuning that goes into an M-Power V8.
+        I design and build Android apps, web platforms and AI tools that businesses run on
+        every day. Away from the keyboard I&rsquo;m a <em className="carlove">hardcore car enthusiast</em> and
+        a gamer, and I bring the same obsession with response and feel to everything I ship.
       </p>
     </div>
   );
@@ -1317,7 +1468,8 @@ const GARAGE_CSS = `
      the mask to one copy — which painted the whole dossier a second time,
      offset and clipped. Background and blur are masked here; the type sits
      above it, untouched and crisp. */
-  .panel{position:fixed;top:0;left:0;bottom:0;width:min(760px,56vw);z-index:1050;
+  .panel{position:fixed;top:0;bottom:0;left:50%;z-index:1050;
+    --dock:min(1680px,calc(100vw - 2 * clamp(1rem,3vw,2.2rem)));   /* on the navbar's own inset */width:var(--dock);margin-left:calc(var(--dock) / -2);
     border:0;border-radius:0;box-shadow:none;background:transparent;
     display:flex;flex-direction:column;isolation:isolate;
     pointer-events:auto}
@@ -1327,29 +1479,36 @@ const GARAGE_CSS = `
      scroll the content sits just below the bottom edge, and it comes up
      exactly as far as you scroll, no further and no faster. */
   .panel .runway{height:var(--runway,100vh);flex:none}
-  /* A gradient and nothing else. mask-image and backdrop-filter on a
-     fixed layer above a scrolling container both make Chromium keep stale
-     tiles, which is what painted the dossier a second time, offset and
-     clipped. The gradient alone gives the same soft edge with none of that. */
-  .panel::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
-    background:linear-gradient(90deg,
-      color-mix(in srgb,${T.bg} 97%, transparent) 0%,
-      color-mix(in srgb,${T.bg} 95%, transparent) 46%,
-      color-mix(in srgb,${T.bg} 80%, transparent) 68%,
-      color-mix(in srgb,${T.bg} 42%, transparent) 86%,
-      transparent 100%);
-    opacity:var(--k,0)}
+  /* The frost is its own full-screen layer between the car and the
+     dossier, outside the scrolling dock: a backdrop blur inside a fixed
+     layer over a scroll container makes Chromium paint the dossier twice.
+     Out here its only backdrop is the canvas, which redraws every frame.
+     Light blur and a part-transparent tint: the car stays readable as a
+     car, the words stay readable as words. */
+  /* A full-screen vignette with a light blur: darkest behind the centred
+     text, opening out toward the edges so the car stays a car. */
+  /* Smoked glass over the whole screen: a light blur and a part-clear tint,
+     a touch deeper at the edges and with no band anywhere, so the text can
+     run across the middle and the car still moves visibly behind it. */
+  :root{--wl:clamp(240px,25vw,340px)}
+  .frost{position:fixed;inset:0;z-index:1040;pointer-events:none;opacity:var(--k,0);
+    -webkit-backdrop-filter:blur(6px) saturate(1.05);backdrop-filter:blur(6px) saturate(1.05);
+    background:linear-gradient(90deg,rgba(4,7,13,.68) 0%,rgba(4,7,13,.56) 30%,rgba(4,7,13,.48) 55%,rgba(4,7,13,.52) 80%,rgba(4,7,13,.6) 100%)}
+  /* the words keep a soft dark halo so they hold over the white paint */
+  .panel .panel-body{text-shadow:0 1px 14px rgba(2,4,8,.7)}
+  @media (max-width:900px){.frost{background:rgba(4,7,13,.55)}}
+  @media (max-width:900px){.panel{left:0;right:0;width:auto;margin-left:0}}
   /* --k runs 0 to 1 over the runway, smoothed, and drives everything that
      hands over from the hero to the dossier: the backing above fades in,
      the titles fade and rise, the name flies to its corner */
   /* the words stay well inside the feather, so nothing readable fades out */
-  .panel .dossier{max-width:31rem}
+  .panel .dossier{max-width:none;margin-inline:0;padding-inline:clamp(1.1rem,3vw,1.6rem)}
 
   /* the scroll position, as a hairline on the glass */
-  .panel-rail{z-index:2;position:absolute;left:0;top:4.6rem;bottom:1.2rem;width:2px;border-radius:2px;
-    background:rgba(146,180,224,.12);overflow:hidden;pointer-events:none;z-index:3}
+  .panel-rail{z-index:2;position:absolute;left:-16px;top:4.6rem;bottom:1.2rem;width:1px;border-radius:1px;
+    background:rgba(255,255,255,.08);overflow:hidden;pointer-events:none;z-index:3}
   .panel-rail i{display:block;width:100%;height:100%;transform-origin:50% 0;transform:scaleY(.06);
-    background:linear-gradient(180deg,#38bdf8,#2563eb);box-shadow:0 0 8px rgba(56,189,248,.8)}
+    background:rgba(255,255,255,.4)}
   /* the dossier's own masthead: who this is, and why there is a car here */
   .dossier{padding:clamp(1.6rem,4vw,2.4rem) clamp(1.1rem,3vw,1.6rem) 0}
   .dossier-m{display:flex;gap:3px;margin-bottom:.9rem}
@@ -1400,8 +1559,25 @@ const GARAGE_CSS = `
   .introhud-name{font-family:${FONT.name};font-weight:340;font-size:clamp(3rem,8vw,5.6rem);line-height:1;
     letter-spacing:.06em;color:#eef4ff;text-shadow:0 2px 40px rgba(0,0,0,.8);
     animation:introRise 1.1s ${EASE.out} .25s both}
-  .introhud-role{margin-top:1rem;font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:#38bdf8;
-    animation:introRise 1.1s ${EASE.out} .45s both}
+  .introhud-role{margin-top:1rem;display:flex;align-items:center;gap:.4em;white-space:nowrap;
+    font:500 clamp(1.05rem,1.7vw,1.3rem)/1.2 ${FONT.sans};letter-spacing:-.005em;color:rgba(238,244,255,.6);
+    text-shadow:0 1px 20px rgba(0,0,0,.8);animation:introRise 1.1s ${EASE.out} .45s both}
+  .dc-line{position:relative;display:inline-block;white-space:nowrap}
+  .dc{position:relative;display:inline-block}
+  .dc-f{visibility:hidden;color:#fff;font-weight:600}
+  .dc.pre .dc-f{font-weight:500}
+  .dc.on .dc-f{visibility:visible;animation:dcLock .38s ease-out both}
+  .dc.still .dc-f{animation:none}
+  /* the scramble glyph: centred in the final character's cell */
+  .dc-g{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);
+    font:500 .82em/1 ${FONT.mono};color:rgba(125,211,252,.72);text-shadow:0 0 8px rgba(56,189,248,.35);pointer-events:none}
+  @keyframes dcLock{
+    0%{color:#e6f7ff;text-shadow:0 0 10px rgba(56,189,248,.6),-1px 0 0 rgba(255,40,90,.4),1px 0 0 rgba(0,210,255,.5)}
+    100%{color:#fff;text-shadow:0 1px 20px rgba(0,0,0,.8)}}
+  .dc-caret{position:absolute;left:0;top:50%;width:2px;height:1.1em;margin:-.55em 0 0 2px;border-radius:1px;background:#38bdf8;
+    box-shadow:0 0 10px rgba(56,189,248,.6);transition:transform 70ms linear;will-change:transform}
+  .dc-caret.idle{animation:dcPulse 1.6s ease-in-out infinite}
+  @keyframes dcPulse{50%{opacity:.25;box-shadow:0 0 4px rgba(56,189,248,.3)}}
   /* the one thing in the bio that is not about software: picked out in
      white with the M tricolour running under it */
   .carlove{font-style:normal;font-weight:600;color:#f4f8ff;white-space:nowrap;padding-bottom:2px;
@@ -1427,79 +1603,60 @@ const GARAGE_CSS = `
 
   /* the scroll area starts below the corner name, so text never runs
      underneath it on its way up */
-  @media (min-width:901px){.panel-body{margin-top:4.6rem}}
+  .panel-body{margin-top:4.6rem}
+  @media (max-width:900px){.panel-body{margin-top:3.9rem}}
   .sr-only{position:absolute !important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
     clip-path:inset(50%);white-space:nowrap;border:0}
 
   /* text dissolves as it reaches the top of the dossier instead of being
      sliced off by the edge of the scroll area, and eases out at the foot */
-  .panel-body{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 3.2rem,#000 calc(100% - 2.4rem),transparent 100%);
-    mask-image:linear-gradient(180deg,transparent 0,#000 3.2rem,#000 calc(100% - 2.4rem),transparent 100%)}
+  .panel-body{-webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 8%,#000 90%,transparent 100%);
+    mask-image:linear-gradient(180deg,transparent 0%,#000 8%,#000 90%,transparent 100%)}
   .panel-body{position:relative;z-index:1;flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
   .panel-body::-webkit-scrollbar{display:none;width:0;height:0}
+  /* dz-: the site's own Reveal already owns .rv/.in */
+  .panel .dz-rv{opacity:0;translate:0 18px;
+    transition:opacity .7s cubic-bezier(.16,1,.3,1) var(--rd,0ms),translate .7s cubic-bezier(.16,1,.3,1) var(--rd,0ms)}
+  .panel .dz-rv.dz-seen{opacity:1;translate:0 0}
 
-  /* ── project drilldown: the list slides out left, the project slides in,
-     inside the same dock ── */
-  .panel-body{transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1)}
-  .panel.drill .panel-body{opacity:0;transform:translate3d(-20px,0,0);pointer-events:none;visibility:hidden;
-    transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1),visibility 0s linear .4s}
-  .pdetail{position:absolute;left:0;right:0;bottom:0;top:0;z-index:2;overflow-y:auto;overflow-x:hidden;
-    overscroll-behavior:contain;scrollbar-width:none;opacity:0;transform:translate3d(20px,0,0);
-    visibility:hidden;pointer-events:none;
-    transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1),visibility 0s linear .4s}
-  .pdetail::-webkit-scrollbar{display:none}
-  .panel.drill .pdetail{opacity:1;transform:none;visibility:visible;pointer-events:auto;
-    transition:opacity .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1),visibility 0s}
-  @media (min-width:901px){.pdetail{top:4.6rem}}
-  .pd-col{max-width:31rem;padding:0 clamp(1.1rem,3vw,1.6rem) 3rem}
-  .pd-bar{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:.8rem;
-    flex-wrap:wrap;padding:1rem 0 .9rem;border-bottom:1px solid rgba(255,255,255,.08);isolation:isolate}
-  /* the bar's backing feathers out to the right and below, like the dock
-     itself, instead of ending in a box edge over the car */
-  .pd-bar::before{content:"";position:absolute;z-index:-1;inset:-1rem -40% -1.6rem calc(-1 * clamp(1.1rem,3vw,1.6rem));pointer-events:none;
-    background:linear-gradient(90deg,${T.bg} 0%,${T.bg} 58%,transparent 100%);
-    -webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
-  .pd-back{display:inline-flex;align-items:center;gap:.5rem;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
-    color:#dbeefe;padding:.5rem .85rem;border-radius:999px;border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.05);
-    transition:border-color .25s ease,background-color .25s ease}
-  .pd-back i{font-style:normal;display:inline-block;transition:transform .35s cubic-bezier(.16,1,.3,1)}
-  .pd-back:hover{border-color:rgba(56,189,248,.7);background:rgba(56,189,248,.1)}
-  .pd-back:hover i{transform:translate3d(-4px,0,0)}
-  .pd-back:focus-visible{outline:2px solid #38bdf8;outline-offset:3px}
-  .pd-meta{display:flex;align-items:center;gap:.6rem;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase}
-  .pd-index{color:#0b1220;background:#38bdf8;padding:.18rem .45rem;border-radius:4px;font-weight:600}
-  .pd-client{color:#7f97b5}
-  .pd-head{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:1.1rem;align-items:start;margin-top:1.4rem}
-  .pd-title{font-family:${FONT.sans};font-weight:650;font-size:22px;line-height:1.25;letter-spacing:-.01em;color:#fff;margin:0}
-  .pd-tag{margin:.35rem 0 .9rem;font-size:.86rem !important;color:#8ea6c2}
-  .pd-stack{display:flex;flex-wrap:wrap;gap:.35rem}
-  .pd-stack span{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#38bdf8;
-    padding:.24rem .5rem;border-radius:5px;border:1px solid rgba(56,189,248,.3);background:rgba(56,189,248,.05)}
-  .pd-schem{height:100px;border:1px solid rgba(255,255,255,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;
-    overflow:hidden;background:linear-gradient(160deg,rgba(56,189,248,.06),rgba(2,6,23,.2))}
-  .pd-schem svg{height:84px !important;width:auto !important;max-width:100%}
-  .pd-row{border-top:1px solid rgba(255,255,255,.08);padding:1.05rem 0;margin-top:1.1rem}
-  .pd-row + .pd-row{margin-top:0}
-  .pd-label{font-size:.66rem !important;letter-spacing:.14em;text-transform:uppercase;color:#38bdf8;margin-bottom:.5rem}
-  .pd-row p{margin:0;color:#c3d3e6}
+  /* ── a project, open in its row ── */
+  .panel #projects .fx-grid > *{display:flex;flex-direction:column}
+  .pcard[aria-expanded="true"]{background:rgba(56,189,248,.06) !important;box-shadow:inset 2px 0 0 #0066B1 !important}
+  .pcard-open{transition:transform .35s cubic-bezier(.16,1,.3,1),color .25s ease !important}
+  .pcard[aria-expanded="true"] .pcard-open{transform:rotate(45deg);color:#38bdf8 !important}
+  .pd-x{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,6fr);column-gap:2.4rem;padding:.4rem 20px 1.8rem;
+    border-bottom:1px solid rgba(255,255,255,.08)}
+  .pd-head{display:grid;gap:1rem;align-content:start}
+  .pd-sub{margin:0;font-size:.92rem !important;color:rgba(255,255,255,.6)}
+  .pd-preview{height:130px;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
+    overflow:hidden;background:rgba(255,255,255,.02)}
+  .pd-preview > div{height:86% !important;width:auto !important}
+  .pd-preview svg{height:100% !important;width:100% !important}
+  .pd-meta{display:grid;grid-template-columns:1fr 1fr;row-gap:.75rem;column-gap:1.2rem;margin:0;padding-top:.8rem;
+    border-top:1px solid rgba(255,255,255,.1)}
+  .pd-meta dt{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.2rem}
+  .pd-meta dd{margin:0;font-size:.8rem;line-height:1.4;color:#e6edf6}
+  .pd-row{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.2rem;padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .pd-row:first-child{padding-top:0}
+  .pd-row:last-child{border-bottom:0}
+  .pd-label{font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.45);padding-top:.25rem}
+  .pd-row p{margin:0;color:#c9d5e3}
+  .pd-row p + p{margin-top:.7rem}
   .pd-row strong{color:#f1f6ff;font-weight:600}
-  .pd-variant + .pd-variant{margin-top:.8rem !important}
-  .pd-variant .mono{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#7f97b5}
-  .pd-foot{border-top:1px solid rgba(255,255,255,.08);padding-top:1.3rem;margin-top:.2rem}
-  .pd-cta{position:relative;display:inline-flex;align-items:center;gap:.6rem;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-    color:#e6f6ff;padding:.85rem 1.2rem .85rem 1.6rem;border-radius:8px;border:1px solid #38bdf8;background:rgba(56,189,248,.07);
-    box-shadow:0 0 0 1px rgba(56,189,248,.12),0 0 26px -8px rgba(56,189,248,.6);transition:box-shadow .3s ease,background-color .3s ease}
-  /* the M tricolour, down the leading edge */
-  .pd-cta::before{content:"";position:absolute;left:.6rem;top:.7rem;bottom:.7rem;width:4px;border-radius:2px;
-    background:linear-gradient(180deg,#0066B1 0 33.3%,#003399 33.3% 66.6%,#E30613 66.6% 100%)}
-  .pd-cta:hover{background:rgba(56,189,248,.14);box-shadow:0 0 0 1px rgba(56,189,248,.3),0 0 34px -6px rgba(56,189,248,.8)}
-  .pd-private{display:inline-block;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:#7f97b5;
-    padding:.6rem .9rem;border-radius:8px;border:1px solid rgba(255,255,255,.1)}
+  .pd-link{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;color:#fff;
+    text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:.3em;
+    transition:text-decoration-color .25s ease}
+  .pd-link:hover{text-decoration-color:#fff}
+  @media (max-width:900px){
+    .pd-x{grid-template-columns:1fr;row-gap:1.2rem;padding:.4rem 12px 1.4rem}
+    .pd-preview{display:none}
+    .pd-row{grid-template-columns:1fr;gap:.45rem}
+  }
   .panel .sec{padding:1.4rem 0}
   .panel .sec > .wrap{background:transparent;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none;
     box-shadow:none;padding-block:0;padding-inline:clamp(1.1rem,3vw,1.6rem);
-    max-width:31rem;margin-inline:0}
+    max-width:none;margin-inline:0}
   /* The cards were drawn for a full-width page: at 560px each mockup ran
      nearly 400px tall, so twenty-one of them made thirteen screens of
      scrolling with no way to scan. In the column the art is a thumbnail and
@@ -1518,18 +1675,33 @@ const GARAGE_CSS = `
     box-shadow:0 14px 36px rgba(0,0,0,.55),0 0 26px rgba(56,189,248,.12)}
   .panel .pcard-mock{filter:saturate(.8)}
 
-  .panel #projects .wrap > div[style*="grid"]{gap:.65rem !important}
-  .panel .pcard{display:flex;flex-direction:column;gap:.38rem;padding:.95rem 1.05rem;border-radius:12px;
-    border:1px solid rgba(255,255,255,.08);background:transparent;
-    transition:border-color .3s ease,transform .45s cubic-bezier(.16,1,.3,1),background-color .3s ease}
-  .panel .pcard:hover{border-color:rgba(56,189,248,.42);transform:translate3d(0,-2px,0);
-    background:rgba(56,189,248,.04)}
-  .panel .pcard .pcard-art{display:none}
-  .panel .pcard-name{order:1;margin-top:0 !important;font-size:1.08rem !important;color:#f1f6ff !important}
-  .panel .pcard-for{order:2;margin-top:0 !important;font-size:.66rem !important;letter-spacing:.12em;
+  /* Project cards: a schematic banner, then index and category, the
+     name, one line of what it is, the client, the stack, and an "Open"
+     that answers the hover. Equal height across a row. */
+  .panel #projects .wrap > div[style*="grid"] > *{display:flex}
+  .panel .pcard{display:flex;flex-direction:column;flex:1;gap:.42rem;padding:.7rem .7rem 1rem;border-radius:14px;
+    border:1px solid rgba(255,255,255,.08);background:rgba(8,12,22,.38);text-align:left;
+    transition:border-color .3s ease,transform .45s cubic-bezier(.16,1,.3,1),background-color .3s ease,box-shadow .45s ease}
+  .panel .pcard:hover{border-color:rgba(56,189,248,.45);transform:translate3d(0,-3px,0);
+    background:rgba(56,189,248,.05);box-shadow:0 18px 40px -18px rgba(0,0,0,.7),0 0 0 1px rgba(56,189,248,.08)}
+  .panel .pcard > .fx{order:0}
+  .panel .pcard .pcard-art{display:block;height:120px;padding:5% 12%;margin-bottom:.3rem;border-radius:10px}
+  .panel .pcard-head{order:1;display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+    padding:0 .3rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase}
+  .panel .pcard-idx{color:#38bdf8}
+  .panel .pcard-cat{color:#8ea6c2;padding:.12rem .45rem;border:1px solid rgba(255,255,255,.1);border-radius:999px}
+  .panel .pcard-name{order:2;margin-top:0 !important;padding:0 .3rem;font-size:1.08rem !important;color:#f1f6ff !important}
+  .panel .pcard-tag{order:3;padding:0 .3rem;font-size:.84rem;line-height:1.45;color:#9fb3cc;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .panel .pcard-for{order:4;margin-top:.1rem !important;padding:0 .3rem;font-size:.62rem !important;letter-spacing:.12em;
     text-transform:uppercase;color:#7f97b5 !important}
-  .panel .pcard > .mono:not(.pcard-for){order:3;margin-top:.15rem !important;font-size:.66rem !important;
-    letter-spacing:.12em;text-transform:uppercase;color:#38bdf8 !important}
+  .panel .pcard > .mono:not(.pcard-for):not(.pcard-head):not(.pcard-open){order:5;margin-top:0 !important;padding:0 .3rem;
+    font-size:.62rem !important;letter-spacing:.12em;text-transform:uppercase;color:#38bdf8 !important}
+  .panel .pcard-open{order:6;margin-top:auto;padding:.55rem .3rem 0;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;
+    color:#7dd3fc;opacity:.55;transition:opacity .3s ease}
+  .panel .pcard-open i{font-style:normal;display:inline-block;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+  .panel .pcard:hover .pcard-open{opacity:1}
+  .panel .pcard:hover .pcard-open i{transform:translate3d(4px,0,0)}
   .panel .pcard:hover .pcard-name{color:#bae6fd !important}
   /* solid blue pills and active filters become M-telemetry tags */
   .panel .pill{background:rgba(56,189,248,.1);color:#7dd3fc;border:1px solid rgba(56,189,248,.35)}
@@ -1538,13 +1710,219 @@ const GARAGE_CSS = `
   .panel .tag{background:rgba(15,23,42,.6);border-color:rgba(255,255,255,.08);color:#b9cce4}
   .panel #projects .wrap > div[style*="grid"]{gap:1.25rem !important}
   .panel .sec h2{font-size:clamp(1.8rem,5vw,2.6rem) !important}
+
+  /* ── the spec plate ── */
+  .panel .plate{max-width:min(380px,calc(var(--wl) + 30px))}
+  .plate-top{display:flex;align-items:center;gap:.7rem;font:600 11px/1.2 ${FONT.sans} !important;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+  .plate-top .dossier-m{margin:0}
+  .plate-say{margin:1rem 0 1.1rem;font-size:26px !important;line-height:1.12 !important}
+  .plate-say b{display:block;font-family:${FONT.name};font-weight:600;letter-spacing:.01em;text-transform:uppercase;color:#fff}
+  .plate-say em{display:block;font-family:${FONT.serif};font-style:italic;font-weight:400;color:#38bdf8}
+  .plate-grid{display:grid;grid-template-columns:1fr 1fr;margin:0;border:1px solid rgba(255,255,255,.08)}
+  .plate-grid > div{padding:.7rem .8rem;border-right:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+  .plate-grid > div:nth-child(2n){border-right:0}
+  .plate-grid > div:nth-child(n+3){border-bottom:0}
+  .plate-grid dt{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.42);margin-bottom:.25rem}
+  .plate-grid dd{margin:0;font-size:.82rem;line-height:1.35;color:#e6edf6}
+  .plate-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:.3rem;vertical-align:middle;
+    box-shadow:0 0 8px rgba(34,197,94,.7)}
+  .panel .plate-note{margin:.9rem 0 0;font-size:13px !important;line-height:1.55 !important;color:#94a3b8}
+  .panel .plate .dossier-hint{border-top:0;margin-top:1.4rem}
+
+  /* ── split-wing sections: a left wing, the car, a right wing ── */
+  @media (min-width:901px){
+    .panel #services .wrap > div[style*="grid"]{grid-template-columns:320px minmax(320px,1fr) 400px !important;gap:0 !important}
+    .panel #services .wrap > div[style*="grid"] > :last-child{grid-column:3}
+    .panel .sec > .wrap:has(> .sec-head){grid-template-columns:320px minmax(320px,1fr) 400px !important;column-gap:0 !important}
+    .panel .sec-body{grid-column:3}
+    .panel .sec-head .disp,.panel #services .disp{font-size:clamp(2.4rem,3vw,3.2rem) !important}
+    /* the list wings carry no full-width rules across the car */
+    .panel #experience .sec-body > div{border-bottom:0 !important}
+  }
+
+  /* ── telemetry modules: "What I do" and Experience ── */
+  .panel .svc{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:.5rem .8rem;margin-bottom:.5rem;
+    padding:16px 20px;background:rgba(8,12,22,.72);border:1px solid rgba(255,255,255,.07);border-left:2px solid rgba(56,189,248,.35);
+    border-top:1px solid rgba(255,255,255,.07) !important;opacity:1 !important;cursor:default;outline:none;
+    transition:border-color .3s ease,background-color .3s ease}
+  .panel .svc-i{font-size:11px !important;color:#38bdf8 !important;letter-spacing:.06em}
+  .panel .svc-s{justify-self:end;text-align:right;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+  .panel .svc-n{grid-column:1/-1;font-family:${FONT.sans};font-weight:600;font-size:20px;letter-spacing:-.02em;line-height:1.2;color:#fff;
+    text-align:left;transform:none !important;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+  .panel .svc-x{grid-column:1/-1;display:block;max-height:0;overflow:hidden;opacity:0;font-size:.84rem;line-height:1.5;color:#a8b8cc;
+    transition:max-height .45s cubic-bezier(.16,1,.3,1),opacity .35s ease}
+  .panel .svc[data-d="0"]{border-left-color:rgba(56,189,248,.8)}
+  .panel .svc:hover,.panel .svc:focus-within,.panel .svc:focus{border-left-color:#38bdf8;background:rgba(10,16,30,.85)}
+  .panel .svc:hover .svc-n,.panel .svc:focus .svc-n{transform:translate3d(4px,0,0) !important}
+  .panel .svc:hover .svc-x,.panel .svc:focus .svc-x{max-height:4.5em;opacity:1}
+  .panel .svc:focus-visible{box-shadow:0 0 0 2px rgba(56,189,248,.5)}
+  .panel #experience .row{margin-bottom:.5rem;padding:4px 20px;background:rgba(8,12,22,.72);border:1px solid rgba(255,255,255,.07);
+    border-left:2px solid rgba(56,189,248,.35);transition:border-color .3s ease}
+  .panel #experience .row:hover,.panel #experience .row:focus-within{border-left-color:#38bdf8}
+  .panel #experience .row-t{font-size:20px !important;letter-spacing:-.02em !important}
+
+  /* ── projects: a three-wide telemetry index ── */
+  .panel .pcard{background:rgba(8,12,22,.78) !important;position:relative}
+  .panel .pcard .fx,.panel .pcard-tag,.panel .pcard-for{display:none !important}
+  .panel .pcard-open{position:absolute;top:.85rem;right:1rem;margin:0 !important;padding:0 !important;font-size:.9rem !important;opacity:.45}
+  .panel .pcard-head{padding-right:1.6rem !important}
+  .panel .pcard-idx{font-variant-numeric:tabular-nums}
+
+  /* ═══ Motorsport spec-ledger ═══
+     Every plate (services, experience, projects) is a sharp, near-opaque
+     plate with two laser-cut corners, a brighter top edge, a reference line,
+     a stark title and a monospace ledger. Hover: the edge flashes M-cyan,
+     a crosshair lights in the corner, the plate lifts 2px, with no easing. */
+  .panel{--cut:9px;font-variant-numeric:tabular-nums}
+  .panel .svc,.panel #experience .row,.panel .pcard{
+    position:relative;border-radius:0 !important;box-shadow:none !important;
+    background:rgba(4,7,12,.94) !important;
+    border:1px solid rgba(255,255,255,.12) !important;border-top:1px solid rgba(255,255,255,.25) !important;
+    clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)));
+    transition:none !important}
+  .panel .svc::after,.panel #experience .row::after,.panel .pcard::after{
+    content:"+";position:absolute;top:.35rem;right:.95rem;font:400 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:#38bdf8;opacity:0}
+  .panel .svc:hover,.panel .svc:focus,.panel #experience .row:hover,.panel #experience .row:focus-within,.panel .pcard:hover,.panel .pcard:focus-visible{
+    border-color:#38bdf8 !important;transform:translate3d(0,-2px,0) !important}
+  .panel .svc:hover::after,.panel .svc:focus::after,.panel #experience .row:hover::after,.panel #experience .row:focus-within::after,
+  .panel .pcard:hover::after,.panel .pcard:focus-visible::after{opacity:1}
+  .panel .svc[data-d="0"]{border-top-color:#38bdf8 !important}
+  /* the reference line */
+  .panel .svc-i,.panel .pcard-head,.panel #experience .row::before{
+    font:500 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace !important;letter-spacing:.18em !important;
+    text-transform:uppercase;color:rgba(255,255,255,.4) !important}
+  .panel #experience .sec-body{counter-reset:xp}
+  .panel #experience .row{counter-increment:xp;padding:14px 20px 4px !important}
+  .panel #experience .row::before{content:"[ REF: 0" counter(xp) " // EXP ]";display:block}
+  /* titles */
+  .panel .svc-n,.panel .pcard-name,.panel #experience .row-t{
+    font-size:20px !important;font-weight:700 !important;letter-spacing:-.02em !important;color:#fff !important}
+  /* services: reference, title, readout, then the stack as the ledger */
+  .panel .svc{grid-template-columns:1fr !important;gap:.45rem !important;padding:14px 20px 12px !important}
+  .panel .svc-i{grid-row:1}
+  .panel .svc-n{grid-row:2;grid-column:1 !important;justify-self:start !important;text-align:left}
+  .panel .svc-x{grid-row:3;grid-column:1 !important;font-size:14px !important;line-height:1.6 !important;color:rgba(255,255,255,.75) !important}
+  .panel .svc-s{grid-row:4;justify-self:stretch !important;text-align:left !important;
+    border-top:1px solid rgba(255,255,255,.08);padding-top:10px;
+    font:500 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace !important;letter-spacing:.06em !important;
+    text-transform:none !important;color:#38bdf8 !important}
+  .panel .svc-s::before{content:"STACK";color:rgba(255,255,255,.35);margin-right:1rem;letter-spacing:.14em}
+  /* projects: reference, title, ledger */
+  .panel .pcard{padding:14px 20px 12px !important;gap:.5rem !important}
+  .panel .pcard-head{order:1;display:block !important;padding:0 !important}
+  .panel .pcard-name{order:2;padding:0 !important}
+  .panel .pcard-ledger{order:3;display:flex;gap:1rem;margin-top:.35rem;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);
+    font:500 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:#38bdf8}
+  .panel .pcard-ledger span:first-child{color:rgba(255,255,255,.35);letter-spacing:.14em}
+  .panel .pcard-open{display:none !important}
+  .panel .pcard:hover .pcard-name{color:#fff !important}
+
+  /* headings: heavy and tight; no bar beside them */
+  .panel .sec-head,.panel #services .wrap > div[style*="grid"] > :first-child{border-left:0;padding-left:0}
+  .panel .disp{font-weight:800 !important;letter-spacing:-.04em !important}
+  /* body copy: neutral, readable, no decoration */
+  .panel .panel-body p,.panel .panel-body li{font-size:14px !important;line-height:1.6 !important;color:rgba(255,255,255,.75)}
+  /* labels and filters: flat type, no pills */
+  .panel .pill{background:none !important;border:0 !important;border-radius:0 !important;padding:0 !important;
+    font:600 11px/1.2 ${FONT.sans} !important;letter-spacing:.16em !important;text-transform:uppercase;color:rgba(255,255,255,.55) !important}
+  .panel .chip{background:none !important;border:0 !important;border-radius:0 !important;border-bottom:1px solid transparent !important;
+    padding:.35rem .1rem !important;margin-right:1rem;color:rgba(255,255,255,.5) !important;
+    font:500 13px/1.3 ${FONT.sans} !important;letter-spacing:0 !important;text-transform:none !important}
+  .panel .chip.on{color:#fff !important;border-bottom-color:#38bdf8 !important}
+  .panel .tag{background:none !important;border:0 !important;border-radius:0 !important;padding:0 .6rem 0 0 !important;color:#38bdf8 !important}
+
+  /* ═══ Telemetry ledger ═══
+     Projects, services and experience are rows, not boxes: an etched
+     hairline under each, the index and title on the left, the stack and an
+     arrow on the right. Hover tints the row, lights a 2px M-blue edge and
+     slides the title. The plates' boxes, cuts and crosshairs are undone. */
+  .panel .svc,.panel #experience .row,.panel .pcard{
+    background:transparent !important;border:0 !important;border-bottom:1px solid rgba(255,255,255,.08) !important;
+    clip-path:none !important;margin:0 !important;transform:none !important;box-shadow:none !important;
+    transition:background-color .25s ease,box-shadow .25s ease !important}
+  .panel .svc::after,.panel #experience .row::after,.panel .pcard::after{content:none !important}
+  .panel .svc:hover,.panel .svc:focus,.panel #experience .row:hover,.panel #experience .row:focus-within,
+  .panel .pcard:hover,.panel .pcard:focus-visible{
+    background:rgba(56,189,248,.06) !important;box-shadow:inset 2px 0 0 #0066B1 !important;transform:none !important}
+  .panel .svc[data-d="0"]{box-shadow:inset 2px 0 0 rgba(0,102,177,.6) !important}
+  /* the index: the stencil face of the name, not a code font in brackets */
+  .panel .panel-body .svc-i,.panel .panel-body .pcard-head,.panel #experience .row::before{
+    font-family:${FONT.name} !important;font-weight:600 !important;font-size:22px !important;line-height:1 !important;
+    letter-spacing:.02em !important;font-variant-numeric:tabular-nums;color:rgba(255,255,255,.32) !important;text-transform:none;min-width:2ch}
+  .panel .svc:hover .svc-i,.panel .pcard:hover .pcard-head,.panel #experience .row:hover::before{color:#fff !important}
+  .panel #experience .row::before{content:"0" counter(xp) !important}
+  /* titles */
+  .panel .svc-n,.panel .pcard-name,.panel #experience .row-t{font-size:17px !important;font-weight:700 !important;
+    letter-spacing:-.02em !important;color:#fff !important;transition:transform .3s cubic-bezier(.16,1,.3,1) !important}
+  .panel .svc:hover .svc-n,.panel .svc:focus .svc-n,.panel .pcard:hover .pcard-name,.panel #experience .row:hover .row-t{
+    transform:translate3d(4px,0,0) !important}
+
+  /* projects: [01] | title over client | stack | arrow */
+  .panel #projects .fx-grid{grid-template-columns:1fr !important;gap:0 !important;max-width:none}
+  .panel .pcard{display:grid !important;grid-template-columns:auto minmax(0,1fr) auto auto;column-gap:1.1rem;row-gap:.15rem;
+    align-items:center;padding:16px 20px !important;flex:none !important}
+  .panel .pcard-head{grid-column:1;grid-row:1 / span 2;order:0 !important;align-self:center}
+  .panel .pcard-name{grid-column:2;grid-row:1;order:0 !important;margin:0 !important}
+  .panel .pcard-for{display:block !important;grid-column:2;grid-row:2;order:0 !important;margin:0 !important;padding:0 !important;
+    font:400 12px/1.4 inherit !important;font-family:inherit !important;letter-spacing:.02em !important;text-transform:none !important;color:rgba(255,255,255,.55) !important}
+  .panel .pcard-for span{color:rgba(255,255,255,.55) !important}
+  .panel .pcard-ledger{grid-column:3;grid-row:1 / span 2;order:0 !important;margin:0 !important;padding:0 !important;border:0 !important;
+    font:400 12.5px/1.4 ${FONT.sans} !important;letter-spacing:0;text-transform:none;color:rgba(255,255,255,.5) !important;
+    text-align:right}
+  .panel .pcard-open{display:block !important;position:static !important;grid-column:4;grid-row:1 / span 2;opacity:1 !important;
+    font-size:14px !important;color:rgba(255,255,255,.4);transition:color .25s ease}
+  .panel .pcard:hover .pcard-open{color:#38bdf8}
+
+  /* services: [01] | title (readout opens beneath) | stack | + */
+  .panel .svc{grid-template-columns:auto minmax(0,1fr) auto !important;column-gap:1.1rem !important;row-gap:.3rem !important;
+    padding:16px 20px !important;align-items:center}
+  .panel .svc-i{grid-column:1;grid-row:1}
+  .panel .svc-n{grid-column:2 !important;grid-row:1}
+  .panel .svc-s{grid-column:3;grid-row:1;border:0 !important;padding:0 !important;
+    font:400 12.5px/1.4 ${FONT.sans} !important;letter-spacing:0 !important;
+    text-transform:none !important;color:rgba(255,255,255,.5) !important;justify-self:end !important;text-align:right !important}
+  .panel .svc-s::before{content:none !important}
+  .panel .svc-x{grid-column:2 / -1 !important;grid-row:2}
+  /* experience: the row keeps its own toggle; it just loses the box */
+  .panel #experience .row{padding:12px 20px 0 !important}
+
+  /* desktop: the title on the left, and the list across the middle and
+     right, over the glass, so the car runs behind the words */
+  @media (min-width:901px){
+    .panel #services .wrap > div[style*="grid"]{grid-template-columns:var(--wl) minmax(0,1fr) !important;column-gap:clamp(2rem,4vw,4rem) !important}
+    .panel #services .wrap > div[style*="grid"] > :last-child{grid-column:2}
+    .panel .sec > .wrap:has(> .sec-head){grid-template-columns:var(--wl) minmax(0,1fr) !important;column-gap:clamp(2rem,4vw,4rem) !important}
+    .panel .sec-body{grid-column:2}
+    .panel #projects .fx-grid{max-width:none}
+  }
+  /* phones: everything stacks; the stack wraps under the title */
+  @media (max-width:767px){
+    .panel .sec > .wrap,.panel .dossier{padding-inline:16px !important}
+    .panel .pcard{grid-template-columns:auto minmax(0,1fr) auto;padding:14px 12px !important}
+    .panel .pcard-ledger{grid-column:2 / -1;grid-row:3;text-align:left;white-space:normal}
+    .panel .pcard-head{grid-row:1}
+    .panel .pcard-open{grid-column:3;grid-row:1}
+    .panel .svc{grid-template-columns:auto minmax(0,1fr) !important;padding:14px 12px !important}
+    .panel .svc-s{grid-column:2;grid-row:2;justify-self:start !important;text-align:left !important}
+    .panel .svc-x{grid-row:3}
+    :root.lifted .car-stage{opacity:.35 !important;transition:opacity .6s ease}
+  }
+
+
+  /* desktop: the content edges sit on the navbar's edges, and each section
+     reads as a sticky title on the left with its content across the right */
+  @media (min-width:901px){
+    .panel .sec > .wrap,.panel .dossier{padding-inline:0 !important}
+    .panel #projects .fx-grid{grid-template-columns:1fr !important;gap:0 !important;max-width:none}
+  }
+  @media (min-width:901px){
+    .panel .sec > .wrap:has(> .sec-head){display:grid;align-items:start}
+    .panel .sec-head{position:sticky;top:1.5rem}
+    .panel .sec-head .disp{font-size:clamp(2.6rem,3.4vw,3.6rem) !important}
+    .panel .sec-body{min-width:0}
+  }
   @media (max-width:900px){
-    .panel{left:0;right:0;width:100%;top:auto;height:64svh}
-    .panel::before{background:linear-gradient(180deg,
-        transparent 0%,
-        color-mix(in srgb,${T.bg} 70%, transparent) 8%,
-        color-mix(in srgb,${T.bg} 95%, transparent) 24%,
-        color-mix(in srgb,${T.bg} 98%, transparent) 100%)}
     .panel .sec > .wrap,.panel .dossier{max-width:none}
     .panel-rail{display:none}
   }
@@ -1566,7 +1944,6 @@ export default function Portfolio() {
 
   // clicking a part of the car scrolls the dossier to what it stands for
   const jump = useCallback((id) => {
-    window.dispatchEvent(new Event("drill:close"));
     const el = id && document.getElementById(id);
     const body = el && el.closest(".panel-body");
     if (el && body) body.scrollTo({ top: el.offsetTop - 12, behavior: "smooth" });

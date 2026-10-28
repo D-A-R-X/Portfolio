@@ -45,7 +45,9 @@ const INTRO_MS = 4600;
 const ARRIVAL = [[11.0, -6.0], [8.6, -6.0], [6.2, -6.0], [3.4, -6.0], [2.52, -5.884], [1.7, -5.544], [0.996, -5.004], [0.456, -4.3], [0.116, -3.48], [0.0, -2.6], [0.0, -1.3], [0.0, 0.0]];
 // the drift, by distance along that path: where the flick, the full slide
 // and the catch happen (metres from the start)
-const TURN_IN = 6.0, FULL_SLIDE = 8.0, UNWIND = 12.4, CAUGHT = 14.6;
+// the catch is long and early: straightening 40 degrees over 2m at speed
+// read as the car snapping round onto its mark
+const TURN_IN = 6.0, FULL_SLIDE = 8.0, UNWIND = 10.2, CAUGHT = 15.2;
 const SLIDE = 0.72;        // ~41 degrees of body angle at full slide
 const DRIVE_START = 0.08;  // a beat of dark, DRLs only, before it arrives
 const DRIVE_END = 0.6;     // stopped on the mark
@@ -90,41 +92,70 @@ export const PARTS = {
   services: "services",
 };
 
-/* The tour. Written in the car's own frame — origin at the car, ground at
-   y = 0, nose toward +Z — and lifted onto the shed floor in the loop, so
-   these numbers stay readable against the car rather than against the world.
-   `at` is how far down the dossier each shot lands, 0 at the top, 1 at the
-   foot.
+/* The tour: one continuous clockwise lap round the car. Written in the
+   car's own frame (origin at the car, ground at y = 0, nose toward +Z) and
+   lifted onto the shed floor in the loop. `at` is how far down the dossier
+   each shot lands. `steer` turns the front wheels for the shot, so the alloy
+   face angles into the lens (positive steers left).
 
-   The three rows marked "transit" are mine, not shots: a straight line from
-   the left flank to the right rear quarter, or from behind the pipes round
-   to the front, runs through the body. They swing the camera round the
-   outside instead. Nothing is meant to stop on them. */
+   The shots are in lap order (front, left wheel, overhead, the rear, the
+   right rear, the right mirror, the front right), so scrolling forward the
+   camera only ever travels one way round and never back down a line it has
+   already taken. */
 const TOUR = [
-  { at: 0,    pos: [0, 1.1, 4.5],     look: [0, 0.4, 0],       fov: 42, roll: 0 },     // hero, square on the front
-  { at: 0.18, pos: [-2.2, 0.32, 1.8], look: [-0.6, 0.3, 1.2],  fov: 28, roll: 0.05 },  // low front quarter, wheel and caliper
-  { at: 0.35, pos: [-2.0, 0.5, -0.2], look: [-0.2, 0.4, -0.1], fov: 32, roll: -0.04 }, // down the flank, carbon roof line
-  { at: 0.44, pos: [-1.9, 0.75, -3.4], look: [0, 0.4, -1.6],   fov: 32, roll: 0 },     // transit: round the left rear
-  { at: 0.52, pos: [1.0, 0.9, -4.1],  look: [0.1, 0.38, -1.8], fov: 31, roll: 0.02 },  // transit: across the tail
-  { at: 0.6,  pos: [2.2, 0.9, -2.4],  look: [0.2, 0.35, -1.8], fov: 30, roll: 0.03 },  // rear three-quarter, tail lamps
-  { at: 0.85, pos: [0, 0.35, -4.6],   look: [0, 0.3, -2.0],    fov: 34, roll: 0 },     // low, diffuser and pipes
-  { at: 0.93, pos: [2.4, 0.8, -1.0],  look: [0, 0.45, -0.6],   fov: 35, roll: 0 },     // transit: up the right side
-  { at: 1,    pos: [2.5, 1.4, 3.8],   look: [0, 0.5, 0],       fov: 36, roll: 0 },     // pulled back, final stance
+  { at: 0,    pos: [0, 0.72, 4.6],      look: [0, 0.48, 0],       fov: 38, roll: 0,     steer: 0 },     // hero, low and dead centre
+  { at: 0.14, pos: [-1.85, 0.24, 1.55], look: [-0.65, 0.3, 1.35], fov: 24, roll: 0.09,  steer: 0.38 },  // skimming the front wheel
+  { at: 0.3,  pos: [-0.85, 3.3, 0.15],  look: [0, 1.32, -0.4],    fov: 36, roll: -0.12, steer: 0 },     // overhead, the carbon roof panel
+  { at: 0.48, pos: [-0.35, 0.26, -4.1], look: [0, 0.38, -1.8],    fov: 32, roll: 0.03,  steer: 0 },     // on the floor, diffuser and pipes
+  { at: 0.7,  pos: [2.1, 0.68, -2.35],  look: [0.35, 0.52, -1.75], fov: 28, roll: -0.05, steer: 0 },    // rear haunch into the tail blade
+  { at: 0.86, pos: [1.55, 1.05, 0.85],  look: [-0.2, 0.82, -0.3], fov: 26, roll: 0.04,  steer: 0 },     // past the mirror into the cabin
+  { at: 1,    pos: [2.8, 1.15, 3.6],    look: [0, 0.45, 0],       fov: 35, roll: 0,     steer: -0.38 }, // wide finale, front right
 ];
 
-/** Where the camera is at a point in the tour, in the car's own frame. */
+/* When a project is open the camera leaves the tour for a close-up of its
+   own, so each project has an angle on the car. Car frame, as the tour.
+   (Restored: the lap rewrite had deleted this list, so opening a project
+   threw and the camera never moved.) */
+const DETAIL_SHOTS = [
+  { pos: [-2.5, 0.55, 3.1],  look: [0, 0.5, 0.7],       fov: 34, roll: 0.03 },  // low front three-quarter
+  { pos: [1.35, 0.82, 3.05], look: [0.62, 0.62, 1.95],  fov: 27, roll: -0.03 }, // the headlamp
+  { pos: [-2.1, 0.36, 2.25], look: [-0.9, 0.36, 1.45],  fov: 26, roll: 0.06 },  // the front wheel
+  { pos: [-4.3, 0.5, 0.2],   look: [0, 0.55, 0],        fov: 34, roll: 0 },     // flat profile
+  { pos: [2.8, 0.8, -3.3],   look: [0.35, 0.6, -1.6],   fov: 31, roll: 0.02 },  // the tail lamps
+  { pos: [0.6, 1.55, 3.2],   look: [0, 0.75, 0.5],      fov: 32, roll: -0.04 }, // bonnet and roundel
+  { pos: [0.35, 0.72, 3.3],  look: [0.35, 0.6, 2.05],   fov: 18, roll: 0 },     // the grille and its red bar
+  { pos: [-1.6, 1.0, -3.6],  look: [-0.5, 0.75, -2.0],  fov: 26, roll: 0.04 },  // the left tail and diffuser
+];
+
+/* Each shot as orbit coordinates: the angle unwrapped so it only ever
+   decreases along the lap, radius and height about the car. */
+const LAP = (() => {
+  let prev = null;
+  return TOUR.map((t) => {
+    let ang = Math.atan2(t.pos[0], t.pos[2]);
+    if (prev !== null) while (ang > prev) ang -= Math.PI * 2;
+    prev = ang;
+    return { at: t.at, v: [ang, Math.hypot(t.pos[0], t.pos[2]), t.pos[1], ...t.look, t.fov, t.roll, t.steer || 0] };
+  });
+})();
+
+// Catmull-Rom through the shots: it passes through each one without
+// stopping, so the move reads as one take rather than a string of eases
+const cr = (p0, p1, p2, p3, t) => 0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
+
 function tourAt(p, out) {
   let i = 0;
-  while (i < TOUR.length - 2 && p > (TOUR[i + 1].at ?? 1)) i += 1;
-  const a = TOUR[i], b = TOUR[i + 1];
-  const k = clamp01((p - (a.at ?? 0)) / Math.max(1e-4, (b.at ?? 1) - (a.at ?? 0)));
-  const t = k * k * (3 - 2 * k);                    // smoothstep
-  for (let j = 0; j < 3; j += 1) {
-    out.pos[j] = a.pos[j] + (b.pos[j] - a.pos[j]) * t;
-    out.look[j] = a.look[j] + (b.look[j] - a.look[j]) * t;
-  }
-  out.fov = a.fov + (b.fov - a.fov) * t;
-  out.roll = a.roll + (b.roll - a.roll) * t;
+  while (i < LAP.length - 2 && p > LAP[i + 1].at) i += 1;
+  const t = clamp01((p - LAP[i].at) / Math.max(1e-4, LAP[i + 1].at - LAP[i].at));
+  const A = LAP[Math.max(0, i - 1)].v, B = LAP[i].v, C = LAP[i + 1].v, D = LAP[Math.min(LAP.length - 1, i + 2)].v;
+  const v = B.map((_, j) => cr(A[j], B[j], C[j], D[j], t));
+  out.pos[0] = Math.sin(v[0]) * v[1];
+  out.pos[1] = v[2];
+  out.pos[2] = Math.cos(v[0]) * v[1];
+  out.look[0] = v[3]; out.look[1] = v[4]; out.look[2] = v[5];
+  out.fov = v[6];
+  out.roll = v[7];
+  out.steer = v[8];
 }
 
 /* The old scroll tour. Kept for the drive-in entrance, which still holds the
@@ -723,6 +754,7 @@ export function CarScene({ reduced, onReveal, onDone, onPart, progressRef }) {
       // Points, one draw call: each puff is born at a rear contact patch,
       // thrown back off the tyre, swells, lifts and thins out.
       const SMOKE_N = 380;
+      let SMOKE_RATE = 1;
       const sPos = new Float32Array(SMOKE_N * 3);
       const sSize = new Float32Array(SMOKE_N);
       const sAlpha = new Float32Array(SMOKE_N);
@@ -842,8 +874,10 @@ void main() {
         uBoost: { value: 1 },                       // makes up for the dim intro exposure
         uBlink: { value: 0 },                       // the hazards, 0 dark to 1 lit
         uHaz: { value: 0 },                         // hazards running
-        uMidX: { value: 0.6 },                      // inner L | outer L, across the lamp
         uYellow: { value: 0 },                      // CS: the L tubes run yellow with the beams on
+        uFlash: { value: 0 },                       // the end-of-scroll high-beam flash
+        uStrip: { value: new THREE.Vector4(9, 9, 9, 9) }, // the rear strip: |x| from-to, y from-to
+        uBrake: { value: 0 },                       // the brake pulse that goes with it
         uYLo: { value: 0 },
         uYHi: { value: 1 },
       };
@@ -871,7 +905,6 @@ void main() {
       // intro. Placed on the centre of each lamp's lit area, just proud of
       // the lens so the glass does not swallow them.
       const glares = [];
-      const hazards = [];
       {
         const sum = { l: new THREE.Vector3(), r: new THREE.Vector3() };
         const n = { l: 0, r: 0 };
@@ -881,8 +914,7 @@ void main() {
         // each tail lamp at the back
         const band = { l: new THREE.Vector3(), r: new THREE.Vector3() };
         const nb = { l: 0, r: 0 };
-        const tails = [];
-        let tailX = 0;
+        const turnPts = { [-1]: [], [1]: [] };    // the rear indicator strip, by side
         const v = new THREE.Vector3();
         const lo = lampU.uYLo.value, hi = lampU.uYHi.value;
         car.traverse((o) => {
@@ -890,9 +922,16 @@ void main() {
           const mats = Array.isArray(o.material) ? o.material : [o.material];
           if (!mats.some((m) => lampMats.includes(m))) return;
           const pos = o.geometry.attributes.position;
+          const uvs = o.geometry.attributes.uv;
           for (let i = 0; i < pos.count; i += 2) {
             v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
-            if (v.z < -0.8) { tails.push(v.clone()); tailX = Math.max(tailX, Math.abs(v.x)); continue; }
+            if (v.z < -0.8) {
+              if (uvs) {
+                const u = uvs.getX(i), w = uvs.getY(i);
+                if (u <= 0.62 && w >= 0.19 && w <= 0.27) turnPts[v.x < 0 ? -1 : 1].push(v.clone());
+              }
+              continue;
+            }
             if (v.z <= 0.8) continue;
             const h = (v.y - lo) / Math.max(1e-4, hi - lo);
             if (h > 0.66 && h < 0.97) {
@@ -992,80 +1031,89 @@ void main() {
           glares.push({ core, streak, at });
         }
 
-        // amber for the hazards: a short warm glow on each indicator, no
-        // streak, since an indicator is a small source, not a beam
-        const amberTex = paint(128, 128, [
-          [0, "rgba(255,236,200,1)"],
-          [0.08, "rgba(255,170,60,0.8)"],
-          [0.22, "rgba(255,120,10,0.25)"],
-          [0.5, "rgba(255,90,0,0.04)"],
-          [1, "rgba(255,80,0,0)"],
-        ]);
-        const amber = (at, dir) => {
-          const sp = new THREE.Sprite(glow(amberTex));
-          sp.position.copy(at);
-          sp.renderOrder = 10;
-          rig.add(sp);
-          hazards.push({ sp, at, dir: dir.clone().normalize() });
-        };
-        // front: the outer L. The lamp's centre splits the two L elements.
-        if (glares.length) {
-          lampU.uMidX.value = glares.reduce((a, g) => a + Math.abs(g.at.x), 0) / glares.length;
-        }
-        // (the outer L itself goes amber in the lamp shader, and the bloom
-        // makes it glow; it needs no sprite)
-        // side repeaters live in the mirror housings: the mirror tip is the
-        // widest point of the car at mirror height, ahead of the B-pillar
-        {
-          const tip = { [-1]: null, [1]: null };
-          const w = new THREE.Vector3();
-          car.traverse((o) => {
-            if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
-            const pos = o.geometry.attributes.position;
-            for (let i = 0; i < pos.count; i += 3) {
-              w.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
-              if (w.y < 0.78 || w.y > 1.25 || w.z < 0 || w.z > 1.7) continue;
-              const sd = w.x < 0 ? -1 : 1;
-              if (!tip[sd] || Math.abs(w.x) > Math.abs(tip[sd].x)) tip[sd] = w.clone();
-            }
-          });
-          for (const sd of [-1, 1]) {
-            if (!tip[sd]) continue;
-            // on the cap, just under and ahead of its widest point, as a
-            // thin strip rather than a dot hanging off the side
-            const at = tip[sd].clone();
-            at.x -= sd * 0.005;
-            at.y -= 0.04;
-            at.z += 0.04;
-            amber(at, new THREE.Vector3(sd, 0, 0.35));
-            hazards[hazards.length - 1].strip = 0.085;
-          }
-        }
-        // rear (ECE, which India follows): a thin amber strip through the
-        // outer lamp, between its light elements, rather than a blob
-        const stripTex = paint(128, 128, [
-          [0, "rgba(255,220,170,1)"],
-          [0.3, "rgba(255,150,40,0.75)"],
-          [0.75, "rgba(255,100,0,0.12)"],
-          [1, "rgba(255,80,0,0)"],
-        ]);
+        // Every indicator lights in the lamp shader and blooms where it is:
+        // the L light guides, the mirror strips, and the rear strip. Nothing
+        // is drawn over them; a camera-facing glow there floated off the
+        // lamp into the air from any angle but straight on.
+        // The rear strip sits behind the red lens, which multiplies whatever
+        // is under it to red, so the lens is made clear over exactly that
+        // slice of the lamp (measured from the strip's own geometry here).
+        let sx0 = Infinity, sx1 = -Infinity, sy0 = Infinity, sy1 = -Infinity;
         for (const sd of [-1, 1]) {
-          const out = tails.filter((v) => Math.sign(v.x) === sd && Math.abs(v.x) > tailX * 0.55);
-          if (!out.length) continue;
-          let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity;
-          for (const v of out) {
-            x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x);
-            y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y);
-            z0 = Math.min(z0, v.z);
+          for (const v of turnPts[sd]) {
+            sx0 = Math.min(sx0, Math.abs(v.x)); sx1 = Math.max(sx1, Math.abs(v.x));
+            sy0 = Math.min(sy0, v.y); sy1 = Math.max(sy1, v.y);
           }
-          const at = surface(new THREE.Vector3((x0 + x1) / 2, (y0 + y1) / 2, z0 - 0.015), -1);
-          const strip = new THREE.Sprite(glow(stripTex));
-          strip.position.copy(at);
-          strip.renderOrder = 10;
-          rig.add(strip);
-          hazards.push({ sp: strip, at, dir: new THREE.Vector3(0, 0, -1), strip: Math.max(0.2, (x1 - x0) * 0.9) });
-          amber(at.clone(), new THREE.Vector3(0, 0, -1));
         }
+        if (Number.isFinite(sx0)) lampU.uStrip.value.set(sx0 - 0.01, sx1 + 0.01, sy0 - 0.008, sy1 + 0.008);
+      }
+      // ── the kidney grille's diagonal cross-bar, in M red ──
+      // It shares one material with the slats in front of it (and, oddly,
+      // the seat belts), so it is picked out by where it sits: inside the
+      // kidneys, and deeper than the slats (about 19-22cm behind the nose,
+      // where the slats are 6-14cm). Found by its islands in Blender.
+      {
+        const bars = new Set();
+        car.traverse((o) => {
+          if (!o.isMesh) return;
+          for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+            if (m && /SeatBelt/.test(m.name)) bars.add(m);
+          }
+        });
+        for (const m of bars) {
+          m.onBeforeCompile = (sh) => {
+            sh.uniforms.uRigInv = lampU.uRigInv;
+            sh.vertexShader = sh.vertexShader
+              .replace("#include <common>", `#include <common>
+varying vec3 vBarPos;`)
+              .replace("#include <project_vertex>", `#include <project_vertex>
+vBarPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
+            sh.fragmentShader = sh.fragmentShader
+              .replace("#include <common>", `#include <common>
+varying vec3 vBarPos;
+uniform mat4 uRigInv;`)
+              .replace("#include <map_fragment>", `#include <map_fragment>
+{
+  vec3 cp = (uRigInv * vec4(vBarPos, 1.0)).xyz;
+  float noseZ = ${(CAR_LENGTH / 2).toFixed(3)};
+  // the bar runs from (|x| 0.057, y 0.652) to (|x| 0.357, y 0.457): a band
+  // along that line, which leaves out the bracket behind the badge
+  float ax = abs(cp.x);
+  float lineY = 0.652 - 0.65 * (ax - 0.057);
+  float onBar = step(abs(cp.y - lineY), 0.03) * step(0.03, ax) * step(ax, 0.38);
+  float deep = step(noseZ - 0.235, cp.z) * step(cp.z, noseZ - 0.175);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.62, 0.02, 0.03), onBar * deep);
+}`);
+          };
+          m.customProgramCacheKey = () => "m-red-bar";
+          m.needsUpdate = true;
+        }
+      }
+      for (const m of lensMats) {
+        m.onBeforeCompile = (sh) => {
+          sh.uniforms.uRigInv = lampU.uRigInv;
+          sh.uniforms.uStrip = lampU.uStrip;
+          sh.vertexShader = sh.vertexShader
+            .replace("#include <common>", `#include <common>
+varying vec3 vLensPos;`)
+            .replace("#include <project_vertex>", `#include <project_vertex>
+vLensPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
+          sh.fragmentShader = sh.fragmentShader
+            .replace("#include <common>", `#include <common>
+varying vec3 vLensPos;
+uniform mat4 uRigInv;
+uniform vec4 uStrip;`)
+            .replace("#include <dithering_fragment>", `#include <dithering_fragment>
+{
+  // the lens multiplies; white over the indicator strip lets its amber through
+  vec3 cp = (uRigInv * vec4(vLensPos, 1.0)).xyz;
+  float ax = abs(cp.x);
+  float inStrip = step(uStrip.x, ax) * step(ax, uStrip.y) * step(uStrip.z, cp.y) * step(cp.y, uStrip.w);
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(1.0), inStrip);
+}`);
+        };
+        m.customProgramCacheKey = () => "lens-strip";
+        m.needsUpdate = true;
       }
       for (const m of lampMats) {
         m.onBeforeCompile = (sh) => {
@@ -1083,8 +1131,10 @@ uniform float uHead;
 uniform float uBoost;
 uniform float uBlink;
 uniform float uHaz;
-uniform float uMidX;
 uniform float uYellow;
+uniform float uFlash;
+uniform float uBrake;
+uniform vec4 uStrip;
 uniform float uYLo;
 uniform float uYHi;`)
             .replace("#include <map_fragment>", `#include <map_fragment>
@@ -1099,31 +1149,57 @@ uniform float uYHi;`)
     float h0 = clamp((lp0.y - uYLo) / max(1e-4, uYHi - uYLo), 0.0, 1.0);
     float guide = smoothstep(0.64, 0.8, h0) * (1.0 - smoothstep(0.97, 1.0, h0));
     float off = 1.0 - uHead;
-    diffuseColor.rgb *= mix(vec3(0.085, 0.09, 0.1), vec3(0.58, 0.61, 0.66), off);
+    // lightly smoked: the reflectors and projectors still read through it
+    diffuseColor.rgb *= mix(vec3(0.23, 0.245, 0.27), vec3(0.58, 0.61, 0.66), off);
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.72, 0.76, 0.8), guide * off * 0.85);
+  } else if (lp0.z < -0.8) {
+    // the rear indicator strip shows through a clear slice of the red lens,
+    // so its bare surface is smoked dark: unlit, it reads as a dark lens
+    // by position, the same slice the lens clears, so whatever sits there
+    // (strip or housing) reads dark when the indicator is off
+    float ax0 = abs(lp0.x);
+    float slice = step(uStrip.x, ax0) * step(ax0, uStrip.y) * step(uStrip.z, lp0.y) * step(lp0.y, uStrip.w);
+    diffuseColor.rgb *= mix(1.0, 0.08, slice);
   }
 }`)
             .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
 {
+  // The lamp mesh is one material across the whole car; what emits is
+  // picked out by where each part sits and which band of the atlas it is
+  // mapped to (found by inspecting the model's islands in Blender). Glass,
+  // housings, the brow, the mirror caps and everything else stay dark.
   vec3 lp = (uRigInv * vec4(vLampPos, 1.0)).xyz;
+  vec2 q = vEmissiveMapUv;
+  vec3 amber = vec3(1.0, 0.42, 0.0);                 // #ff6a00
+  float lit = uBlink * uHaz;                          // an indicator flash
+  vec3 glow = vec3(0.0);
   if (lp.z > 0.8) {
-    float h = clamp((lp.y - uYLo) / max(1e-4, uYHi - uYLo), 0.0, 1.0);
-    // white as daytime lights; on the CS they run yellow while the low or
-    // high beam is on (BMW press release for the M5 CS)
-    vec3 drl = mix(vec3(0.78, 0.9, 1.0) * 0.34, vec3(1.0, 0.72, 0.2) * 0.42, uYellow);
-    vec3 liner = vec3(0.12, 0.74, 1.0) * 0.75; // the eyeliner: a thin laser-blue line
-    // a band near the top edge with a soft start and a clean finish
-    float band = smoothstep(0.86, 0.9, h) * (1.0 - smoothstep(0.95, 0.98, h));
-    // "The outer daytime driving lights also perform the role of turn
-    // indicators" (BMW, 5 Series LCI): the outer L flashes amber, the inner
-    // L stays lit (ECE coding), so the lamp is never dark. The accent along
-    // the top is not an indicator and stays as it is.
-    vec3 base = totalEmissiveRadiance;
-    vec3 amber = vec3(1.0, 0.34, 0.0) * 0.75;   // saturated; the bloom pass carries the glow
-    float outer = smoothstep(uMidX - 0.02, uMidX + 0.02, abs(lp.x));
-    vec3 lights = mix(drl * uHead, amber, uBlink * uHaz * outer);
-    totalEmissiveRadiance = base * mix(lights, liner * uHead, band) * uBoost;
+    // front: the twin L-blades (the bottom strip of the atlas), and the
+    // projector lenses behind them (the dark lens patch)
+    float blade = smoothstep(0.866, 0.876, q.y);
+    float projector = step(0.6, q.x) * step(q.x, 0.97) * step(0.69, q.y) * step(q.y, 0.87);
+    // idle: ice white (~4.5), or CS yellow while the beams are on (BMW press
+    // release for the M5 CS); the atlas reads ~0.5 there and the material's
+    // emissive is x11, so these scale to those strengths
+    vec3 drl = mix(vec3(0.93, 0.965, 1.0) * 0.82, vec3(1.0, 0.67, 0.0) * 0.9, uYellow);
+    // hazards: amber (~6.5) on each flash, dark (~0.08) between
+    vec3 blades = mix(drl * uHead, mix(vec3(0.015), amber * 1.18, uBlink), uHaz);
+    // the end-of-scroll flash: laser ice-white high beam (~9)
+    blades = mix(blades, vec3(0.97, 0.99, 1.0) * 1.64, uFlash);
+    glow = blades * blade + vec3(0.95, 0.98, 1.0) * 4.5 * uFlash * projector;
+  } else if (lp.z < -0.8) {
+    // tail: the C-shaped blades hold red (~4), up to ~7.5 in the brake
+    // pulse; the thin horizontal strip is the indicator
+    float cblade = step(0.95, q.x) * step(0.28, q.y) * step(q.y, 0.32);
+    float turn = step(q.x, 0.62) * step(0.19, q.y) * step(q.y, 0.27);
+    glow = vec3(1.0, 0.16, 0.06) * (0.48 + 0.42 * uBrake) * cblade + amber * 0.62 * lit * turn;
+  } else if (abs(lp.x) > 0.7 && lp.y > 0.75 && lp.y < 1.35 && lp.z > -0.3 && lp.z < 1.6) {
+    // mirror repeaters: only the thin strip, and only while it is flashing;
+    // a real one is dark smoked glass between flashes, not a white light
+    float strip = step(0.6, q.x) * step(0.21, q.y) * step(q.y, 0.29);
+    glow = amber * 2.0 * lit * strip;
   }
+  totalEmissiveRadiance *= glow * uBoost;
 }`);
         };
         m.needsUpdate = true;
@@ -1144,6 +1220,8 @@ uniform float uYHi;`)
       // would hold the car, the entrance and the whole page behind it.
       // the shed's own strip lights, so they catch with the honeycomb
       const strips = [];
+      // the inside of the shed, for keeping the camera in it
+      const room = new THREE.Box3(new THREE.Vector3(-9, GROUND, -12), new THREE.Vector3(9, GROUND + 4.9, 10));
       const shedReady = shedLoad.then((res) => {
         if (!alive) return;
         const shed = res.scene;
@@ -1174,6 +1252,7 @@ uniform float uYHi;`)
             }
           });
           scene.add(shed);
+          room.setFromObject(shed);
         }
       }).catch(() => {});   // no shed is survivable; the car is the point
 
@@ -1203,8 +1282,8 @@ uniform float uYHi;`)
       const warmStep = (t, gap) => {
         if (warmed || !warmList) return;
         if (!warmFrom) warmFrom = t;
-        warmFast = compiled && gap < 34 ? warmFast + 1 : 0;
-        if (warmFast >= 8 || t - warmFrom > 10000) {
+        warmFast = compiled && gap < 50 ? warmFast + 1 : 0;
+        if (warmFast >= 8 || t - warmFrom > 5000) {
           warmed = true;
           return;
         }
@@ -1217,7 +1296,8 @@ uniform float uYHi;`)
 
       let introT = 0;
       let seek = null;                 // ?perf: hold the entrance at a point
-      let introStart = 0;              // wall clock: a stalled frame cannot stretch it
+      let introStart = 0;
+      let lightsSent = false;              // wall clock: a stalled frame cannot stretch it
       let revealed = false;
       let parked = false;
 
@@ -1229,10 +1309,11 @@ uniform float uYHi;`)
       let havePrev = false;
 
       // ── the tour ──────────────────────────────────────
-      const want = { pos: [0, 0, 0], look: [0, 0, 0], roll: 0, fov: SHOTS[0].fov };
+      const want = { pos: [0, 0, 0], look: [0, 0, 0], roll: 0, fov: SHOTS[0].fov, steer: 0 };
       const camPos = new THREE.Vector3(SHOTS[0].pos[0], SHOTS[0].pos[1], SHOTS[0].pos[2]);
       const camLook = new THREE.Vector3(SHOTS[0].look[0], SHOTS[0].look[1], SHOTS[0].look[2]);
       const up = new THREE.Vector3(0, 1, 0);
+      const facing = new THREE.Vector3(0, 0, -1);
       const view = new THREE.Vector3();
       let fov = SHOTS[0].fov;
       let roll = 0;
@@ -1263,8 +1344,24 @@ uniform float uYHi;`)
       };
       const onPath = new THREE.Vector2(), tan2 = new THREE.Vector2();
       let travelled = 0, dip = 0, dipV = 0, steer = 0, lean = 0, head = 1, beam = 1, flash = 0;
-      let parkedAt = 0, blink = 0, haz = 0;
-      let slip = 0, rearSpin = 0, smokeDue = 0;
+      let blink = 0, haz = 0, holdBlink = null;
+      let finaleFired = false, finaleAt = 0, finale = 0, brake = 0;
+      let pLast = 0, velS = 0, bodyP = 0, bodyV = 0;
+      let slip = 0, rearSpin = 0, smokeDue = 0, steerV = 0, leanV = 0, yawNow = null, yawWas = 0, yawRate = 0;
+      // a project's own camera angle while it is open
+      let detail = null, detailShown = false;
+      // Opening or closing a project is a deliberate move, not a scroll
+      // follow: a timed glide that eases in and out and swings round the car
+      // rather than through it, then the usual follow takes over again.
+      const GLIDE_MS = 1700;
+      let glideFrom = null, glideStart = 0, glidePending = false;
+      const onShot = (e) => {
+        const i = e.detail;
+        detail = typeof i === "number" ? DETAIL_SHOTS[i % DETAIL_SHOTS.length] : null;
+        glidePending = true;
+      };
+      const tgtPos = [0, 0, 0], tgtLook = [0, 0, 0];
+      window.addEventListener("drill:shot", onShot);
       const lens = { x: 0, y: 0, z: 0, ready: false };   // the camera's lagging look point
       const toWorld = (v) => {
         const c = Math.cos(heroHead), s = Math.sin(heroHead);
@@ -1335,9 +1432,34 @@ uniform float uYHi;`)
       // this: the framing stays correct, the subject moves into what is
       // actually visible. Guessing new camera positions would skew it.
       let shift = 0;
-      const dockWidth = () => Math.min(480, window.innerWidth * 0.4);
+      const dockWidth = () => Math.min(464, window.innerWidth * 0.4);
 
       let raf = 0, last = performance.now();
+      // Adaptive quality: a slower GPU drops to 1x resolution and loses the
+      // bloom rather than dragging the drift. Measured on real frames, over
+      // a window, ignoring one-off stalls; phones start at the lower tier.
+      let lowered = false;
+      const lower = () => {
+        if (lowered) return;
+        lowered = true;
+        renderer.setPixelRatio(1);
+        composer.setPixelRatio(1);
+        composer.setSize(vw(), vh());
+        bloom.enabled = false;
+        SMOKE_RATE = 0.55;
+      };
+      if (window.innerWidth < 768 || (navigator.hardwareConcurrency || 8) <= 4) lower();
+      let paceSum = 0, paceN = 0;
+      const pace = (gap) => {
+        if (lowered || gap > 120 || document.hidden) return;
+        paceSum += gap;
+        paceN += 1;
+        if (paceN >= 50) {
+          if (paceSum / paceN > 30) lower();
+          paceSum = 0;
+          paceN = 0;
+        }
+      };
       const probe = new URLSearchParams(window.location.search).has("perf")
         ? (d) => { window.__carState = d; } : null;
 
@@ -1353,7 +1475,12 @@ uniform float uYHi;`)
           // measured against the clock, not summed from frame deltas, so a
           // throttled tab still takes INTRO_MS and no longer
           if (!warmed) introStart = 0;
-          else if (!introStart) introStart = t;
+          else if (!introStart) {
+            introStart = t;
+            // the page's titles key off the engine: the start, and the
+            // moment the headlights first flash
+            window.dispatchEvent(new CustomEvent("car:ignition", { detail: { lightsIn: (DRIVE_END + 0.03) * INTRO_MS } }));
+          }
           // the first frames stall while the GPU compiles the scene; the
           // clock stops for a stall so the drive is not over before it is seen
           else if (gap > 120) introStart += gap - 16;
@@ -1396,31 +1523,56 @@ uniform float uYHi;`)
             const sm = THREE.MathUtils.smoothstep;
             const feint = sm(along, TURN_IN - 1.2, TURN_IN - 0.4) * (1 - sm(along, TURN_IN - 0.4, TURN_IN + 0.3));
             const out = sm(along, TURN_IN, FULL_SLIDE) * (1 - sm(along, UNWIND, CAUGHT));
-            const snap = sm(along, CAUGHT - 0.6, CAUGHT) * (1 - sm(along, CAUGHT, CAUGHT + 1.0));
-            const slipWant = -0.14 * feint + SLIDE * out - 0.07 * snap;
-            slip = THREE.MathUtils.damp(slip, slipWant, 14, dt);
+            const slipWant = -0.14 * feint + SLIDE * out;
+            // quick into the slide (the flick), unhurried out of it
+            slip = THREE.MathUtils.damp(slip, slipWant, Math.abs(slipWant) > Math.abs(slip) ? 12 : 3.5, dt);
             // opposite lock: the fronts point down the road while the body
-            // is sideways to it
+            // is sideways to it. The wheel is on a spring, the way a driver's
+            // hands are: it snaps to lock on the flick and overshoots a touch
+            // when the slide is caught, before it settles straight.
             const pathSteer = speed > 0.05 ? Math.atan(wheelbase * bend) : 0;
-            steer = THREE.MathUtils.damp(steer, THREE.MathUtils.clamp(pathSteer - slip * 1.0, -0.7, 0.7), 16, dt);
+            const steerWant = THREE.MathUtils.clamp(pathSteer - slip * 1.0, -0.72, 0.72);
+            steerV += ((steerWant - steer) * 170 - steerV * 15) * dt;
+            steer = THREE.MathUtils.clamp(steer + steerV * dt, -0.75, 0.75);
             // the rears are spinning well past road speed while it slides
             rearSpin -= Math.abs(slip) * 60 * dt;
             // body roll out of the corner, dive under braking, then it
             // rocks back on its springs when it stops
             // roll onto the outside of the slide, a few degrees
-            lean = THREE.MathUtils.damp(lean, THREE.MathUtils.clamp(slip * 0.075 + lateralG * 0.01, -0.06, 0.06), 8, dt);
+            // the roll is on a spring too: the body leans the wrong way on
+            // the feint, swings over as the tail goes, and rocks once when the
+            // car straightens
+            const leanWant = THREE.MathUtils.clamp(slip * 0.085 + lateralG * 0.012, -0.07, 0.07);
+            leanV += ((leanWant - lean) * 95 - leanV * 9) * dt;
+            lean += leanV * dt;
+            // pitch: squat on the throttle while it holds the slide (nose
+            // lifts), dive under the brakes, then the rebound when it stops
             const braking = sec > cruiseSecs && speed > 0.05;
-            dipV += (((braking ? 0.022 : 0) - dip) * 150 - dipV * 8) * dt;
+            const sliding = !braking && Math.abs(slip) > 0.2 && speed > 0.5;
+            const pitchWant = braking ? 0.03 : sliding ? -0.012 : 0;
+            dipV += ((pitchWant - dip) * 150 - dipV * 8) * dt;
             dip += dipV * dt;
-            rig.rotation.set(0, heading + slip, 0);
+            // The body has rotational inertia. Where the arc meets the
+            // straight the path's turn rate drops to zero in one frame, which
+            // read as the car snapping round onto its mark. So the body's own
+            // rate of turn eases toward the path's, and a light pull keeps it
+            // on heading. (Easing the heading itself would lag the slide and
+            // lose half the drift angle.)
+            const yawWant = heading + slip;
+            if (yawNow === null) { yawNow = yawWant; yawWas = yawWant; }
+            const wantRate = dt > 0 ? turnTo(0, yawWant - yawWas, 1) / dt : 0;
+            yawWas = yawWant;
+            yawRate += (wantRate - yawRate) * (1 - Math.exp(-6 * dt));
+            yawNow = turnTo(yawNow + yawRate * dt, yawWant, 1 - Math.exp(-3 * dt));
+            rig.rotation.set(0, yawNow, 0);
             chassis.rotation.set(dip, 0, lean);
             pool.position.set(rig.position.x, GROUND + 0.004, rig.position.z);
-            pool.rotation.z = heading + slip;
+            pool.rotation.z = yawNow;
             pool.material.opacity = 0.75 * Math.max(0.35, warm);
 
             // smoke off the rear tyres: as much as the slide is giving,
             // thrown back along the way the car is travelling
-            smokeDue += Math.max(0, Math.abs(slip) - 0.12) * Math.min(1, speed / 5) * 150 * dt;
+            smokeDue += Math.max(0, Math.abs(slip) - 0.12) * Math.min(1, speed / 5) * 150 * SMOKE_RATE * dt;
             if (smokeDue >= 1) {
               const bx = -Math.sin(heading), bz = -Math.cos(heading);
               while (smokeDue >= 1) {
@@ -1447,9 +1599,14 @@ uniform float uYHi;`)
             // operator does, with a slight tilt while it is sideways. Once the
             // car is stopping it rises and pushes in to the hero stance.
             const shot = TOUR[0];
-            const back = dollyFor(camera.aspect);
             const push = ease(clamp01((introT - 0.42) / 0.42));
             const hand = THREE.MathUtils.smoothstep(introT, 0.46, 0.8);
+            // On a tall screen the tour pulls the camera back to keep the car
+            // in frame. Here that put the long-lens camera outside the shed,
+            // looking at its door. So while it follows the drift the camera
+            // stays put and the lens widens instead, handing over to the
+            // tour's own framing by the time the car has parked.
+            const back = 1 + (dollyFor(camera.aspect) - 1) * hand;
             const tx = rig.position.x, ty = GROUND + 0.5, tz = rig.position.z;
             if (!lens.ready) { lens.x = tx; lens.y = ty; lens.z = tz; lens.ready = true; }
             lens.x = THREE.MathUtils.damp(lens.x, tx, 5.5, dt);
@@ -1469,7 +1626,11 @@ uniform float uYHi;`)
               camPos.setComponent(j, look + (pos - look) * back);
             }
             const focal = 21 + (shot.fov - 21) * hand;
-            if (Math.abs(focal - fov) > 0.01) { fov = focal; camera.fov = fov; camera.updateProjectionMatrix(); }
+            const narrow = camera.aspect < FRAMED_AT
+              ? Math.min(48, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(focal) / 2) * FRAMED_AT / camera.aspect)))
+              : focal;
+            const lensFov = narrow + (focal - narrow) * hand;
+            if (Math.abs(lensFov - fov) > 0.01) { fov = lensFov; camera.fov = fov; camera.updateProjectionMatrix(); }
             roll = -slip * 0.09 * (1 - hand);
           } else {
           const u = warp(introT);
@@ -1508,10 +1669,10 @@ uniform float uYHi;`)
 
           lamps += (1 - lamps) * Math.min(1, dt * 1.6);
 
+          if (!lightsSent && introT >= DRIVE_END + 0.03) { lightsSent = true; window.dispatchEvent(new Event("car:lights")); }
           if (!revealed && introT >= REVEAL_AT) { revealed = true; onReveal && onReveal(); }
           if (introT >= 1) {
             parked = true;
-            parkedAt = t;
             rig.position.set(MARK[0], MARK[1], MARK[2]);
             rig.rotation.set(0, heroHead, 0);
             chassis.rotation.set(0, 0, 0);
@@ -1532,21 +1693,96 @@ uniform float uYHi;`)
         } else {
           // ── where the camera wants to be ──────────────
           const p = scrolled();
+          // how fast the dossier is moving, smoothed: a hard scroll opens the
+          // lens a few degrees and pitches the body on its springs, and both
+          // settle back once it stops
+          const rawV = dt > 0 ? (p - pLast) / dt : 0;
+          pLast = p;
+          velS = THREE.MathUtils.damp(velS, THREE.MathUtils.clamp(rawV, -1, 1), 6, dt);
+          const pitchWant = THREE.MathUtils.clamp(velS * 0.06, -0.022, 0.022);
+          bodyV += ((pitchWant - bodyP) * 120 - bodyV * 22) * dt;   // critically damped: no rocking
+          bodyP += bodyV * dt;
+          chassis.rotation.x = bodyP;
           p0 = p;
           tourAt(p0, want);
-          const back = dollyFor(camera.aspect);
+          // a project's close-up only while the dossier is up; back at the
+          // titles the scroll drives the camera again
+          const lifted = Math.min(1, Math.max(0, parseFloat(document.documentElement.style.getPropertyValue("--k")) || 0));
+          const showDetail = detail && lifted > 0.5;
+          if (showDetail !== detailShown) { detailShown = showDetail; glidePending = true; }
+          if (showDetail) {
+            for (let j = 0; j < 3; j += 1) { want.pos[j] = detail.pos[j]; want.look[j] = detail.look[j]; }
+            want.fov = detail.fov;
+            want.roll = detail.roll;
+            want.steer = 0;
+          }
+          // a quarter further back once the dossier is up, so the car reads
+          // whole behind the centred text instead of a wheel filling the frame
+          // A project's close-up is framed for its part of the car, so it
+          // is not pulled back with the tour.
+          const back = dollyFor(camera.aspect) * (showDetail ? 1 : 1 + 0.25 * lifted);
           for (let i = 0; i < 3; i += 1) {
             // the tour is written against the car; the car stands on the
             // shed floor, a length back from the world origin
             const base = i === 0 ? MARK[0] : i === 1 ? GROUND : MARK[2];
-            const look = base + want.look[i];
-            const at = look + (base + want.pos[i] - look) * back;
-            camPos.setComponent(i, THREE.MathUtils.damp(camPos.getComponent(i), at, 8, dt));
-            camLook.setComponent(i, THREE.MathUtils.damp(camLook.getComponent(i), look, 8, dt));
+            tgtLook[i] = base + want.look[i];
+            tgtPos[i] = tgtLook[i] + (base + want.pos[i] - tgtLook[i]) * back;
           }
-          roll = THREE.MathUtils.damp(roll, want.roll, 8, dt);
-          const f = THREE.MathUtils.damp(fov, want.fov, 8, dt);
-          if (Math.abs(f - fov) > 0.001) { fov = f; camera.fov = f; camera.updateProjectionMatrix(); }
+          // A tall phone screen pulls the camera far back to fit the car,
+          // and for the overhead shot that put it through the roof. The
+          // camera stays inside the shed, under the light panels and off the
+          // walls; if that brings it closer, the lens widens to make up.
+          {
+            const far = Math.hypot(tgtPos[0] - tgtLook[0], tgtPos[1] - tgtLook[1], tgtPos[2] - tgtLook[2]);
+            tgtPos[0] = THREE.MathUtils.clamp(tgtPos[0], room.min.x + 0.6, room.max.x - 0.6);
+            tgtPos[1] = THREE.MathUtils.clamp(tgtPos[1], GROUND + 0.12, GROUND + 3.5);
+            tgtPos[2] = THREE.MathUtils.clamp(tgtPos[2], room.min.z + 0.6, room.max.z - 0.6);
+            const near = Math.hypot(tgtPos[0] - tgtLook[0], tgtPos[1] - tgtLook[1], tgtPos[2] - tgtLook[2]);
+            if (near > 0.05 && near < far - 0.01) {
+              const r = THREE.MathUtils.degToRad(want.fov) / 2;
+              want.fov = Math.min(80, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(r) * far / near)));
+            }
+          }
+          if (glidePending) {
+            glidePending = false;
+            glideFrom = { pos: camPos.clone(), look: camLook.clone(), fov, roll };
+            glideStart = t;
+          }
+          const gk = glideFrom ? clamp01((t - glideStart) / GLIDE_MS) : 1;
+          if (glideFrom && gk < 1) {
+            const e = gk < 0.5 ? 4 * gk * gk * gk : 1 - Math.pow(-2 * gk + 2, 3) / 2;   // ease in-out
+            // round the car: angle and radius about its centre, so a move from
+            // the tail to the nose orbits instead of cutting through the body,
+            // rising a little at the middle of the move
+            const cx = MARK[0], cz = MARK[2];
+            const a0 = Math.atan2(glideFrom.pos.x - cx, glideFrom.pos.z - cz);
+            const a1 = Math.atan2(tgtPos[0] - cx, tgtPos[2] - cz);
+            const r0 = Math.hypot(glideFrom.pos.x - cx, glideFrom.pos.z - cz);
+            const r1 = Math.hypot(tgtPos[0] - cx, tgtPos[2] - cz);
+            const a = turnTo(a0, a1, e);
+            const r = r0 + (r1 - r0) * e + Math.sin(Math.PI * e) * 0.6;
+            camPos.set(cx + Math.sin(a) * r,
+              glideFrom.pos.y + (tgtPos[1] - glideFrom.pos.y) * e + Math.sin(Math.PI * e) * 0.35,
+              cz + Math.cos(a) * r);
+            for (let i = 0; i < 3; i += 1) {
+              camLook.setComponent(i, glideFrom.look.getComponent(i) + (tgtLook[i] - glideFrom.look.getComponent(i)) * e);
+            }
+            roll = glideFrom.roll + (want.roll - glideFrom.roll) * e;
+            const f = glideFrom.fov + (want.fov - glideFrom.fov) * e;
+            if (Math.abs(f - fov) > 0.001) { fov = f; camera.fov = f; camera.updateProjectionMatrix(); }
+          } else {
+            glideFrom = null;
+            for (let i = 0; i < 3; i += 1) {
+              camPos.setComponent(i, THREE.MathUtils.damp(camPos.getComponent(i), tgtPos[i], 8, dt));
+              camLook.setComponent(i, THREE.MathUtils.damp(camLook.getComponent(i), tgtLook[i], 8, dt));
+            }
+            roll = THREE.MathUtils.damp(roll, want.roll, 8, dt);
+            const f = THREE.MathUtils.damp(fov, want.fov + Math.min(2.5, Math.abs(velS) * 10), 8, dt);
+            if (Math.abs(f - fov) > 0.001) { fov = f; camera.fov = f; camera.updateProjectionMatrix(); }
+          }
+          // the front wheels steer for the shot, slowly, the way a stylist
+          // turns them before a photograph
+          steer = THREE.MathUtils.damp(steer, want.steer, 2.2, dt);
 
           rig.position.set(MARK[0], MARK[1], MARK[2]);
           rig.rotation.y = heroHead;
@@ -1595,30 +1831,30 @@ uniform float uYHi;`)
         lampU.uBoost.value = boost * (1 + 0.8 * flash);
         // a real light: the exposure already scales it, so no boost; the wet
         // floor turns anything stronger into a white pool under the bloom
-        for (const b of beams) b.intensity = beam * 5 * (1 + 0.9 * flash);
-        // hazards: ~1.4Hz, a little over half lit, with the fast rise and
-        // short tail of an LED rather than a hard on/off
-        const since = parkedAt ? t - parkedAt - 350 : -1;
-        // ~1.5Hz, half on, a simple flash, front, mirrors and rear in phase
-        const running = since >= 0 && since < 8 * 667;
-        const blinkOn = running && (since % 667) < 333;
-        blink = THREE.MathUtils.damp(blink, blinkOn ? 1 : 0, blinkOn ? 40 : 22, dt);
-        haz = THREE.MathUtils.damp(haz, running ? 1 : 0, 30, dt);
+        for (const b of beams) b.intensity = (beam * (1 + 0.9 * flash) + 1.6 * finale) * 5;
+        // ── the lighting state machine ──
+        // Phase 1, the tour: hazards, the front L-blades, the mirror strips
+        // and the rear strips phase-locked on one clock, ~1.5Hz, half on, with
+        // the ~60ms edge of an LED. Phase 2, the bottom of the dossier: the
+        // blinkers stop, the high beams double-flash in ice white (on 120ms,
+        // off 90, on 160) with a brake pulse at the back, then the DRLs hold
+        // white and the tails hold red. Back above 85% re-arms it.
+        const prog = parked ? scrolled() : 0;
+        if (parked && !finaleFired && prog >= 0.96) { finaleFired = true; finaleAt = t; }
+        else if (finaleFired && prog < 0.85) finaleFired = false;
+        const hazOn = parked && !finaleFired;
+        let blinkOn = hazOn && (t % 667) < 333;
+        if (holdBlink !== null) blinkOn = holdBlink;      // ?perf: hold a phase to look at it
+        blink = THREE.MathUtils.damp(blink, blinkOn ? 1 : 0, 48, dt);
+        haz = THREE.MathUtils.damp(haz, hazOn || holdBlink !== null ? 1 : 0, 40, dt);
+        const since = finaleFired ? t - finaleAt : 1e9;
+        const flashOn = since < 120 || (since >= 210 && since < 370);
+        finale = THREE.MathUtils.damp(finale, flashOn ? 1 : 0, 55, dt);
+        brake = THREE.MathUtils.damp(brake, since < 650 ? 1 : 0, since < 650 ? 30 : 5, dt);
         lampU.uBlink.value = blink;
         lampU.uHaz.value = haz;
-        for (const hz of hazards) {
-          hz.sp.getWorldPosition(glareAt);
-          glareTo.copy(camera.position).sub(glareAt);
-          const dist = glareTo.length();
-          glareTo.divideScalar(Math.max(1e-4, dist));
-          glareFwd.copy(hz.dir).applyQuaternion(rig.quaternion);
-          const facing = THREE.MathUtils.smoothstep(glareFwd.dot(glareTo), -0.25, 0.45);
-          const size = THREE.MathUtils.clamp(dist * 0.045, 0.05, 0.26);
-          if (hz.strip) hz.sp.scale.set(hz.strip, Math.max(0.012, size * 0.12), 1);
-          else hz.sp.scale.set(size, size, 1);
-          hz.sp.material.opacity = Math.min(1, blink * facing * 0.9);
-          hz.sp.visible = hz.sp.material.opacity > 0.003;
-        }
+        lampU.uFlash.value = finale;
+        lampU.uBrake.value = brake;
         if (glares.length) {
           // strongest in the dark, held back once the room is lit, and back
           // up again as the lens comes close to a lamp; it needs the lamp
@@ -1632,7 +1868,7 @@ uniform float uYHi;`)
             glareTo.divideScalar(Math.max(1e-4, dist));
             const facing = THREE.MathUtils.smoothstep(glareFwd.dot(glareTo), -0.2, 0.5);
             const near = 1 - THREE.MathUtils.smoothstep(dist, 1.4, 5);
-            const k = head * (1 - 0.45 * blink * haz) * facing * Math.max(dark, 0.5 + 0.5 * near) * (1 + 0.6 * flash);
+            const k = head * Math.max(1 - haz, finale) * (1 + 1.4 * finale) * facing * Math.max(dark, 0.5 + 0.5 * near) * (1 + 0.6 * flash);
             // a faint shimmer, so it reads as light through glass, not a sticker
             const shimmer = 0.94 + 0.06 * Math.sin(t * 0.0037 + gl.at.x * 9);
             gl.core.material.opacity = Math.min(1, k * 0.35 * shimmer);   // a hot centre; the halo is the bloom
@@ -1656,7 +1892,11 @@ uniform float uYHi;`)
           const phone = window.innerWidth < 768;
           const w = Math.max(1, el.clientWidth);
           const h = Math.max(1, el.clientHeight);
-          const wanted = phone ? 0 : -dockWidth() * 0.48;
+          // the hero titles sit bottom-left, so at the top the car holds the
+          // right; the dossier's wings sit at both edges, so as it comes up
+          // the car moves back to the clear middle between them
+          const handed = Math.min(1, Math.max(0, parseFloat(document.documentElement.style.getPropertyValue("--k")) || 0));
+          const wanted = phone ? 0 : -dockWidth() * 0.48 * (1 - handed);
           shift = THREE.MathUtils.damp(shift, wanted, 5, dt);
           if (Math.abs(shift) < 0.5) {
             if (camera.view && camera.view.enabled) { camera.clearViewOffset(); }
@@ -1665,14 +1905,23 @@ uniform float uYHi;`)
           }
         }
 
+        // The up hint is world up plus the way the camera faces across the
+        // floor. Both lie in the plane of the view, so the aim is exactly what
+        // world up alone gives, but it stays defined looking straight down.
+        // (The old hint swung from +Y to +Z as the lens tipped past ~64
+        // degrees, which rolled the overhead shot back and forth on scroll.)
         view.copy(camLook).sub(camPos).normalize();
-        const k = THREE.MathUtils.smoothstep(Math.abs(view.y), 0.9, 0.999);
-        up.set(0, 1 - k, k).normalize();
+        const flat = Math.hypot(view.x, view.z);
+        if (flat > 1e-3) facing.set(view.x / flat, 0, view.z / flat);
+        // (only when looking down: looking up, the facing would point the
+        // other way on screen)
+        up.set(0, 1, 0).addScaledVector(facing, 2 * Math.max(0, -view.y)).normalize();
         camera.up.copy(up);
         camera.position.copy(camPos);
         camera.lookAt(camLook);
         camera.rotateZ(roll);            // the lean goes on after the aim
         warmStep(t, gap);
+        if (warmed) pace(gap);
         composer.render();
 
         if (!el.dataset.lit) { el.dataset.lit = "1"; el.style.opacity = "1"; }
@@ -1685,7 +1934,8 @@ uniform float uYHi;`)
             car: [+rig.position.x.toFixed(2), +rig.position.z.toFixed(2)],
             ndc: [+v.x.toFixed(2), +v.y.toFixed(2)],
             cam: [+camPos.x.toFixed(2), +camPos.y.toFixed(2), +camPos.z.toFixed(2)],
-            fov: +fov.toFixed(1), roll: +roll.toFixed(3),
+            fov: +fov.toFixed(1), roll: +roll.toFixed(3), detail: !!detail, gliding: !!glideFrom,
+            haz: +haz.toFixed(2), blink: +blink.toFixed(2), finale: finaleFired,
           });
         }
       };
@@ -1704,19 +1954,23 @@ uniform float uYHi;`)
         wheels: wheels.length, hood: hood ? 1 : 0, lamps: lampMats.length, doors: doors.length,
         length: +new THREE.Box3().setFromObject(car).getSize(new THREE.Vector3()).z.toFixed(3),
         flipped: flip,
-        skipIntro: () => { seek = null; warmed = true; introT = 1; introStart = 1; },
+        // straight to parked: held at the end, so the stall guard cannot pull it back
+        skipIntro: () => { warmed = true; seek = 1; },
         setDoors: (v) => { doorWant = v; },
       };
       if (probe) {
         window.__car = api.current;
         window.__carRoot = car;
         window.__carSeek = (v) => { seek = v; parked = false; };   // step the entrance by hand
+        window.__carBlink = (v) => { holdBlink = v === null ? null : !!v; };   // hold the indicators lit/unlit
+        window.__carShot = (shot) => { detail = shot; glidePending = true; };   // frame any shot (car frame)
       }
       mark("ready");
 
       dispose = () => {
         cancelAnimationFrame(raf);
         window.removeEventListener("resize", onResize);
+        window.removeEventListener("drill:shot", onShot);
         renderer.domElement.removeEventListener("click", onClick);
         renderer.domElement.removeEventListener("pointermove", onMove);
 

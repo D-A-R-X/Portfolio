@@ -143,12 +143,12 @@ PROJECTS = [
     },
     {
         "name": "Sentinel X",
-        "tag": "Trading Signal Verification & Paper Trading",
-        "stack": "Python · Telegram API · Zerodha Kite Connect · Pine Script · SQLite",
+        "tag": "Trading Automation · MetaTrader 5 & Indian MCX",
+        "stack": "Python · MetaTrader 5 · Fyers API · Zerodha Kite Connect · Next.js · Convex · React Native",
         "link": None,
-        "blurb": "Records every call a signal channel makes and logs what would have happened, measuring true win "
-                 "rate without placing a real trade. An Indian-market build adds a virtual broker on Kite Connect "
-                 "with expiry and rollover rules and hard risk caps; live trading stays gated off.",
+        "blurb": "Automated forex and gold trading on MetaTrader 5, with AI review of each setup, structural risk "
+                 "rules and a desktop, web and phone control panel. An Indian build trades MCX futures through "
+                 "Zerodha on live Fyers prices, with hard risk caps and live trading gated per account.",
     },
     {
         "name": "Drive Track Mate",
