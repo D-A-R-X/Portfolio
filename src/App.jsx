@@ -9,6 +9,10 @@ import { useReducedMotion, useIsMobile, useScrubber, useReveal, Reveal, Decode, 
 import { Landscape, Particles } from "./world.jsx";
 import { Smoke } from "./fluid.jsx";
 import { CarScene, CAR_CSS } from "./car.jsx";
+
+// the current résumé: the hash changes with every rebuild of the PDF, so no
+// one is handed a cached older copy ("Download" saves it, "Résumé" opens it)
+const RESUME_URL = `/Surya_J_Resume.pdf?v=${typeof __RESUME_V__ === "undefined" ? "1" : __RESUME_V__}`;
 import { FXArt, FXGrid, FX_CSS } from "./cardfx.jsx";
 import { Mockup } from "./mockups.jsx";
 
@@ -407,7 +411,7 @@ function TopBar({ open, setOpen, go, theme, toggleTheme }) {
         Surya<span>J</span>
       </button>
       <nav className="chrome" aria-label="Primary">
-        <a className="chip-btn" href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer">
+        <a className="chip-btn" href={RESUME_URL} target="_blank" rel="noopener noreferrer">
           Résumé <Arrow up size={12} />
         </a>
         <ThemeToggle theme={theme} toggle={toggleTheme} />
@@ -464,7 +468,7 @@ function Menu({ open, go, mobile }) {
               <span style={{ color: T.ink }}>{c.value}</span>
             </a>
           ))}
-          <a className="ghost-btn" href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer" tabIndex={open ? 0 : -1} style={{ justifySelf: "start", marginTop: ".6rem" }}>Download résumé <Arrow up size={14} /></a>
+          <a className="ghost-btn" href={RESUME_URL} download="Surya_J_Resume.pdf" tabIndex={open ? 0 : -1} style={{ justifySelf: "start", marginTop: ".6rem" }}>Download résumé <Arrow up size={14} /></a>
         </div>
       </div>
     </div>
@@ -1023,7 +1027,7 @@ function Contact({ mobile, motion }) {
           {CONTACT_LINKS.filter((c) => c.label !== "Email").map((c) => (
             <a key={c.label} className="ghost-btn" href={c.href} target="_blank" rel="noopener noreferrer">{c.label} <Arrow up size={14} /></a>
           ))}
-          <a className="ghost-btn" href="/Surya_J_Resume.pdf" target="_blank" rel="noopener noreferrer" style={{ background: T.blue, color: "#fff", borderColor: T.blue }}>Download résumé <Arrow up size={14} /></a>
+          <a className="ghost-btn" href={RESUME_URL} download="Surya_J_Resume.pdf" style={{ background: T.blue, color: "#fff", borderColor: T.blue }}>Download résumé <Arrow up size={14} /></a>
         </Reveal>
 
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", marginTop: "7rem", paddingTop: "1.4rem", borderTop: `1px solid ${T.line2}` }}>
