@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { bootProgress, bootDone } from "./boot.js";
 import { FONT, EASE } from "./theme.js";
 
 /* ─────────────────────────────────────────────────────────
@@ -438,7 +439,7 @@ export function CarScene({ reduced, onReveal, onDone, onPart, progressRef }) {
 
   // the car opens the site, so it loads straight away
   useEffect(() => {
-    if (reduced) { onReveal && onReveal(); onDone && onDone(); return; }
+    if (reduced) { bootDone(); onReveal && onReveal(); onDone && onDone(); return; }
     setArmed(true);
   }, [reduced, onReveal, onDone]);
 
@@ -498,14 +499,24 @@ export function CarScene({ reduced, onReveal, onDone, onPart, progressRef }) {
       scene.environment = env.texture;
 
       const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+      // The two downloads drive most of the loading bar. Their sizes are
+      // known, for when the server sends no length.
+      const got = { car: 0, shed: 0 };
+      const bytes = { car: 2242976, shed: 4159864 };
+      const onBytes = (k) => (e) => {
+        got[k] = e.loaded;
+        if (e.total) bytes[k] = e.total;
+        bootProgress(0.06 + 0.66 * (got.car + got.shed) / (bytes.car + bytes.shed), "Loading the M5 CS");
+      };
+      bootProgress(0.06, "Loading the M5 CS");
       // fetched in parallel with the car; it joins the scene before the
       // intro starts, so four megabytes of textures do not upload mid-drift
-      const shedLoad = loader.loadAsync(SHED);
+      const shedLoad = loader.loadAsync(SHED, onBytes("shed"));
       let gltf;
       try {
-        gltf = await loader.loadAsync(MODEL);
+        gltf = await loader.loadAsync(MODEL, onBytes("car"));
       } catch {
-        if (alive) mark("failed");
+        if (alive) { mark("failed"); bootDone(); }
         return;
       }
       if (!alive) return;
@@ -1269,6 +1280,7 @@ uniform float uYHi;`)
       let warmList = null, warmFast = 0, warmFrom = 0, compiled = false;
       shedReady.then(async () => {
         if (!alive) return;
+        bootProgress(0.8, "Building shaders");
         warmList = [];
         scene.traverse((o) => { if (!o.visible || o.isSprite || o.isPoints) warmList.push(o); });
         for (const o of warmList) o.visible = true;
@@ -1278,6 +1290,7 @@ uniform float uYHi;`)
         } catch { /* a failed warm-up only costs a stall later */ }
         renderer.setRenderTarget(null);
         compiled = true;
+        bootProgress(0.94, "Warming up");
       });
       const warmStep = (t, gap) => {
         if (warmed || !warmList) return;
@@ -1285,6 +1298,7 @@ uniform float uYHi;`)
         warmFast = compiled && gap < 50 ? warmFast + 1 : 0;
         if (warmFast >= 8 || t - warmFrom > 5000) {
           warmed = true;
+          bootDone();
           return;
         }
         for (const o of warmList) o.visible = true;
@@ -1297,6 +1311,7 @@ uniform float uYHi;`)
       let introT = 0;
       let seek = null;                 // ?perf: hold the entrance at a point
       let introStart = 0;
+      let goAt = 0;
       let lightsSent = false;              // wall clock: a stalled frame cannot stretch it
       let revealed = false;
       let parked = false;
@@ -1475,7 +1490,8 @@ uniform float uYHi;`)
           // measured against the clock, not summed from frame deltas, so a
           // throttled tab still takes INTRO_MS and no longer
           if (!warmed) introStart = 0;
-          else if (!introStart) {
+          else if (!goAt) goAt = t + 650;      // the loading screen fades first
+          else if (!introStart && t >= goAt) {
             introStart = t;
             // the page's titles key off the engine: the start, and the
             // moment the headlights first flash
@@ -1483,7 +1499,7 @@ uniform float uYHi;`)
           }
           // the first frames stall while the GPU compiles the scene; the
           // clock stops for a stall so the drive is not over before it is seen
-          else if (gap > 120) introStart += gap - 16;
+          else if (introStart && gap > 120) introStart += gap - 16;
           introT = seek !== null ? seek : introStart ? clamp01((t - introStart) / INTRO_MS) : 0;
 
           if (ENTRANCE === "shutter") {

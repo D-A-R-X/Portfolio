@@ -1385,17 +1385,21 @@ function RoleDecoder() {
     }
     let wait = 0;
     const onIgnition = (e) => begin(600, (e.detail && e.detail.lightsIn) || 2900);
+    // no car (no WebGL, or it failed to load): decode on its own, counted
+    // from when the loading screen hands over
+    const fallback = () => { wait = setTimeout(() => begin(600, 600 + (n - from) * 70), 6000); };
     if (booted.current) begin(280, 280 + (n - from) * 42);
     else {
       window.addEventListener("car:ignition", onIgnition);
       window.addEventListener("car:lights", onLights);
-      // no car (no WebGL, or it is still loading): decode on its own
-      wait = setTimeout(() => begin(600, 600 + (n - from) * 70), 6000);
+      if (document.documentElement.classList.contains("booting")) window.addEventListener("boot:done", fallback, { once: true });
+      else fallback();
     }
     return () => {
       cancelAnimationFrame(raf); clearTimeout(timer); clearTimeout(wait);
       window.removeEventListener("car:ignition", onIgnition);
       window.removeEventListener("car:lights", onLights);
+      window.removeEventListener("boot:done", fallback);
     };
   }, [i, text]);
 
@@ -1588,6 +1592,8 @@ const GARAGE_CSS = `
     background:linear-gradient(90deg,#0066B1 0 33.3%,#003399 33.3% 66.6%,#E30613 66.6% 100%) left bottom/100% 2px no-repeat}
   .introhud-bio{margin-top:1.3rem;font-size:clamp(.8rem,1.4vw,.92rem);line-height:1.7;color:#b4c8dd;
     text-shadow:0 1px 20px rgba(0,0,0,.9);animation:introRise 1.2s ${EASE.out} .65s both}
+  /* the titles wait behind the loading screen and rise as it fades */
+  :root.booting .introhud,:root.booting .introhud *{animation-play-state:paused !important}
   @keyframes introRise{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:none}}
   @media (max-width:900px){.introhud{width:auto;right:clamp(1.6rem,5vw,4.5rem);bottom:clamp(2rem,6vh,3rem)}}
 

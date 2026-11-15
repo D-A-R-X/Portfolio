@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="booting">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#05080f" />
     <meta name="description" content="Surya J (DARX) — App &amp; Web Developer at Kosal Tech Solutions, with a contract engagement at Manju Global. AI systems, Android, and full-stack engineering." />
     <title>Surya J — Software Developer</title>
 
@@ -16,11 +16,44 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- the car and its shed start downloading with the page, not after the
+         JavaScript has loaded and asked for them -->
+    <link rel="preload" href="/models/m5cs.glb" as="fetch" type="model/gltf-binary" crossorigin />
+    <link rel="preload" href="/models/shed.glb" as="fetch" type="model/gltf-binary" crossorigin />
     <style>
-      html, body { background: #ffffff; margin: 0; }
+      html, body { background: #05080f; margin: 0; }
+      /* The loading screen is plain HTML so it is up on the first paint. It
+         stays until the car is downloaded, its shaders are built and frames
+         are coming in smoothly, then fades and the drive-in starts. */
+      #boot { position: fixed; inset: 0; z-index: 5000; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 1.1rem; background: #05080f; color: #eaf2ff;
+        font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+        transition: opacity .7s ease, visibility 0s linear .7s; }
+      #boot.out { opacity: 0; visibility: hidden; }
+      #boot .m { display: flex; gap: 3px; }
+      #boot .m i { display: block; width: 18px; height: 3px; }
+      #boot .m i:nth-child(1) { background: #0066B1; }
+      #boot .m i:nth-child(2) { background: #003399; }
+      #boot .m i:nth-child(3) { background: #E30613; }
+      #boot .n { font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 600; letter-spacing: .32em; padding-left: .32em; }
+      #boot .n b { color: #38bdf8; font-weight: 600; }
+      #boot .bar { width: min(240px, 60vw); height: 2px; background: rgba(255, 255, 255, .1); overflow: hidden; border-radius: 2px; }
+      #boot .bar i { display: block; height: 100%; background: #38bdf8; transform: scaleX(0); transform-origin: left;
+        transition: transform .45s cubic-bezier(.2, .8, .2, 1);
+        box-shadow: 0 0 10px rgba(56, 189, 248, .7); }
+      #boot .s { display: flex; gap: .8rem; font-size: .78rem; letter-spacing: .04em; color: rgba(234, 242, 255, .55);
+        font-variant-numeric: tabular-nums; }
+      #boot .s span:last-child { color: #7dd3fc; min-width: 3ch; text-align: right; }
+      @media (prefers-reduced-motion: reduce) { #boot { transition: none; } }
     </style>
   </head>
   <body>
+    <div id="boot" role="status" aria-live="polite" aria-label="Loading">
+      <span class="m" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div class="n">SURYA <b>J</b></div>
+      <div class="bar" aria-hidden="true"><i></i></div>
+      <div class="s"><span class="l">Starting up</span><span class="p">0%</span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
